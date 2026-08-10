@@ -1,0 +1,72 @@
+{
+  "name": "Trigger Phantombuster",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -320,
+        -64
+      ],
+      "id": "236fa502-d4fa-40a9-9c62-318e5fdc5815",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.phantombuster.com/api/v1/agent/627960526074744/launch",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "jMyBjQ0IGNnRnHNdHnSWowcmRnjjXvACbLbaonOIGfo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -112,
+        -64
+      ],
+      "id": "f4025c5f-9b37-4e9a-a418-f1eb2ff7da2a",
+      "name": "HTTP Request"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "2cc182cf-1e8f-4902-8767-0229bfdaf8b2",
+  "meta": null,
+  "id": "VFEOjK3WHF3Ec66l",
+  "tags": []
+}

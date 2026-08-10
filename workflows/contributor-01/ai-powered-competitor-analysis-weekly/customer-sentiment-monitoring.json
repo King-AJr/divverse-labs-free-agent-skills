@@ -1,0 +1,762 @@
+{
+  "name": "Customer Sentiment Monitoring",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        144
+      ],
+      "id": "e36a443e-c268-4c3c-8836-0e6360400d43",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "// HTML to Plain Text Converter for n8n Code Node\n// Processes all incoming items and outputs one combined plain text bundle\n\nfunction htmlToPlainText(html) {\n  let text = html;\n\n  // Remove script and style elements completely\n  text = text.replace(/<script[^>]*>[\\s\\S]*?<\\/script>/gi, '');\n  text = text.replace(/<style[^>]*>[\\s\\S]*?<\\/style>/gi, '');\n\n  // Replace common block elements with line breaks\n  text = text.replace(/<\\/?(div|p|br|h[1-6]|li|tr)[^>]*>/gi, '\\n');\n\n  // Replace list items with bullet points\n  text = text.replace(/<li[^>]*>/gi, '• ');\n\n  // Remove all remaining HTML tags\n  text = text.replace(/<[^>]*>/g, '');\n\n  // Decode common HTML entities\n  const entityMap = {\n    '&amp;': '&',\n    '&lt;': '<',\n    '&gt;': '>',\n    '&quot;': '\"',\n    '&#39;': \"'\",\n    '&apos;': \"'\",\n    '&nbsp;': ' ',\n    '&copy;': '©',\n    '&reg;': '®',\n    '&trade;': '™',\n    '&hellip;': '...',\n    '&mdash;': '—',\n    '&ndash;': '–'\n  };\n\n  for (const [entity, char] of Object.entries(entityMap)) {\n    text = text.replace(new RegExp(entity, 'g'), char);\n  }\n\n  // Decode numeric HTML entities (e.g., &#123;)\n  text = text.replace(/&#(\\d+);/g, (_, dec) => String.fromCharCode(dec));\n\n  // Decode hex HTML entities (e.g., &#x1F;)\n  text = text.replace(/&#x([0-9A-Fa-f]+);/g, (_, hex) =>\n    String.fromCharCode(parseInt(hex, 16))\n  );\n\n  // Clean up whitespace\n  text = text.replace(/\\n\\s*\\n/g, '\\n\\n'); // Remove excessive line breaks\n  text = text.replace(/[ \\t]+/g, ' ');     // Replace multiple spaces/tabs\n  text = text.trim();                      // Remove leading/trailing whitespace\n\n  return text;\n}\n\ntry {\n  // Process each incoming item\n  const processed = items.map((item, index) => {\n    const htmlContent = item.json.data || \"\";\n    const plainText = htmlToPlainText(htmlContent);\n\n    return {\n      index,\n      originalHtml: htmlContent,\n      plainText,\n      characterCount: plainText.length,\n      wordCount: plainText.split(/\\s+/).filter(word => word.length > 0).length,\n    };\n  });\n\n  // Combine all plain texts into one big text block\n  const combinedPlainText = processed.map(\n    (p, i) => `--- Item ${i + 1} ---\\n${p.plainText}`\n  ).join(\"\\n\\n\");\n\n  return [{\n    json: {\n      combinedPlainText,\n      totalItems: processed.length,\n      details: processed,\n      success: true\n    }\n  }];\n} catch (error) {\n  return [{\n    json: {\n      error: `Failed to convert HTML to text: ${error.message}`,\n      success: false\n    }\n  }];\n}\n"
+      },
+      "id": "4ca1ff93-e4b4-4083-8773-4f880083c41a",
+      "name": "HTTP -> Plain Text1",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        256,
+        32
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "=https://www.trustpilot.com/review/n8n.io",
+        "options": {}
+      },
+      "id": "a2cd1e3f-b13f-4072-905e-ab5455ee58ae",
+      "name": "Crawl Website Content1",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -320,
+        -272
+      ],
+      "typeVersion": 4.2,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.trustpilot.com/review/{{ $json.Competitor }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -16,
+        32
+      ],
+      "id": "f3547e3f-e6fd-450c-98f4-fc1e61220fe1",
+      "name": "Get TrustPilot Reviews"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        384,
+        320
+      ],
+      "id": "db6fe41e-ef6a-4bee-96e8-1dfdaa70b377",
+      "name": "Loop Over Items",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3c909b84-ba1a-4c88-b13b-8d449ec03374",
+              "name": "SearchString",
+              "value": "=site:reddit.com {{ $json.Competitor }} reviews",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -32,
+        320
+      ],
+      "id": "45a31e93-90bb-4fca-913a-7eb81bbd6a8b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-API-KEY",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"q\": \"{{ $json.SearchString }}\",\n  \"hl\": \"en\",\n  \"page\": 1,\n  \"tbs\": \"qdr:w\", \n  \"num\": 10\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        976,
+        448
+      ],
+      "id": "b58ddfc3-5f46-42c5-af82-204244856116",
+      "name": "Google Search"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1408,
+        448
+      ],
+      "id": "405e89b1-4c5c-490a-813d-818254f7a9b8",
+      "name": "Wait"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "organic",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        448
+      ],
+      "id": "153f9521-82cb-422f-9c3f-6651e0cda3b3",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw",
+          "mode": "list",
+          "cachedResultName": "Price Monitoring",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -608,
+        144
+      ],
+      "id": "90132b3b-33b4-4c1c-a04a-8ae16cf0a6f3",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        928,
+        -336
+      ],
+      "id": "9159035e-05be-4967-bb5e-224546b4f7ee",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        864,
+        352
+      ],
+      "id": "6b6b3070-663c-4da6-ad88-6536efe4a4b0",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        176,
+        320
+      ],
+      "id": "1d8a8cc7-4bc5-4677-b9e1-30c6e2aeecb0",
+      "name": "Limit",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Competitors: {{ JSON.stringify($('Aggregate1').first().json.Competitor) }}\n\nReviews:\n\n{{ $json.combinedPlainText }}",
+        "options": {
+          "systemMessage": "=You are a competitive intelligence analyst.\n\nYou will receive raw customer reviews scraped from Trustpilot.  \nThe reviews may mention multiple competitors. The competitors you must analyze are:  \n{{ JSON.stringify($('Aggregate1').first().json.Competitor) }}\n\nYour job:\n1. For EACH competitor in the list above, scan the reviews for mentions of that competitor.\n2. Analyze the reviews related to that competitor and extract:\n   - \"SentimentSummary\": Overall Positive | Negative | Mixed | Neutral\n   - \"PainPoints\": List of recurring complaints from customers, or [\"None\"]\n   - \"RequestedFeatures\": List of requested or desired features, or [\"None\"]\n   - \"Strengths\": List of things customers praise or appreciate, or [\"None\"]\n   - \"OtherInsights\": List of any strategic insights (pricing complaints, churn risk, switching reasons, support issues, trust factors, etc.), or [\"None\"]\n\n3. Important: If a competitor is in the list but not mentioned in the reviews, still include them in the output with \"None\" for all fields (except Competitor, Source).\n\n4. Output format: An **array of JSON objects**. Each competitor gets one JSON object, even if no information is found.\n\n### Example Output:\n[\n  {\n    \"Competitor\": \"Make.com\",\n    \"Source\": \"Trustpilot\",\n    \"SentimentSummary\": \"Mixed\",\n    \"PainPoints\": [\"Occasional reliability issues\", \"Steep learning curve for beginners\"],\n    \"RequestedFeatures\": [\"Simpler onboarding\"],\n    \"Strengths\": [\"Robust automation options\", \"Good free plan\"],\n    \"OtherInsights\": [\"Some users switch from Zapier due to pricing\"]\n  },\n  {\n    \"Competitor\": \"n8n.io\",\n    \"Source\": \"Trustpilot\",\n    \"SentimentSummary\": \"Overall Positive\",\n    \"PainPoints\": [\"None\"],\n    \"RequestedFeatures\": [\"None\"],\n    \"Strengths\": [\"Cost-effective self-hosting\", \"Community support\"],\n    \"OtherInsights\": [\"Popular among small businesses seeking cheaper alternatives\"]\n  }\n]\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        -48
+      ],
+      "id": "6bc84124-f7c5-49bf-a800-ecbb4e456266",
+      "name": "Analyze Trustpilot Reviews"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        144
+      ],
+      "id": "c80e81aa-4bc8-4d3f-b4da-f59e06224957",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Reddit Thread",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        640,
+        272
+      ],
+      "id": "17ce3b64-c60a-4fb4-8d63-ff3ea04a1749",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Competitors: {{ JSON.stringify($('Aggregate1').first().json.Competitor) }}\n\nReddit Thread:\n\n {{ JSON.stringify($json['Reddit Thread']) }}",
+        "options": {
+          "systemMessage": "=You are a competitive intelligence analyst.\n\nYou are given Reddit threads that mention multiple competitors. The competitors you must analyze are:\n{{ JSON.stringify($('Aggregate1').first().json.Competitor) }}\n\nYour job:\n1. Carefully read through the Reddit content provided.\n2. For EACH competitor listed, generate a JSON object that captures:\n   - \"Competitor\": exact name of the competitor (from the list above)\n   - \"Source\": always \"Reddit\"\n   - \"SentimentSummary\": one of [\"Overall Positive\", \"Negative\", \"Mixed\", \"Neutral\"]\n   - \"PainPoints\": a list of pain points mentioned about this competitor, or [\"None\"] if not found\n   - \"RequestedFeatures\": a list of requested features users asked for, or [\"None\"] if not found\n   - \"Strengths\": a list of strengths mentioned, or [\"None\"] if not found\n   - \"OtherInsights\": a list of any other strategic insights, or [\"None\"] if not found\n\n3. Important: You must output an **array of JSON objects**. Each competitor must have its own object in the array, even if no information is found (in that case, fill values with \"None\").\n\n4. Do not include any explanation, extra text, or markdown. Output ONLY a valid JSON array.\n\n### Example Output:\n[\n  {\n    \"Competitor\": \"Make.com\",\n    \"Source\": \"Reddit\",\n    \"SentimentSummary\": \"Mixed\",\n    \"PainPoints\": [\"Occasional reliability issues\", \"Harder setup for beginners\"],\n    \"RequestedFeatures\": [\"Better onboarding\"],\n    \"Strengths\": [\"Strong community\", \"Cost-effective self-hosting option\"],\n    \"OtherInsights\": [\"Adopted by small businesses as a Zapier alternative\"]\n  },\n  {\n    \"Competitor\": \"n8n.io\",\n    \"Source\": \"Reddit\",\n    \"SentimentSummary\": \"Overall Positive\",\n    \"PainPoints\": [\"None\"],\n    \"RequestedFeatures\": [\"None\"],\n    \"Strengths\": [\"Easy drag-and-drop automation building\"],\n    \"OtherInsights\": [\"Popular for social media automation\"]\n  }\n]\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        144
+      ],
+      "id": "d792dfe7-df0f-4e6f-a5e1-7697d4ce28ac",
+      "name": "Analyze Reddit Threads"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "Competitor"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        144
+      ],
+      "id": "d4ae9bad-d99b-4bd9-a261-e436715816c9",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "Competitor",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        144
+      ],
+      "id": "9389eaee-6755-4be0-b66e-0f17fd7e4f0b",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: array of items with `output` (stringified JSON or JSON array)\n// Goal: produce one item with formatted HTML for email\n\nfunction safeParse(str) {\n  try {\n    return JSON.parse(str);\n  } catch (e) {\n    return null;\n  }\n}\n\n// Flatten and parse outputs\nlet allEntries = [];\n\nfor (const item of items) {\n  let parsed = safeParse(item.json.output);\n  if (!parsed) continue;\n\n  if (Array.isArray(parsed)) {\n    allEntries.push(...parsed);\n  } else {\n    allEntries.push(parsed);\n  }\n}\n\n// Group by Competitor\nconst grouped = {};\nfor (const entry of allEntries) {\n  if (!grouped[entry.Competitor]) {\n    grouped[entry.Competitor] = [];\n  }\n  grouped[entry.Competitor].push(entry);\n}\n\n// Generate HTML\nlet html = `\n  <html>\n  <head>\n    <style>\n      body { font-family: Arial, sans-serif; line-height: 1.5; }\n      h2 { color: #2c3e50; margin-top: 30px; }\n      h3 { color: #34495e; margin-top: 20px; }\n      ul { margin: 0; padding-left: 20px; }\n      li { margin-bottom: 6px; }\n      .source { font-style: italic; color: #7f8c8d; }\n      .section { margin-bottom: 15px; }\n    </style>\n  </head>\n  <body>\n    <h1>🕵️ Competitor Insights Report</h1>\n`;\n\nfor (const competitor of Object.keys(grouped)) {\n  html += `<h2>🏷️ ${competitor}</h2>`;\n  \n  for (const sourceEntry of grouped[competitor]) {\n    html += `<h3>🔎 Source: ${sourceEntry.Source}</h3>`;\n\n    html += `<div class=\"section\"><strong>📊 Sentiment:</strong> ${sourceEntry.SentimentSummary || \"N/A\"}</div>`;\n    \n    if (sourceEntry.PainPoints?.length) {\n      html += `<div class=\"section\"><strong>❌ Pain Points:</strong><ul>`;\n      for (const p of sourceEntry.PainPoints) {\n        html += `<li>${p}</li>`;\n      }\n      html += `</ul></div>`;\n    }\n\n    if (sourceEntry.RequestedFeatures?.length) {\n      html += `<div class=\"section\"><strong>✨ Requested Features:</strong><ul>`;\n      for (const f of sourceEntry.RequestedFeatures) {\n        html += `<li>${f}</li>`;\n      }\n      html += `</ul></div>`;\n    }\n\n    if (sourceEntry.Strengths?.length) {\n      html += `<div class=\"section\"><strong>💪 Strengths:</strong><ul>`;\n      for (const s of sourceEntry.Strengths) {\n        html += `<li>${s}</li>`;\n      }\n      html += `</ul></div>`;\n    }\n\n    if (sourceEntry.OtherInsights?.length) {\n      html += `<div class=\"section\"><strong>💡 Other Insights:</strong><ul>`;\n      for (const o of sourceEntry.OtherInsights) {\n        html += `<li>${o}</li>`;\n      }\n      html += `</ul></div>`;\n    }\n  }\n}\n\nhtml += `\n  </body>\n  </html>\n`;\n\n// Return as single item for Gmail node\nreturn [{ json: { html } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        -336
+      ],
+      "id": "f0aa6319-7af8-4487-a76f-bc56021381a8",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Customer Sentiment Report for Competitors",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1632,
+        -336
+      ],
+      "id": "21d4d305-e1b3-48b1-b6fd-a4cf7ab03300",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "tableId": "Competitor Sentiments Table",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "competitors",
+              "fieldValue": "={{ JSON.stringify($('Aggregate1').first().json.Competitor) }}"
+            },
+            {
+              "fieldId": "sentiment analysis",
+              "fieldValue": "={{ $('Analyze Trustpilot Reviews').first().json.output }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "Trustpilot"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        864,
+        -80
+      ],
+      "id": "966e9837-9077-45c3-87ef-0c682aa818ba",
+      "name": "Create a row"
+    },
+    {
+      "parameters": {
+        "tableId": "Insights Table",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "competitors",
+              "fieldValue": "={{ JSON.stringify($('Aggregate1').first().json.Competitor) }}"
+            },
+            {
+              "fieldId": "insight_type",
+              "fieldValue": "customer sentiments"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "Trustpilot"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        -80
+      ],
+      "id": "387e2224-5706-4923-9b50-2933cdc63bb6",
+      "name": "Create a row1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        -336
+      ],
+      "id": "20565ec5-cc25-4ad9-87d3-891cb5122b24",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {
+        "tableId": "Competitor Sentiments Table",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "competitors",
+              "fieldValue": "={{ JSON.stringify($('Aggregate1').first().json.Competitor) }}"
+            },
+            {
+              "fieldId": "sentiment analysis",
+              "fieldValue": "={{ $('Analyze Reddit Threads').first().json.output }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "Reddit"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        144
+      ],
+      "id": "c55cde11-43d0-41d3-9c6b-983351a1b73e",
+      "name": "Create a row2"
+    },
+    {
+      "parameters": {
+        "tableId": "Insights Table",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "competitors",
+              "fieldValue": "={{ JSON.stringify($('Aggregate1').first().json.Competitor) }}"
+            },
+            {
+              "fieldId": "insight_type",
+              "fieldValue": "customer sentiments"
+            },
+            {
+              "fieldId": "content",
+              "fieldValue": "={{ $('Analyze Reddit Threads').first().json.output }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "Reddit"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        144
+      ],
+      "id": "e5f1283f-efcb-4254-993f-e2fea4e9959a",
+      "name": "Create a row3"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP -> Plain Text1": {
+      "main": [
+        [
+          {
+            "node": "Analyze Trustpilot Reviews",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crawl Website Content1": {
+      "main": [
+        []
+      ]
+    },
+    "Get TrustPilot Reviews": {
+      "main": [
+        [
+          {
+            "node": "HTTP -> Plain Text1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Google Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Search": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyze Reddit Threads",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Trustpilot Reviews": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyze Trustpilot Reviews",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Analyze Reddit Threads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Reddit Threads": {
+      "main": [
+        [
+          {
+            "node": "Create a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Get TrustPilot Reviews",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row2": {
+      "main": [
+        [
+          {
+            "node": "Create a row3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "32ee3a1e-8132-4767-8bca-502b82e257a2",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "cDmllXsZnXTW8ruH",
+  "tags": []
+}

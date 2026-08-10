@@ -1,0 +1,1038 @@
+{
+  "name": "Log Attendees to GSheets & Send Connections",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        -48
+      ],
+      "id": "851cb74e-f309-484b-92be-1578c1562fe9",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        896,
+        -32
+      ],
+      "id": "e4514572-fa85-4095-a182-66bd0d84b9e9",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1344,
+        64
+      ],
+      "id": "60f8d128-252a-475f-b61c-5fa13f7cca77",
+      "name": "Wait",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SxLskNxGXDN4XkVp8-sBOPq-moulH1zDImgW1YOYqQU",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Events",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SxLskNxGXDN4XkVp8-sBOPq-moulH1zDImgW1YOYqQU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SxLskNxGXDN4XkVp8-sBOPq-moulH1zDImgW1YOYqQU/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        -48
+      ],
+      "id": "831d49fa-1a01-44eb-b496-d5ef47c0c58f",
+      "name": "Fetch Event Names"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "278a2290-62d7-4f42-ad36-0d5972df8aa2",
+              "leftValue": "={{ $json.event_url }}",
+              "rightValue": "={{ $('Extract Event Url').item.json.eventUrl }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        -48
+      ],
+      "id": "e6ca43ab-7a87-490f-b3ca-ff0f8f109b2d",
+      "name": "Event Associated with Url"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        -112
+      ],
+      "id": "e43fc432-58f5-4194-b1d0-ed3cea379b1f",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=job title:  {{ $json.job }}\nfirst name: {{ $json.firstName }}\n\nevent name: {{ $json.eventName }}\nevent location: {{ $json.eventLocation }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are writing a short, natural LinkedIn connection note. \n\nContext:\n- I will be attending the same event: \"{{ $json.eventName }}\".\n- The person’s job title/description is: \"{{ $json.job }}\".\n- The goal is to connect with them before the event.\n- The note should sound friendly, real, and not overly formal or \"AI-generated\".\n- Keep it short (max 250 characters).\n- Avoid buzzwords and jargon.\n\nWrite a personalized LinkedIn connection note I can send to this person.\n\n🔹 Example Output\n\nIf the event is AI in Healthcare Summit and the person’s job is CTO at MedTech Labs, the AI might return something like:\n\n\"Hi [First Name], I see you’re the CTO at MedTech Labs. I’ll also be at the AI in Healthcare Summit—would love to connect ahead of the event!\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        -464
+      ],
+      "id": "fbf08141-4636-44a8-b215-1197424e8bb1",
+      "name": "Generate personalized connection message"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1744,
+        -368
+      ],
+      "id": "26518209-8e01-42b1-9448-e2813081478e",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2368,
+        -256
+      ],
+      "id": "aad770dc-64d1-4841-9ff0-4e5800dfce50",
+      "name": "Wait1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1lzEVIOitjdJqH2sDhkGFHXbjeFn1ulNKu_RojHWmTp4",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Event Attendees",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lzEVIOitjdJqH2sDhkGFHXbjeFn1ulNKu_RojHWmTp4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lzEVIOitjdJqH2sDhkGFHXbjeFn1ulNKu_RojHWmTp4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "profileUrl": "={{ $('Extract Event Url').item.json.profileUrl }}",
+            "Icebreaker": "={{ $json.output.icebreaker }}"
+          },
+          "matchingColumns": [
+            "profileUrl"
+          ],
+          "schema": [
+            {
+              "id": "fullName",
+              "displayName": "fullName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "firstName",
+              "displayName": "firstName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "lastName",
+              "displayName": "lastName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job",
+              "displayName": "job",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "profileUrl",
+              "displayName": "profileUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "degree",
+              "displayName": "degree",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "eventName",
+              "displayName": "eventName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "eventUrl",
+              "displayName": "eventUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "eventLocation",
+              "displayName": "eventLocation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Icebreaker",
+              "displayName": "Icebreaker",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2160,
+        -256
+      ],
+      "id": "1e6f0325-5797-48d8-97f9-682b7719c0f9",
+      "name": "Append or update row in sheet"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        -256
+      ],
+      "id": "27b129cf-8f38-4247-8ac1-949f9aaf4592",
+      "name": "Auto-fixing Output Parser1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"icebreaker\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1520,
+        -48
+      ],
+      "id": "b264634e-ac2d-48f0-9194-ac4a0f44e959",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.phantombuster.com/api/v2/agents/launch",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "jMyBjQ0IGNnRnHNdHnSWowcmRnjjXvACbLbaonOIGfo"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "id",
+              "value": "6992466145271443"
+            },
+            {
+              "name": "argument",
+              "value": "={\n\t\"numberOfAddsPerLaunch\": 10,\n\t\"onlySecondCircle\": false,\n\t\"dwellTime\": true,\n\t\"inputType\": \"profileUrl\",\n\t\"spreadsheetUrlExclusionList\": [],\n\t\"spreadsheetUrl\": \"\",\n\t\"inputColumnsToKeepInTheResult\": [\n\t\t\"fullName\",\n\t\t\"firstName\",\n\t\t\"eventName\",\n\t\t\"eventUrl\",\n\t\t\"eventLocation\",\n\t\t\"Icebreaker\"\n\t],\n\t\"identityId\": \"4564396580523891\",\n\t\"sessionCookie\": \"AQEDATu_K5IDvpqDAAABmTjs2U8AAAGZlN99AU0AnjJBjXgLjEBU598A8Iib74m4iL0WQ2enyfUniRBP_VJkslQthH3ORLvNSRFG8_ht8YWwbnSXgRi1IK40G0Sxl7ajQP13vGcoW2udAjBiJbDmKIOh\",\n\t\"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36\",\n\t\"message\": \"Hi Darasimi, I see that you're attending the digital marketing event. I will be attending also, and I'm looking forward to connecting with you before the event\",\n\t\"profileUrl\": \"https://www.linkedin.com/in/adenekan-oluwadarasimi-00361a200/\"\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2960,
+        -400
+      ],
+      "id": "fd160692-a335-4561-b122-fc5a78cf3535",
+      "name": "Send Personalized Connection Requests"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2208,
+        -416
+      ],
+      "id": "931e3f18-4124-48b8-87a4-eabe1567cc73",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2416,
+        -416
+      ],
+      "id": "79df8d8b-8756-4ad3-b686-0dba90a82bae",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "content": "# Workflow Details\n\n## Trigger workflow: *Scrape Events*\n\n## Triggered when event Urls are scraped by Airtop and sent to Phantombuster for attendees extraction\n\n## This workflow receives the payload when each eventUrl is processed by phantombuster\n\n## This workflow extracts attendees from the payload of a single event and sends a connection request to each of the attendees with a personalized Icebreaker note",
+        "height": 544,
+        "width": 608
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -176,
+        -720
+      ],
+      "typeVersion": 1,
+      "id": "2293cc20-76be-493e-80d2-8a7d11763542",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the resultObject directly from the current item\nconst body = $('Webhook').first().json.body.resultObject;\n\n// Parse the resultObject (it's a JSON string)\nlet attendees = [];\ntry {\n  attendees = JSON.parse(body);\n} catch (e) {\n  throw new Error(\"Failed to parse resultObject: \" + e.message);\n}\n\n// Extract event URL (same for all attendees)\nconst eventUrl = attendees.length > 0 ? attendees[0].query : null;\n\n// Map attendees into individual output items\nreturn attendees.map(att => {\n  return {\n    json: {\n      profileUrl: att.profileUrl || null,\n      fullName: att.fullName || null,\n      firstName: att.firstName || null,\n      lastName: att.lastName || null,\n      profileImageUrl: att.profileImageUrl || null,\n      job: att.job || null,\n      location: att.location || null,\n      degree: att.degree || null,\n      timestamp: att.timestamp || null,\n      eventUrl: eventUrl\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        -48
+      ],
+      "id": "346063e2-0c3d-44b3-b6ac-3c4d9e7e5ec1",
+      "name": "Extract Event Attendees"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get first input item\nconst item = $input.item.json;\n\n// Parse resultObject (it's a stringified JSON array)\nlet resultArray;\ntry {\n  resultArray = JSON.parse(item.body.resultObject);\n} catch (e) {\n  resultArray = [];\n}\n\n// Extract event URL from first attendee\nconst eventUrl = resultArray.length > 0 ? resultArray[0].query : null;\n\nreturn [\n  {\n    json: {\n      eventUrl\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        -48
+      ],
+      "id": "311ac98e-d688-4ea7-8025-3b48606b1634",
+      "name": "Extract Event Url"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app5MScJ8Cia7HggA",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Outreach Base",
+          "cachedResultUrl": "https://airtable.com/app5MScJ8Cia7HggA"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIWb1uwJnviTip",
+          "mode": "list",
+          "cachedResultName": "Attendees Table",
+          "cachedResultUrl": "https://airtable.com/app5MScJ8Cia7HggA/tblYIWb1uwJnviTip"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Pending connection",
+            "firstName": "={{ $json.firstName }}",
+            "lastName": "={{ $json.lastName }}",
+            "jobTitle": "={{ $json.job }}",
+            "profileUrl": "={{ $json.profileUrl }}",
+            "eventUrl": "={{ $json.eventUrl }}",
+            "eventName": "={{ $('Event Associated with Url').item.json['Event Name'] }}",
+            "eventLocation": "={{ $json.location }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "firstName",
+              "displayName": "firstName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastName",
+              "displayName": "lastName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "jobTitle",
+              "displayName": "jobTitle",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pending connection",
+                  "value": "Pending connection"
+                },
+                {
+                  "name": "Connection Accepted",
+                  "value": "Connection Accepted"
+                },
+                {
+                  "name": "Message Sent",
+                  "value": "Message Sent"
+                },
+                {
+                  "name": "Replied",
+                  "value": "Replied"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "profileUrl",
+              "displayName": "profileUrl",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "eventUrl",
+              "displayName": "eventUrl",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "eventName",
+              "displayName": "eventName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "eventLocation",
+              "displayName": "eventLocation",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "IceBreaker",
+              "displayName": "IceBreaker",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1104,
+        64
+      ],
+      "id": "0f32ec26-0a74-4c92-9e14-29be35cfd449",
+      "name": "Create a record"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "app5MScJ8Cia7HggA",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Outreach Base",
+          "cachedResultUrl": "https://airtable.com/app5MScJ8Cia7HggA"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIWb1uwJnviTip",
+          "mode": "list",
+          "cachedResultName": "Attendees Table",
+          "cachedResultUrl": "https://airtable.com/app5MScJ8Cia7HggA/tblYIWb1uwJnviTip"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "profileUrl": "={{ $('Extract Event Url').item.json.profileUrl }}",
+            "IceBreaker": "={{ $json.output.icebreaker }}"
+          },
+          "matchingColumns": [
+            "profileUrl"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "firstName",
+              "displayName": "firstName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastName",
+              "displayName": "lastName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "jobTitle",
+              "displayName": "jobTitle",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pending connection",
+                  "value": "Pending connection"
+                },
+                {
+                  "name": "Connection Accepted",
+                  "value": "Connection Accepted"
+                },
+                {
+                  "name": "Message Sent",
+                  "value": "Message Sent"
+                },
+                {
+                  "name": "Replied",
+                  "value": "Replied"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "profileUrl",
+              "displayName": "profileUrl",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "eventUrl",
+              "displayName": "eventUrl",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "eventName",
+              "displayName": "eventName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "eventLocation",
+              "displayName": "eventLocation",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "IceBreaker",
+              "displayName": "IceBreaker",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1952,
+        -272
+      ],
+      "id": "8f5f890f-1b75-42f8-bfe3-9727968b5bff",
+      "name": "Create or update a record"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        2736,
+        -368
+      ],
+      "id": "864c0e48-1908-43ab-9f1e-b4e672699e1d",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Event Url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Generate personalized connection message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Event Names": {
+      "main": [
+        [
+          {
+            "node": "Event Associated with Url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Event Associated with Url": {
+      "main": [
+        [
+          {
+            "node": "Extract Event Attendees",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate personalized connection message",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create or update a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate personalized connection message": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate personalized connection message",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        []
+      ]
+    },
+    "Extract Event Attendees": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Event Url": {
+      "main": [
+        [
+          {
+            "node": "Fetch Event Names",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create or update a record": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Send Personalized Connection Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "3c95360b-a9e9-44a2-850e-d94d38aef383",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "EX3XeTd8uX9nyvXU",
+  "tags": []
+}

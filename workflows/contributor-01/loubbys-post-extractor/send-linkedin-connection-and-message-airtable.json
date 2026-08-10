@@ -1,0 +1,360 @@
+{
+  "name": "Send Linkedin Connection and message (Airtable)",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "authentication": "airtableOAuth2Api",
+        "baseId": {
+          "__rl": true,
+          "value": "https://airtable.com/appVo6XGayqJlKd8g/tblYHemAxIW7SQBrh/viw1fJpalvLqdqiND?blocks=hide",
+          "mode": "url"
+        },
+        "tableId": {
+          "__rl": true,
+          "value": "https://airtable.com/appVo6XGayqJlKd8g/tblYHemAxIW7SQBrh/viw1fJpalvLqdqiND?blocks=hide",
+          "mode": "url"
+        },
+        "triggerField": "Last Modified Time",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -32
+      ],
+      "id": "657b9bc8-fcc2-4a6e-9b10-a8075d5f73b2",
+      "name": "Airtable Trigger"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appVo6XGayqJlKd8g",
+          "mode": "list",
+          "cachedResultName": "Automation post",
+          "cachedResultUrl": "https://airtable.com/appVo6XGayqJlKd8g"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYHemAxIW7SQBrh",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appVo6XGayqJlKd8g/tblYHemAxIW7SQBrh"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Airtable Trigger').item.json.id }}",
+            "Progress": "Connection & Message sent"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "postUrl",
+              "displayName": "postUrl",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "firstName",
+              "displayName": "firstName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastName",
+              "displayName": "lastName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "profileUrl",
+              "displayName": "profileUrl",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "postContent",
+              "displayName": "postContent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Action",
+              "displayName": "Action",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Send Message",
+                  "value": "Send Message"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Progress",
+              "displayName": "Progress",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last Modified Time",
+              "displayName": "Last Modified Time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        816,
+        -32
+      ],
+      "id": "90ddd940-2359-4c9e-a865-520b0fb80ffb",
+      "name": "Update record"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.phantombuster.com/api/v2/agents/launch",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "jMyBjQ0IGNnRnHNdHnSWowcmRnjjXvACbLbaonOIGfo"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "id",
+              "value": "6992466145271443"
+            },
+            {
+              "name": "argument",
+              "value": "={\n\t\"numberOfAddsPerLaunch\": 10,\n\t\"onlySecondCircle\": false,\n\t\"dwellTime\": true,\n\t\"inputType\": \"profileUrl\",\n\t\"spreadsheetUrlExclusionList\": [],\n\t\"spreadsheetUrl\": \"\",\n\t\"inputColumnsToKeepInTheResult\": [\n\t\t\"fullName\",\n\t\t\"firstName\",\n\t\t\"eventName\",\n\t\t\"eventUrl\",\n\t\t\"eventLocation\",\n\t\t\"Icebreaker\"\n\t],\n\t\"identityId\": \"4564396580523891\",\n\t\"sessionCookie\": \"AQEDATu_K5IDvpqDAAABmTjs2U8AAAGZlN99AU0AnjJBjXgLjEBU598A8Iib74m4iL0WQ2enyfUniRBP_VJkslQthH3ORLvNSRFG8_ht8YWwbnSXgRi1IK40G0Sxl7ajQP13vGcoW2udAjBiJbDmKIOh\",\n\t\"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36\",\n\t\"message\": \"{{ $json.message }}\",\n\t\"profileUrl\": \"{{ $('Airtable Trigger').item.json.fields.profileUrl }}\"\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        544,
+        -16
+      ],
+      "id": "8390ce90-79b8-48b9-9469-ee49f6b049f6",
+      "name": "Send Personalized Connection Requests"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0da85df5-f1a1-472a-920c-051796c082a2",
+              "name": "message",
+              "value": "=Hi {{ $json.body.data[1] }}, great automation! We'd love to feature it on Autonoms AI Store. Use code FK3_KNS for free access to upload and sell your automation.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        288,
+        -16
+      ],
+      "id": "3163109d-eafd-4104-b11f-539cf780e822",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d3624bca-ad94-4fe8-b775-5edce6dd0f92",
+              "leftValue": "={{ $json.fields.Action }}",
+              "rightValue": "Send Message",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "0100c29d-8008-4b1e-a8f2-a8f72ad59499",
+              "leftValue": "={{ $json.fields.Progress }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        -32
+      ],
+      "id": "158c5eb2-34b3-424c-a43d-4df92154e824",
+      "name": "Filter"
+    }
+  ],
+  "connections": {
+    "Airtable Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send Personalized Connection Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Personalized Connection Requests": {
+      "main": [
+        [
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "d21ed2b9-0b23-4ce3-a723-4aef501bdf59",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "eXmthwFUnpURpqNd",
+  "tags": []
+}

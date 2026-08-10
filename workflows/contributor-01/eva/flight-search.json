@@ -1,0 +1,579 @@
+{
+  "name": "Flight Search",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -580,
+        -520
+      ],
+      "id": "537933a6-2596-4bab-b180-7d13535eb279",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "subject": "=Bargain Flight Found! {{ $('FromTo').first().json.from }} -> {{ $('FromTo').first().json.to }} @ {{ $json.price }} on {{ $json.time }}",
+        "message": "=Hi! We just found a bargain flight:\nDeparture Time: {{ $json.time }}\n[{{ $json.legs[0].carrier }}] {{ $json.duration }} flight from {{ $('FromTo').first().json.from }} to {{ $('FromTo').first().json.to }}\n",
+        "options": {}
+      },
+      "id": "234dc5d3-d449-42ff-8155-028fe1641e71",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        1600,
+        -20
+      ],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "jsCode": "// INPUT:\n// {{getDate.departureType}}  => 'single' or 'range'\n// {{getDate.departureDate}} => starting date\n// {{getDate.departureEndDate}} => optional, only if range\n// {{getDate.returnDate}} => can be null\n\nfunction parseDate(input) {\n  const date = new Date(input);\n  if (!isNaN(date.getTime())) {\n    return date.toISOString().split('T')[0];\n  }\n  return null;\n}\n\nconst departureType = $('AI Agent').first().json.output.departureType;\nconst departureStart = parseDate($('AI Agent').first().json.output.departureDate);\nconst departureEnd = $('AI Agent').first().json.output.departureEndDate ? parseDate($('AI Agent').first().json.output.departureEndDate) : null;\nconst returnDate = parseDate($('AI Agent').first().json.output.returnDate);\n\nlet output = [];\n\nif (departureType === 'single') {\n  // Just one date\n  output.push({\n    departureDate: departureStart,\n    returnDate: returnDate\n  });\n} else if (departureType === 'range' && departureStart && departureEnd) {\n  // Range of dates (e.g. next week)\n  const start = new Date(departureStart);\n  const end = new Date(departureEnd);\n  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {\n    output.push({\n      departureDate: d.toISOString().split('T')[0],\n      returnDate: returnDate\n    });\n  }\n}\n\nreturn output;\n"
+      },
+      "id": "a6a0af1c-c046-460b-84ae-972b5404da4a",
+      "name": "Get Dates",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        680,
+        -540
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge data\nresult = [];\nfor (const item of $input.all()) {\n  result = result.concat(JSON.parse(item.json.data).data);\n}\n\n// Extract fields\nfinal_result = [];\nfor (x of result) {\n  let legs = x.itineraries[0].segments.map(y => {\n    let a = $('CarrierNameLookup').item.json[y.carrierCode];\n    let carrier = a.name ? a.name : a.icao;\n    return { carrier: carrier, duration: y.duration };\n  });\n\n  let time = x.itineraries[0].segments[0].departure.at;\n  let duration = x.itineraries[0].duration;\n  let price = x.price.total + ' ' + x.price.currency;\n\n  // Try to extract booking link\n  let bookingLink = null;\n\n  // Option 1: Common pattern\n  if (x.links && x.links.booking) {\n    bookingLink = x.links.booking;\n  }\n\n  // Option 2: Alternative pattern\n  else if (x.offerUrl) {\n    bookingLink = x.offerUrl;\n  }\n\n  // Add flight info to result\n  final_result.push({\n    legs: legs,\n    time: time,\n    duration: duration,\n    price: price,\n    //link: bookingLink // include the booking link\n  });\n}\n\nreturn final_result;\n"
+      },
+      "id": "1d8a46ab-e126-4a58-8287-d6d8070ff65d",
+      "name": "Merge & Extract",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1400,
+        -440
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "308c7e11-f2a8-4e9c-99f4-4312168204f1",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        940,
+        -600
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "id": "3684ee55-785a-421b-bb43-f7aa2f0b9fd2",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        800,
+        -400
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "bc2a9b61-41eb-45b1-9ee3-00fe211dadc3",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              },
+              "leftValue": "={{ parseFloat($json.price) }}",
+              "rightValue": 600
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b5ff47bb-6bb6-472f-9d8e-0f6f04004481",
+      "name": "Under Price",
+      "type": "n8n-nodes-base.filter",
+      "position": [
+        1360,
+        -40
+      ],
+      "typeVersion": 2.1,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1944c696-6cfd-4d4d-8f3d-31cb89b37d3d",
+              "name": "from",
+              "type": "string",
+              "value": "={{ $('AI Agent').first().json.output.originLocationCode }}"
+            },
+            {
+              "id": "9c4d5ac9-fa75-4fa7-a369-2b0493150203",
+              "name": "to",
+              "type": "string",
+              "value": "={{ $('AI Agent').first().json.output.destinationLocationCode }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e981ff53-e07e-4a0d-90fa-8fa1adadb6f1",
+      "name": "FromTo",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        120,
+        -520
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "content": "# Amadeus Flight Bargains\nEvery day checks for bargain flights for an itinerary and price target of your choosing, and emails you if it finds a match.\n\n## Setup\n1. Create an api account on https://developers.amadeus.com/\n2. In **Amadeus Flight Search**, connect to Oauth2 API:\n  -- Grant Type - Client Credentials\n  -- Access Token URL - https://test.api.amadeus.com/v1/security/oauth2/token\n  -- Client ID/Secret - from your account\n3. Set your details in **Gmail**\n4. Set your desired Origin/Destination airports in FromTo\n5. Set the dates ahead you wish to search in **Get Dates** (default is 7 days and 14 days)\n6. Set the price target in **Under Price**\n\n## Test\nHit 'Test workflow'!",
+        "height": 538.1571460797832,
+        "width": 490.02125360646824
+      },
+      "id": "b6123193-b435-4cc3-ab35-5259ab6ca9b3",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1160,
+        -660
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://test.api.amadeus.com/v1/reference-data/airlines",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "options": {}
+      },
+      "id": "924b01d3-32e4-4f9a-8a74-f786ec862059",
+      "name": "Get Carrier Codes",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        300,
+        -520
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://test.api.amadeus.com/v1/security/oauth2/token",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            },
+            {
+              "name": "client_id",
+              "value": "ajBzGKcZbdKOTNOFrzzrxOQAEOV5fZV3"
+            },
+            {
+              "name": "client_secret",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -40,
+        -520
+      ],
+      "id": "7ba8a14d-b35e-4aab-afae-3c35c6e7773c",
+      "name": "Generate Access Token"
+    },
+    {
+      "parameters": {
+        "url": "https://test.api.amadeus.com/v2/shopping/flight-offers",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "originLocationCode",
+              "value": "={{ $('FromTo').item.json.from }}"
+            },
+            {
+              "name": "destinationLocationCode",
+              "value": "={{ $('FromTo').item.json.to }}"
+            },
+            {
+              "name": "adults",
+              "value": "1"
+            },
+            {
+              "name": "departureDate",
+              "value": "={{ $json.date }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "722cc8a0-cad1-4fba-8e45-906f44ae22c2",
+      "name": "Amadeus Flight Search1",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -880,
+        -60
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "https://test.api.amadeus.com/v2/shopping/flight-offers",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "originLocationCode",
+              "value": "={{ $('FromTo').item.json.from }}"
+            },
+            {
+              "name": "destinationLocationCode",
+              "value": "={{ $('FromTo').item.json.to }}"
+            },
+            {
+              "name": "departureDate",
+              "value": "={{ $('Get Dates').item.json.departureDate }}"
+            },
+            {
+              "name": "adults",
+              "value": "={{ $('AI Agent').item.json.output.adults }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Generate Access Token').item.json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        -400
+      ],
+      "id": "420d6448-d2a3-44ab-a882-d54bedfc6acc",
+      "name": "Amadeus Flight Search"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract the following parameters from the input query and return them in JSON format with the exact keys listed below. If any information is missing in the query, use null or appropriate defaults.\n\nquery: {{ $json.query }}\n\nKeys:\n- originLocationCode (IATA airport code of departure city)\n- destinationLocationCode (IATA airport code of arrival city)\n- departureDate (YYYY-MM-DD)\n- returnDate (YYYY-MM-DD or null if one-way)\n- adults (number of adults)\n- children (number of children)\n- infants (number of infants)\n- travelClass (ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST)\n- includedAirlineCodes (array of airline IATA codes or null)\n- excludedAirlineCodes (array of airline IATA codes or null)\n- nonStop (true or false)\n- currencyCode (default to \"USD\")\n- maxPrice (number or null)\n- max (default to 20)\n\nAlways bear in mind that the time now is {{ $now.toLocal() }}\n\nOnly output the JSON, no explanation. Use airport codes for major airports (e.g., Lagos = LOS, New York = JFK).\n\nIf the user does not provide an exact date, try to infer a date range based on the wording. For example:\n\n    “next week” should be interpreted as the next 7 days starting from the upcoming Monday.\n\n    “month end” should be interpreted as the last 7 days of the current or mentioned month.\n\n    “sometime in August” should be interpreted as the full month of August.\n\nIf only one date (e.g. departureDate) is provided or inferred, set returnDate to null.\n\nIf no date is provided at all, return null.\n\nExample Output:\n\nIf the query is:\n\n    “Flights from Lagos to New York on 2025-08-15 for 1 adult in Economy class, one-way, no specific airlines, no maximum price.”\n\nReturn:\n\n{\n  \"originLocationCode\": \"LOS\",\n  \"destinationLocationCode\": \"JFK\",\n  \"departureType\": \"single\" | \"range\",  \n  \"departureDate\": \"YYYY-MM-DD\",\n  \"departureEndDate\": \"YYYY-MM-DD\" | null,\n  \"returnDate\": \"YYYY-MM-DD\" | null,\n  \"adults\": 1,\n  \"children\": 0,\n  \"infants\": 0,\n  \"travelClass\": \"ECONOMY\",\n  \"includedAirlineCodes\": null,\n  \"excludedAirlineCodes\": null,\n  \"nonStop\": false,\n  \"currencyCode\": \"USD\",\n  \"maxPrice\": null,\n  \"max\": 20\n}\n\nAlways bear in mind that the time now is {{ $now.toLocal() }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -360,
+        -520
+      ],
+      "id": "824577b3-b0d7-4ab4-bb34-ed679c58646e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -420,
+        -240
+      ],
+      "id": "59b9d630-4a13-4eda-a24c-62584277eed0",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"originLocationCode\": \"LOS\",\n  \"destinationLocationCode\": \"JFK\",\n  \"departureType\": \"single\",  \n  \"departureDate\": \"YYYY-MM-DD\",\n  \"departureEndDate\": \"YYYY-MM-DD\",\n  \"returnDate\": \"YYYY-MM-DD\",\n  \"adults\": 1,\n  \"children\": 0,\n  \"infants\": 0,\n  \"travelClass\": \"ECONOMY\",\n  \"includedAirlineCodes\": null,\n  \"excludedAirlineCodes\": null,\n  \"nonStop\": false,\n  \"currencyCode\": \"USD\",\n  \"maxPrice\": null,\n  \"max\": 20\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -140,
+        -120
+      ],
+      "id": "96ecb07c-c835-4d2e-af1a-7050ea67e299",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "var carrierCodes={}\nJSON.parse($('Get Carrier Codes').first().json.data).data.forEach(datum=>{\n  carrierCodes[datum.iataCode] = {icao:datum.icaoCode, name:datum.commonName}\n})\nreturn carrierCodes"
+      },
+      "id": "2357d839-5546-414a-85e3-52238cbec2d6",
+      "name": "CarrierNameLookup",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        480,
+        -520
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -280
+      ],
+      "id": "32560bab-ca67-4928-980e-7fa54ee4bc67",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const airlineLinks = {\n  \"MS\": \"https://www.egyptair.com/\",          // EgyptAir :contentReference[oaicite:0]{index=0}\n  \"W3\": \"https://www.arikair.com/\",           // Arik Air (common public site)\n  \"BA\": \"https://www.britishairways.com/\",   // British Airways\n  \"AF\": \"https://www.airfrance.com/\",        // Air France\n  \"EK\": \"https://www.emirates.com/\",         // Emirates\n  \"AB\": \"https://www.aerlingus.com/\",        // Aer Lingus (EI) :contentReference[oaicite:1]{index=1}\n  \"AM\": \"https://www.aeromexico.com/\",       // Aeromexico (AM) :contentReference[oaicite:2]{index=2}\n  \"SU\": \"https://www.aeroflot.ru/\",          // Aeroflot (SU) :contentReference[oaicite:3]{index=3}\n  \"A3\": \"https://en.aegeanair.com/\",         // Aegean Airlines (A3) :contentReference[oaicite:4]{index=4}\n  \"AR\": \"https://www.aerolineas.com.ar/\",    // Aerolineas Argentinas (AR) :contentReference[oaicite:5]{index=5}\n  \"AW\": \"https://www.flyawa.com/\",           // Africa World Airlines (AW) :contentReference[oaicite:6]{index=6}\n  \"CA\": \"https://www.airchina.com/\",         // Air China (CA) :contentReference[oaicite:7]{index=7}\n  \"BR\": \"https://en.evaair.com/\",            // EVA Airways (BR) :contentReference[oaicite:8]{index=8}\n  \"BW\": \"https://www.caribbean-airlines.com/\", // Caribbean Airlines (BW) :contentReference[oaicite:9]{index=9}\n  \"BX\": \"https://www.airbusan.com/\",         // Air Busan (BX) :contentReference[oaicite:10]{index=10}\n  \"DL\": \"https://www.delta.com/\",            // Delta Air Lines (DL) :contentReference[oaicite:11]{index=11}\n  \"AC\": \"https://www.aircanada.com/\",        // Air Canada (AC) :contentReference[oaicite:12]{index=12}\n  \"LH\": \"https://www.lufthansa.com/\",        // Lufthansa (LH) :contentReference[oaicite:13]{index=13}\n  \"QR\": \"https://www.qatarairways.com/\",     // Qatar Airways (QR)\n  \"QF\": \"https://www.qantas.com/\",           // Qantas (QF) :contentReference[oaicite:14]{index=14}\n  \"IB\": \"https://www.iberia.com/\",           // Iberia (IB) :contentReference[oaicite:15]{index=15}\n};\n\nconst airlineCode = $json.legs[0].carrier || '';\nconst airlineLink = airlineCode && airlineLinks[airlineCode] \n  ? airlineLinks[airlineCode] \n  : `https://www.google.com/search?q=${encodeURIComponent(airlineCode + ' airlines')}`;\n\nreturn {\n  json: {\n    ...$input.item.json,\n    airlineCode,\n    airlineWebsite: airlineLink\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1620,
+        -440
+      ],
+      "id": "6e683494-11dd-425d-90f2-b2f113e15a06",
+      "name": "Construct Links"
+    }
+  ],
+  "connections": {
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FromTo": {
+      "main": [
+        [
+          {
+            "node": "Get Carrier Codes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Dates": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Under Price": {
+      "main": [
+        []
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Merge & Extract",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Amadeus Flight Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge & Extract": {
+      "main": [
+        [
+          {
+            "node": "Construct Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Carrier Codes": {
+      "main": [
+        [
+          {
+            "node": "CarrierNameLookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Access Token": {
+      "main": [
+        [
+          {
+            "node": "FromTo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Amadeus Flight Search1": {
+      "main": [
+        []
+      ]
+    },
+    "Amadeus Flight Search": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Generate Access Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CarrierNameLookup": {
+      "main": [
+        [
+          {
+            "node": "Get Dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "503d5451-eca0-4aff-a02a-0fa73382a064",
+  "meta": null,
+  "id": "S5AUUx3vQ3OR2azt",
+  "tags": []
+}

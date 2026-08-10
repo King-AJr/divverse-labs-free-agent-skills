@@ -1,0 +1,431 @@
+{
+  "name": "Flight Search (SerpAPI)",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        -144
+      ],
+      "id": "1e0f7203-226c-48d4-8dda-28dae6cfce2c",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a data extraction assistant.\nYour task is to extract the relevant parameters from a user query for the Google Flights API and return them in a JSON object.\nOnly use the following keys if they are present in the user query, otherwise set them to an invisible space (\\u200B).\n\nQuery: {{ $json.query }}\n\nParameters to extract:\n\n    departure_id (IATA 3-letter airport code or Google KG MID if location, e.g., \"LOS\" for Lagos, Nigeria). Use the serp api tool to search for this\n\n    arrival_id (IATA 3-letter airport code or Google KG MID if location). Use the serp api tool to search\n\n\n    hl (2-letter language code)\n\n    currency (currency code, e.g., USD, GBP, NGN)\n\n    type (1 = Round trip, 2 = One way, 3 = Multi-city)\n\n    outbound_date (YYYY-MM-DD format)\n\n    return_date (YYYY-MM-DD format, only for Round trip)\n\n    travel_class (1 = Economy, 2 = Premium economy, 3 = Business, 4 = First)\n\n    multi_city_json (Only if multi-city)\n\n    show_hidden (true/false)\n\n    deep_search (true/false)\n\n    adults (integer, default 1)\n\nRules:\n\n    If no value is mentioned for a parameter, set it to \"\\u200B\" (zero-width space).\n\n    For locations, try to extract the IATA airport code if possible, otherwise set it to \"\\u200B\".\n\n    Dates must be in YYYY-MM-DD format. If a date is not fully specified, set it to \"\\u200B\".\n\n    Currency should be a valid 3-letter code if mentioned.\n\n    Return only JSON, no explanations.\n\nOutput format example:\n\n    {\n      \"departure_id\": \"LOS\",\n      \"arrival_id\": \"ABV\",\n      \"gl\": \"ng\",\n      \"hl\": \"en\",\n      \"currency\": \"NGN\",\n      \"type\": 2,\n      \"outbound_date\": \"2025-09-05\",\n      \"return_date\": \"\\u200B\",\n      \"travel_class\": 3,\n      \"multi_city_json\": \"\\u200B\",\n      \"show_hidden\": false,\n      \"deep_search\": false,\n      \"adults\": 2\n    }\n\nAlways bear in mind that the time now is {{ $now.toLocal() }}\n\nUse the serp api tool to search for the departure_id and arrival_id of the cities the user provided",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -256,
+        -144
+      ],
+      "id": "5c532978-c64f-48be-b54d-a1ccf3077ca2",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -320,
+        144
+      ],
+      "id": "2fbeb246-f3f2-4164-ba1b-69a3afe26105",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"departure_id\": \"LOS\",\n  \"arrival_id\": \"ABV\",\n  \"gl\": \"ng\",\n  \"hl\": \"en\",\n  \"currency\": \"USD\",\n  \"type\": 2,\n  \"outbound_date\": \"2025-09-05\",\n  \"return_date\": \"\\u200B\",\n  \"travel_class\": 3,\n  \"multi_city_json\": \"\\u200B\",\n  \"show_hidden\": false,\n  \"deep_search\": false,\n  \"adults\": 2\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        272
+      ],
+      "id": "d2cc6f70-2b01-429c-8f6d-8e669c0a007e",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        80
+      ],
+      "id": "5aaea1e6-d2c6-4154-8f4e-22ac4fdbec93",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search?engine=google_flights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "departure_id",
+              "value": "={{ $json.output.departure_id }}"
+            },
+            {
+              "name": "arrival_id",
+              "value": "={{ $json.output.arrival_id }}"
+            },
+            {
+              "name": "api_key",
+              "value": "REDACTED"
+            },
+            {
+              "name": "outbound_date",
+              "value": "={{ $json.output.outbound_date }}"
+            },
+            {
+              "name": "travel_class",
+              "value": "={{ $json.output.travel_class }}"
+            },
+            {
+              "name": "type",
+              "value": "={{ $json.output.type }}"
+            },
+            {
+              "name": "adults",
+              "value": "={{ $json.output.adults }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        384,
+        -272
+      ],
+      "id": "06b1e1c1-f15d-449b-9a57-0c188b263467",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        0
+      ],
+      "id": "bc673a01-cd48-4214-91b2-ea340688b95f",
+      "name": "When clicking ‘Test workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "other_flights",
+        "include": "selectedOtherFields",
+        "fieldsToInclude": "search_metadata",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        592,
+        -272
+      ],
+      "id": "57358505-2cfe-46f4-8347-ecbaf7aac5bb",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        240
+      ],
+      "id": "5aba3288-223d-4d57-94c9-c44e20ba8cf8",
+      "name": "SerpAPI"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.type.toString() }}",
+                    "rightValue": "2",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "cfa201f2-f07e-4463-bc19-57d5db3f6349"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "One-Way trip"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4b1a7e4e-7b37-4ab3-9476-509a108f53d5",
+                    "leftValue": "={{ $json.output.type.toString() }}",
+                    "rightValue": "1",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Round Trip"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        96,
+        -144
+      ],
+      "id": "32b01e0e-1dc1-422c-99a8-a4e53f74f89d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search?engine=google_flights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "departure_id",
+              "value": "={{ $json.output.departure_id }}"
+            },
+            {
+              "name": "arrival_id",
+              "value": "={{ $json.output.arrival_id }}"
+            },
+            {
+              "name": "api_key",
+              "value": "REDACTED"
+            },
+            {
+              "name": "outbound_date",
+              "value": "={{ $json.output.outbound_date }}"
+            },
+            {
+              "name": "return_date",
+              "value": "={{ $json.output.return_date }}"
+            },
+            {
+              "name": "travel_class",
+              "value": "={{ $json.output.travel_class }}"
+            },
+            {
+              "name": "type",
+              "value": "={{ $json.output.type }}"
+            },
+            {
+              "name": "adults",
+              "value": "={{ $json.output.adults }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        384,
+        -64
+      ],
+      "id": "4166d5a6-962c-4e19-84cb-05714aa7e838",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "other_flights",
+        "include": "selectedOtherFields",
+        "fieldsToInclude": "search_metadata",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        592,
+        -64
+      ],
+      "id": "32801a72-7bcb-4dbd-ad4b-5a1af83439fc",
+      "name": "Split Out1"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "b785a10b-8d36-4f52-9f09-601b0d3b863e",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "d2zsxNvSI2TMDWrX",
+  "tags": []
+}

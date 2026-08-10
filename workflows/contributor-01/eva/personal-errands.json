@@ -1,0 +1,215 @@
+{
+  "name": "Personal Errands",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -820,
+        75
+      ],
+      "id": "0a22450e-b4bc-4fad-a4b4-20f1bcd636fb",
+      "name": "When chat message received"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Today's date is {{ $now }}\nExtract the following from the request:\n- Appointment Type\n- Location\n- Preferred Date/Time\n- Any special requests\nInput:{{ $json.chatInput }} \nOutput format:\n{\n  \"type\": \"\",\n  \"location\": \"\",\n  \"datetime\": \"\",\n  \"notes\": \"\"\n}\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -600,
+        75
+      ],
+      "id": "403f780d-07ce-408d-bd19-662cd8fe5aaf",
+      "name": "OpenAI"
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search.json?engine=google",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "serpApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.type }}"
+            },
+            {
+              "name": "location",
+              "value": "={{ $json.location }}"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4,
+        0
+      ],
+      "id": "1116facf-0399-4e00-98e6-eb2dcc1bc3c2",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// This script parses the 'content' field from the OpenAI output and converts it into a proper JSON object.\n\nreturn $input.all().map(item => {\n  const rawContent = item.json.message.content;\n\n  try {\n    // Parse the stringified JSON inside 'content'\n    const parsed = JSON.parse(rawContent);\n\n    return {\n      json: {\n        type: parsed.type,\n        location: parsed.location,\n        datetime: parsed.datetime,\n        notes: parsed.notes\n      }\n    };\n  } catch (error) {\n    // Return the error if parsing fails\n    return {\n      json: {\n        error: 'Invalid JSON content',\n        details: error,\n        rawContent\n      }\n    };\n  }\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        75
+      ],
+      "id": "3d564005-f11d-4b4f-8969-4e84c30700e5",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract name, phone, address, and closing hour from SerpAPI results\n\nconst data = $input.first().json.local_results.places;\n\nconst results = data.map(place => {\n  const rawHours = place.hours || 'N/A';\n\n  let closingHour;\n\n  // If open 24 hours\n  if (/24\\s*hours/i.test(rawHours)) {\n    closingHour = '24 Hours';\n  } else {\n    // Try to extract after \"Closes \" (e.g., \"Open ⋅ Closes 6 PM\")\n    const match = rawHours.match(/Closes\\s(.+)/i);\n    closingHour = match ? match[1].trim() : 'Unknown';\n  }\n\n  return {\n    business_name: place.title,\n    business_phone: place.phone || 'N/A',\n    business_location: place.address || 'N/A',\n    closing_hour: closingHour\n  };\n});\n\nreturn results.map(entry => ({ json: entry }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        216,
+        0
+      ],
+      "id": "2e96eb19-658a-4509-b69f-92c61574575c",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "resource": "call",
+        "from": "+16185912542",
+        "to": "={{ $json.business_phone }}",
+        "message": "=Hi, I’d like to book a {{ $('Code').item.json.type }}  on {{ $('Code').item.json.datetime }}. Please confirm availability.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        656,
+        75
+      ],
+      "id": "8e60779f-9586-4489-b55a-2c4b33ba1e3d",
+      "name": "Twilio"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        436,
+        75
+      ],
+      "id": "f1dd9b02-a7d2-4fda-b04c-84e134c7ccfa",
+      "name": "Merge"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Twilio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "3ea8174a-4ede-4670-8984-acb0185dfae4",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "qpsNMCqWObE3hRZa",
+  "tags": []
+}

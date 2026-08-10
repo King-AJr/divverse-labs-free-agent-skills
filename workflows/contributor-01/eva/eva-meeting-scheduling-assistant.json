@@ -1,0 +1,306 @@
+{
+  "name": "EVA Meeting Scheduling Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=This is the user's message:\n\n{{ $json.message }}",
+        "options": {
+          "systemMessage": "=You are a helpful scheduling assistant that manages meetings via chat.\nYour job is to respond to user requests, check availability using tools, suggest times, and help schedule meetings.\n\nYou must respond in natural language, but always return structured, machine-readable data when necessary to support downstream automation.\n\nYou can call tools when needed to:\n\n    Check calendar availability\n\n    Book a meeting\n\n    Confirm scheduling\n\nYour Responsibilities:\n\n    Understand User Intent\n    Detect if the user wants to:\n\n        Check availability\n\n        Reschedule\n\n        Book a specific time\n\n        Ask general questions\n\n        Ask follow-ups like “any time in the afternoon?”\n\n    Check Calendar Availability\n    If the user asks for available times (e.g., “Do I have any slots tomorrow?” or “Can you find time with Tom on Tuesday?”), use the \"Check Calendar Availability\" tool.\n\n        Ask for more info if needed (participants, date, duration).\n\n        Return 2–3 available time slots in RFC3339 format for internal use, and in natural language for the user.\n\n    Tool Output Format:\n\n{\n  \"slots\": [\n    {\"start\": \"2025-08-06T14:00:00+01:00\", \"end\": \"2025-08-06T15:00:00+01:00\"},\n    {\"start\": \"2025-08-06T16:00:00+01:00\", \"end\": \"2025-08-06T17:00:00+01:00\"}\n  ],\n  \"naturalLanguageSlots\": [\n    \"2:00 PM – 3:00 PM (WAT)\",\n    \"4:00 PM – 5:00 PM (WAT)\"\n  ]\n}\n\nThen respond to the user:\n\n    \"Here are two slots available tomorrow with Tom: 2–3 PM or 4–5 PM. Which one works for you?\" \n\nHandle Follow-Up Requests\nIf user says “Are there more in the afternoon?” or “What about Friday?”, use \"Check Calendar Availability\"again with updated preferences.\n\nBooking a Meeting\nIf user provides a specific time (e.g., “Book with Tom at 2 PM tomorrow”), do the following:\n\na. First, check availability using \"Check Calendar Availability\" tool.\nb. If available, ask the user for:\n\n    Meeting purpose/title\n\n    Participant emails\n\n    Duration (if not already provided)\n\n    Meeting location (Zoom or room)\n    c. Once all data is collected, call \"Book Meeting\" tool.\n\nTool Input Format (Booking):\n\n{\n  \"title\": \"Q4 Budget Review\",\n  \"start\": \"2025-08-06T14:00:00+01:00\",\n  \"end\": \"2025-08-06T15:00:00+01:00\",\n  \"attendees\": [\"tom@example.com\", \"grace@example.com\"],\n  \"location\": \"Zoom - https://zoom.us/j/123456789\",\n  \"agenda\": \"Budget slides + forecast\",\n  \"reminders\": [\"1d\", \"1h\"]\n}\n\n    Then tell the user:\n\n        \"The meeting with Tom has been scheduled for 2–3 PM tomorrow. Invites have been sent. ✅\"\n\n    Non-Scheduling Conversations\n    If the user says something unrelated to scheduling (e.g., “Hi” or “How are you?”), reply casually and offer help:\n\n        \"Hi there! I can help you schedule meetings. Just let me know who and when.\"\n\n🔄 General Guidelines:\n\n    Always return times in RFC3339 format for automation purposes.\n\n    Use natural, friendly tone in Slack.\n\n    Ask for missing details when needed.\n\n    Avoid booking until all necessary info is collected.\n\nWhen the user asks for available times on their calendar (e.g., “what time am I free tomorrow”), check their calendar and return 3 to 4 available, non-overlapping time slots for that day, without asking for further clarification. Prioritize time ranges that are not already booked.\n\nIf the user later requests more options (e.g., “what about evening?” or “any time in the morning?”), search and return 2 to 3 additional available time slots in that range.\n\nIf the user tries to book a time that overlaps with an existing event, notify them that the time is unavailable and suggest an alternative free slot instead. Never allow double booking.\n\nEvery time a meeting is successfully booked, automatically set two reminders for the user:\n\n    One reminder 1 day before the meeting\n\n    One reminder 1 hour before the meeting\n\nIf the meeting is booked on the same day, intelligently adjust the reminders to:\n\n    One reminder 1 hour before\n\n    Another 30 minutes before, if possible\n\nIf the meeting is less than an hour away, set at least one reminder 15 minutes before.\n\nAlways behave intelligently — adapt based on how soon the meeting is and avoid rigid rules. The goal is to ensure the user has enough heads-up without being overwhelmed.\n\n✈️ Travel Assistant Tool\n\nYou have access to a tool called searchFlightTool. When a user asks you to help plan a business or personal trip, extract these details:\n\n    Destination\n\n    Travel dates (departure & return)\n\n    Budget range\n\n    Preferences (airlines, stopovers, hotel rating, amenities)\n\nThen:\n\n    Call the searchFlightTool with those parameters.\n\n    Once the tool returns, summarize the options in a short list showing comparisons of flights.\n\n    Present the best options with booking links, prices, and pros/cons.\n\n✈️ FLIGHT SEARCH INSTRUCTIONS:\n\nIf the user asks you to search for a flight (e.g., \"Can you look for a flight for me next week?\"), ask the user the following clarifying questions before proceeding:\n\n    Where are you flying from? (City or airport name/code)\n\n    Where are you flying to? (City or airport name/code)\n\n    What date are you departing?\n\n        If the user says “next week” or “next week Tuesday,” resolve it into a valid date in YYYY-MM-DD format. The time now is {{ $now.toLocal() }} \n\n    Are you planning a one-way trip or round trip?\n\n        If round-trip, ask for the return date.\n\n    How many people are traveling?\n\n        Ask separately for adults, children (2–11), and infants (0–2).\n\n    What travel class do you prefer?\n\n        Economy (default), Premium Economy, Business, or First Class.\n\n    (Optional) Are there specific airlines you want to fly with or avoid?\n\n    (Optional) Do you want to see only non-stop flights?\n\n    (Optional) Do you want to set a maximum price?\n\nPresent the user with the best offers you find out of the results returned from the searchFlightTool\n\n\nHOTEL SEARCH INSTRUCTIONS\n\nYou have access to a tool called searchHotelTool. When a user asks for hotel information, like \"I want to book a hotel\" or \"Can you get me hotel options? Proceed to collect the following information.\n\nInformation to Collect (step-by-step):\n\n    Destination city or hotel name\n\n        Example question:\n\n            What city or specific hotel are you interested in? (e.g., London, JW Marriott Grosvenor House London)\n\n    Check-in date\n\n        Example question:\n\n            What is your check-in date? \n\n    Check-out date\n\n        Example question:\n\n            What is your check-out date? \n\n    Number of adults\n\n        Example question:\n\n            How many adults will be staying?\n\n    Number of rooms (optional, default to 1 if not given)\n\nThen:\n\n    Call the searchFlightTool with those parameters.\n\n    Once the tool returns, summarize the options in a short list showing comparisons of flights.\n\n    Present the best options with booking links, prices, and pros/cons.\n\n\n        Example question:\n\n            How many rooms would you like to book?\n\n    Price range (optional)\n\n        Example question:\n\n            Do you have a preferred price range per night? (e.g., 100-200 USD)\n\n    Board type (optional)\n\n        Example question:\n\n            Do you have a meal preference? (Room Only, Breakfast, Half Board, Full Board, All Inclusive)\n\n    Country of residence (optional, for pricing/availability)\n\n        Example question:\n\n            Which country are you booking from?\n\n## PERSONAL ERRANDS\n\n    For any personal errand that requires direct scheduling with a service provider (e.g., dentist appointments, salon visits, repair services), gather all necessary details from the executive:\n\n        Service type and any special requirements\n\n        Preferred provider or list of acceptable options\n\n        Location (city, state and country)\n\n        Any payment or privacy preferences\n        Then, pass these details in a structured format to the “Research Tool” so it can research information to return back to the user for further actions. \nUsually the user will review the options gotten from the research and proceed to want to book the service. \n\nWhen this happens, ask the user about his Preferred date and time range to book an appointment for the service or to order a product for delivery\n\nYou will then proceed to use the personalScheduler tool so it can call the provider. Once this is successful, inform the user that the call agent has placed a call through and will get back with the call summary via email."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "77d90b8d-0ed7-4cf6-b0bc-02fe87218464",
+      "name": "AI Agent2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -528,
+        224
+      ],
+      "id": "ad44a495-628b-4835-8ee1-357d739f03ef",
+      "name": "OpenAI Chat Model2"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "alabiayomide14@gmail.com",
+          "mode": "list",
+          "cachedResultName": "alabiayomide14@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "useDefaultReminders": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Use_Default_Reminders', ``, 'boolean') }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Attendees', ``, 'string') }}"
+          ],
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "location": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Location', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        224
+      ],
+      "id": "2caf2a0d-bda7-432f-93e7-bca944eaca58",
+      "name": "Book Meeting2"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "alabiayomide14@gmail.com",
+          "mode": "list",
+          "cachedResultName": "alabiayomide14@gmail.com"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        224
+      ],
+      "id": "95759546-d5f3-442a-927c-d2ebeff15b05",
+      "name": "Check Calendar Availability2"
+    },
+    {
+      "parameters": {
+        "name": "searchFlightTool",
+        "description": "Call this this tool when the user wants information related to flights",
+        "workflowId": {
+          "__rl": true,
+          "value": "d2zsxNvSI2TMDWrX",
+          "mode": "list",
+          "cachedResultName": "Divverse P2 — Flight Search (SerpAPI)"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        224
+      ],
+      "id": "98043e80-3557-481c-943d-6e57f17878d8",
+      "name": "Flight Search2"
+    },
+    {
+      "parameters": {
+        "name": "searchHotelTool",
+        "description": "Call this this tool when the user wants information related to hotels",
+        "workflowId": {
+          "__rl": true,
+          "value": "o7cRHehqyBA242Oc",
+          "mode": "list",
+          "cachedResultName": "Divverse P2 — Hotel Search"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.1,
+      "position": [
+        112,
+        224
+      ],
+      "id": "54cf305a-bb69-42fe-b42f-71f5b77759aa",
+      "name": "Hotel Search2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        240,
+        224
+      ],
+      "id": "d3778508-076a-4926-96de-2a98d89994f6",
+      "name": "Research Tool2"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -752,
+        0
+      ],
+      "id": "6a04e157-b353-4480-9c83-53e18f7db275",
+      "name": "When chat message received"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -400,
+        224
+      ],
+      "id": "766b4307-b678-4571-8280-1c2325a4a7dc",
+      "name": "Simple Memory"
+    }
+  ],
+  "connections": {
+    "AI Agent2": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book Meeting2": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Calendar Availability2": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flight Search2": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hotel Search2": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Tool2": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "339b3817-6ace-4f9b-91ba-ab2fe19e1cfa",
+  "meta": null,
+  "id": "2khLJhaHy4XuypcH",
+  "tags": []
+}

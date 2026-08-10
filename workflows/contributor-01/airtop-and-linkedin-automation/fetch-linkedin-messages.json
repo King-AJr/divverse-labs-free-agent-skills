@@ -1,0 +1,188 @@
+{
+  "name": "Fetch LinkedIn Messages",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.phantombuster.com/api/v2/agents/launch",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "y1O4DJbbNJgdj1h1Vo1C7OqetXKwMEXoHg7B0j0SrPc"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "id",
+              "value": "7967607975198870"
+            },
+            {
+              "name": "argument",
+              "value": "={\n\t\"chronOrder\": true,\n\t\"spreadsheetUrl\": \"{{ $json.profileUrl }}\",\n\t\"columnName\": \"profileUrl\",\n\t\"sessionCookie\": \"AQEDATu_K5IAKCNdAAABmW2DF-cAAAGZkY-b500AzNtr_xpAXFrs9xp7-aYfF5vCI01EKCL07frDmgrbvoSHNIatHepXNdv_q4seC_lCiUL_gI0fYX-Wpy_K6S9Z0uBhmqZ0LG_NlUcV671VueW3zlXR\",\n\t\"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36\",\n\t\"noDatabase\": true\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        432,
+        112
+      ],
+      "id": "c962ab37-46e4-4b17-b6c4-ab867a07f754",
+      "name": "Fetch LinkedIn Connections"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -176,
+        16
+      ],
+      "id": "62698662-f186-42ad-b4d6-127745f052ff",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app5MScJ8Cia7HggA",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Outreach Base",
+          "cachedResultUrl": "https://airtable.com/app5MScJ8Cia7HggA"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIWb1uwJnviTip",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/app5MScJ8Cia7HggA/tblYIWb1uwJnviTip"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        16
+      ],
+      "id": "20c74860-9dc1-4e41-9530-7d540f2e547d",
+      "name": "Search records"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        240,
+        16
+      ],
+      "id": "d911879b-1f26-443c-82b5-dcc017758bd6",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        112
+      ],
+      "id": "e31414a5-699e-4ba5-82bc-9299c5e07920",
+      "name": "Wait"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Fetch LinkedIn Connections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch LinkedIn Connections": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "66da47a2-830f-41ab-98a9-edee816514d6",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "NQxNMwSCEZ43VSaI",
+  "tags": []
+}

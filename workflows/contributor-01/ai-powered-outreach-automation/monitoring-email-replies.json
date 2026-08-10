@@ -1,0 +1,1020 @@
+{
+  "name": "Monitoring Email Replies",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "-subject:\"Urgent! Approval Required\" -subject:\"SCHEDULE UPDATE\" -subject:\"New Offer Inquiry – Immediate Attention Required\" -from:\"alabiayomide14gmail.com\""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -416,
+        -80
+      ],
+      "id": "7e0afd80-9395-4090-b095-a6c2beb2d04c",
+      "name": "Watch for new emails"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appH9bLv7B9kaJHs4",
+          "mode": "list",
+          "cachedResultName": "Multichannel Outreach Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appH9bLv7B9kaJHs4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblIxDNhfqCByF9L9",
+          "mode": "list",
+          "cachedResultName": "Email Conversations",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblIxDNhfqCByF9L9"
+        },
+        "filterByFormula": "={Thread ID} = '{{ $json.threadId }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        432,
+        -80
+      ],
+      "id": "b049f637-8c55-4758-9d2e-e8b6f98d95b2",
+      "name": "Search for thread",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b7250a06-5828-4238-94c3-402a46b575d4",
+              "leftValue": "={{ $json['Thread ID'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        656,
+        -80
+      ],
+      "id": "0815ec88-388f-4194-8960-48010242abe3",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3e24230b-ae7c-423c-a5a9-a2d23c91e510",
+              "leftValue": "={{ $('Watch for new emails').item.json.from.value[0].address }}",
+              "rightValue": "=alabiayomide14@gmail.com",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "997a53b2-64b8-4eb9-a083-0a60eaaf6e17",
+              "leftValue": "={{ JSON.stringify($json.email) }}",
+              "rightValue": "={{ $('Watch for new emails').item.json.from.value[0].address }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        -80
+      ],
+      "id": "3c9da260-0df3-4ece-9897-fa2a38679b42",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appH9bLv7B9kaJHs4",
+          "mode": "list",
+          "cachedResultName": "Multichannel Outreach Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appH9bLv7B9kaJHs4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblIxDNhfqCByF9L9",
+          "mode": "list",
+          "cachedResultName": "Email Conversations",
+          "cachedResultUrl": "https://airtable.com/appH9bLv7B9kaJHs4/tblIxDNhfqCByF9L9"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $('Watch for new emails').item.json.threadId }}",
+            "Client Email": "={{ $('Watch for new emails').item.json.from.value[0].address }}",
+            "Status": "Client Replied"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Client Email",
+              "displayName": "Client Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Executive Email",
+              "displayName": "Executive Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Client Replied",
+                  "value": "Client Replied"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last Updated",
+              "displayName": "Last Updated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email Messages",
+              "displayName": "Email Messages",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        896,
+        96
+      ],
+      "id": "a1da70a9-9749-4402-8123-d73486c42ade",
+      "name": "Create new thread"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appH9bLv7B9kaJHs4",
+          "mode": "list",
+          "cachedResultName": "Multichannel Outreach Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appH9bLv7B9kaJHs4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appH9bLv7B9kaJHs4/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message ID": "={{ $('Watch for new emails').item.json.id }}",
+            "Thread ID": "={{ $('Watch for new emails').item.json.threadId }}",
+            "Sender": "={{ $('Watch for new emails').item.json.from.value[0].address }}",
+            "Role": "Client",
+            "Message": "={{ $('Watch for new emails').item.json.text }}",
+            "Direction": "Incoming",
+            "Timestamp": "={{ $now.format('yyyy-MM-dd') }}",
+            "Status": "Client Replied",
+            "Name": "={{ $('Get row(s) in sheet').first().json.firstname }} {{ $('Get row(s) in sheet').first().json.lastname }}",
+            "title": "={{ $('Get row(s) in sheet').first().json.title }}",
+            "about": "={{ $('Get row(s) in sheet').first().json.snippet }}",
+            "generatedEmail": "={{ $('Get row(s) in sheet').first().json.generatedEmail }}",
+            "linkedinDM": "={{ $('Get row(s) in sheet').first().json.linkedinDM }}",
+            "whatsappDM": "={{ $('Get row(s) in sheet').first().json.whatsappDM }}",
+            "clientEmail": "={{ $('Get row(s) in sheet').first().json.email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Client Replied",
+                  "value": "Client Replied"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Days Since Timestamp",
+              "displayName": "Days Since Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "about",
+              "displayName": "about",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "generatedEmail",
+              "displayName": "generatedEmail",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "linkedinDM",
+              "displayName": "linkedinDM",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "whatsappDM",
+              "displayName": "whatsappDM",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "clientEmail",
+              "displayName": "clientEmail",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1072,
+        96
+      ],
+      "id": "2ff50d92-2776-4e86-b4bb-e5e3643dc20b",
+      "name": "Log Message"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1WehQ4maOeC85N5cpqhPtj5yNP732_2ASliceZTZ0bdk",
+          "mode": "list",
+          "cachedResultName": "Copy of linkedin leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WehQ4maOeC85N5cpqhPtj5yNP732_2ASliceZTZ0bdk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 335137603,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WehQ4maOeC85N5cpqhPtj5yNP732_2ASliceZTZ0bdk/edit#gid=335137603"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -208,
+        -80
+      ],
+      "id": "ff09e4d2-aa26-45c6-83c0-e31c8e6c09e4",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "email"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -80
+      ],
+      "id": "145e2e94-77c0-4f1c-8e83-8fc718c1f2ac",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C08PBMB3BK7",
+          "mode": "list",
+          "cachedResultName": "social"
+        },
+        "text": "Hello you have a new email reply from ",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1168,
+        -336
+      ],
+      "id": "94891bb4-e82a-4f91-bc6f-41df4e275f50",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C087YR7C6KB",
+          "mode": "list",
+          "cachedResultName": "automation"
+        },
+        "text": "=Hello you have a new email reply from {{ $('Watch for new emails').item.json.from.value[0].name }} with the email {{ $('Watch for new emails').item.json.from.value[0].address }}\n\nHere's the response: \n\n{{ $('Watch for new emails').item.json.text }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1264,
+        96
+      ],
+      "id": "e0f7b5b0-86dd-4772-841a-3f050bee699e",
+      "name": "Send a message1"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appH9bLv7B9kaJHs4",
+          "mode": "list",
+          "cachedResultName": "Multichannel Outreach Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appH9bLv7B9kaJHs4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appH9bLv7B9kaJHs4/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message ID": "={{ $('Watch for new emails').item.json.id }}",
+            "Thread ID": "={{ $('Watch for new emails').item.json.threadId }}",
+            "Sender": "={{ $('Watch for new emails').item.json.from.value[0].address }}",
+            "Role": "Client",
+            "Message": "={{ $('Watch for new emails').item.json.text }}",
+            "Direction": "Incoming",
+            "Timestamp": "={{ $now.format('yyyy-MM-dd') }}",
+            "Status": "Client Replied",
+            "Name": "={{ $('Get row(s) in sheet').first().json.firstname }} {{ $('Get row(s) in sheet').first().json.lastname }}",
+            "title": "={{ $('Get row(s) in sheet').first().json.title }}",
+            "about": "={{ $('Get row(s) in sheet').first().json.snippet }}",
+            "generatedEmail": "={{ $('Get row(s) in sheet').first().json.generatedEmail }}",
+            "linkedinDM": "={{ $('Get row(s) in sheet').first().json.linkedinDM }}",
+            "whatsappDM": "={{ $('Get row(s) in sheet').first().json.whatsappDM }}",
+            "clientEmail": "={{ $('Get row(s) in sheet').first().json.email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Client Replied",
+                  "value": "Client Replied"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Days Since Timestamp",
+              "displayName": "Days Since Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "about",
+              "displayName": "about",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "generatedEmail",
+              "displayName": "generatedEmail",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "linkedinDM",
+              "displayName": "linkedinDM",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "whatsappDM",
+              "displayName": "whatsappDM",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "clientEmail",
+              "displayName": "clientEmail",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        944,
+        -336
+      ],
+      "id": "e01582b6-fe41-4a53-ac08-cb49cc670d8e",
+      "name": "Log Message2"
+    }
+  ],
+  "connections": {
+    "Watch for new emails": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search for thread": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Search for thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create new thread": {
+      "main": [
+        [
+          {
+            "node": "Log Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Log Message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create new thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Message": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Message2": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "e3f3252e-9b5d-4c0a-9c5a-07712e4ab5e2",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "yFprM8YimjPTafgK",
+  "tags": []
+}

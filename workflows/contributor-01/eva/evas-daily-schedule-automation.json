@@ -1,0 +1,634 @@
+{
+  "name": "EVA's Daily Schedule Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -384
+      ],
+      "id": "f0ab3c39-7c06-480b-ac5d-8bb3fc035dae",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        -64
+      ],
+      "id": "7c033f9f-19a5-4e98-9776-95eaf07341dc",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"title\": \"\",\n\t\"attendees\": [\n      { \"email\": \"\" },\n      { \"email\": \"\" },\n      { \"email\": \"\" }\n    ],\n    \"start time\": \"\",\n    \"end time\": \"\",\n    \"prep note\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        512,
+        -64
+      ],
+      "id": "1dad42a1-e826-4b43-8bb0-32f1a025020d",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        944,
+        -32
+      ],
+      "id": "21adb3ff-d690-4410-839e-e8d6470aaae7",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "output",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        -32
+      ],
+      "id": "704aaddf-6a5c-4188-81c0-2c6fdf46cab5",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "sendTo": "talk2king.aj@gmail.com",
+        "subject": "=Daily Schedule - {{ $today.toFormat('yyyy-MM-dd') }}",
+        "message": "={{ $json.output[0].message }}\n\n\n{{ $json.output[1].emailBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1392,
+        64
+      ],
+      "id": "73aa3d51-4a05-4f38-bd0f-ba4e3cc739f7",
+      "name": "Gmail"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "U087L491L2W",
+          "mode": "list",
+          "cachedResultName": "alabiayomide14"
+        },
+        "text": "={{ $('Aggregate').item.json.output[0].message }}\n\n\n{{ $('Aggregate').item.json.output[1].emailBody }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -304,
+        384
+      ],
+      "id": "8c57c28d-5679-4c0c-897e-d5ddf1bbe88c",
+      "name": "Slack",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = items.map(item => {\n  const data = item.json;\n\n  return {\n    json: {\n      taskName: data.name || \"No task name\",\n      dueDate: data.due_date ? new Date(parseInt(data.due_date)).toLocaleDateString() : \"No due date\",\n      assignee: data.assignees?.[0]?.username || \"Unassigned\",\n      projectName: data.project?.name || \"No project\",\n      listName: data.list?.name || \"No list\",\n      taskLink: data.url || \"No link\",\n      priority: data.priority?.priority || \"No priority\",\n      status: data.status?.status || \"No status\"\n    }\n  };\n});\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        112
+      ],
+      "id": "1bf09f3d-eff7-405b-a7b6-cd46a20656d2",
+      "name": "Format Task Data"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "alabiayomide14@gmail.com",
+          "mode": "list",
+          "cachedResultName": "alabiayomide14@gmail.com"
+        },
+        "timeMin": "={{ $now.toLocal() }}",
+        "timeMax": "={{ $now.plus({ hour: 18 }).toLocal() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        -336
+      ],
+      "id": "7dc0fd3c-ac8a-4f59-ba28-a4626827906c",
+      "name": "Check Calendar Events"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop through all incoming calendar events\nreturn items.map(item => {\n  const data = item.json;\n\n  // Extract attendees' emails dynamically\n  const attendees = (data.attendees || []).map(a => a.email);\n\n  // Format start and end times\n  const formatDate = (dateObj) => {\n    if (!dateObj?.dateTime || !dateObj?.timeZone) return null;\n    const date = new Date(dateObj.dateTime);\n    return `${date.toISOString().slice(0, 16).replace('T', ' ')} (${dateObj.timeZone})`;\n  };\n\n  return {\n    json: {\n      event_id: data.id,\n      summary: data.summary || '',\n      attendees,\n      start: formatDate(data.start),\n      end: formatDate(data.end),\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        -336
+      ],
+      "id": "7e52306f-c126-4327-bff1-2219a741a003",
+      "name": "Format and aggregate events"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=For the meeting titled \"{{ $json.summary }}\", generate a one-line preparation tip.\n\nHere are the attendees of the meeting:\n{{ $json.attendees }}\n\nTitle of the meeting:\n{{ $json.summary }}\n\nStart time of the meeting:\n{{ $json.start }}\n\nEnd time of the meeting:\n{{ $json.end }}\n\nOutput it as follows:\nTitle: \nAttendees:\nStart time:\nEnd time: \nPrep note:",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        368,
+        -288
+      ],
+      "id": "47354f92-b5de-4bfd-939e-83bba599c8e6",
+      "name": "Generate Prep Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "function formatMeetingsForEmail(meetings) {\n  const formatTime = (date) =>\n    new Date(date).toLocaleTimeString(\"en-US\", {\n      hour: \"numeric\",\n      minute: \"2-digit\",\n    });\n\n  const meetingRows = meetings.map((item, index) => {\n    const output = item.json.output;\n    const title = output.title;\n    const start = output[\"start time\"];\n    const end = output[\"end time\"];\n    const attendees = output.attendees.map(a => `<li>${a.email}</li>`).join(\"\");\n    const prepNote = output[\"prep note\"];\n\n    return `\n      <tr style=\"border-bottom: 1px solid #eee;\">\n        <td style=\"padding: 20px;\">\n          <h3 style=\"margin: 0; color: #2c3e50;\">${index + 1}. ${title}</h3>\n          <p style=\"margin: 5px 0;\"><strong>🕒 Time:</strong> ${formatTime(start)} – ${formatTime(end)}</p>\n          <p style=\"margin: 5px 0;\"><strong>👥 Attendees:</strong></p>\n          <ul style=\"margin-top: 5px; padding-left: 20px;\">${attendees}</ul>\n          ${prepNote ? `<p style=\"margin: 5px 0;\"><strong>📝 Prep Note:</strong> ${prepNote}</p>` : \"\"}\n        </td>\n      </tr>\n    `;\n  }).join(\"\");\n\n  const htmlBody = `\n    <div style=\"font-family: 'Segoe UI', Roboto, sans-serif; color: #333; max-width: 800px; margin: auto;\">\n      <h2 style=\"border-bottom: 2px solid #ddd; padding-bottom: 10px; color: #2c3e50;\">👋 Hello there, here is your schedule for today:</h2>\n      <h3 style=\"color: #2c3e50;\">🗓️ Meetings</h3>\n      <table style=\"width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 15px;\">\n        <tbody>\n          ${meetingRows}\n        </tbody>\n      </table>\n      <p style=\"margin-top: 30px; font-size: 13px; color: #999;\">This is an automated meeting schedule summary for your day.</p>\n    </div>\n  `;\n\n  return htmlBody.trim();\n}\n\nconst formattedHtml = formatMeetingsForEmail(items);\n\nreturn [\n  {\n    json: {\n      message: formattedHtml\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        -192
+      ],
+      "id": "f7f8e7f2-2435-44d2-bc46-70584c141e32",
+      "name": "Format in HTML"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "getAll",
+        "team": "9012588407",
+        "space": "90122374894",
+        "folder": "90123788974",
+        "list": "901206394045",
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        112
+      ],
+      "id": "478ffcc2-994b-4840-9d54-21e57e5ebda9",
+      "name": "Get All Tasks"
+    },
+    {
+      "parameters": {
+        "jsCode": "function getPriorityColor(priority) {\n  switch (priority?.toLowerCase()) {\n    case 'urgent': return '#d9534f'; // red\n    case 'high': return '#f0ad4e';   // orange\n    case 'normal': return '#5bc0de'; // blue\n    case 'low': return '#5cb85c';    // green\n    default: return '#999';          // grey\n  }\n}\n\nfunction getStatusColor(status) {\n  switch (status?.toLowerCase()) {\n    case 'to do': return '#777';\n    case 'in progress': return '#0275d8';\n    case 'review': return '#f0ad4e';\n    case 'complete':\n    case 'done': return '#5cb85c';\n    default: return '#bbb';\n  }\n}\n\nconst rows = items.map((item, index) => {\n  const t = item.json;\n  const priorityColor = getPriorityColor(t.priority);\n  const statusColor = getStatusColor(t.status);\n\n  return `\n    <tr style=\"border-bottom: 1px solid #eee;\">\n      <td style=\"padding: 12px;\">${index + 1}</td>\n      <td style=\"padding: 12px;\">${t.taskName}</td>\n      <td style=\"padding: 12px;\">${t.dueDate}</td>\n      <td style=\"padding: 12px;\">${t.assignee}</td>\n      <td style=\"padding: 12px;\">${t.projectName} → ${t.listName}</td>\n      <td style=\"padding: 12px;\">\n        <span style=\"background-color: ${priorityColor}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;\">\n          ${t.priority}\n        </span>\n      </td>\n      <td style=\"padding: 12px;\">\n        <span style=\"background-color: ${statusColor}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;\">\n          ${t.status}\n        </span>\n      </td>\n      <td style=\"padding: 12px;\"><a href=\"${t.taskLink}\" style=\"color: #0275d8; text-decoration: none;\">View Task</a></td>\n    </tr>\n  `;\n}).join('');\n\nconst emailBody = `\n  <div style=\"font-family: 'Segoe UI', Roboto, sans-serif; color: #333; max-width: 800px; margin: auto;\">\n    <h2 style=\"border-bottom: 2px solid #ddd; padding-bottom: 10px; color: #2c3e50;\">📝 Task Summary</h2>\n    <table style=\"width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;\">\n      <thead>\n        <tr style=\"background-color: #f8f9fa;\">\n          <th style=\"text-align: left; padding: 12px;\">#</th>\n          <th style=\"text-align: left; padding: 12px;\">Task</th>\n          <th style=\"text-align: left; padding: 12px;\">Due Date</th>\n          <th style=\"text-align: left; padding: 12px;\">Assignee</th>\n          <th style=\"text-align: left; padding: 12px;\">Project</th>\n          <th style=\"text-align: left; padding: 12px;\">Priority</th>\n          <th style=\"text-align: left; padding: 12px;\">Status</th>\n          <th style=\"text-align: left; padding: 12px;\">Link</th>\n        </tr>\n      </thead>\n      <tbody>\n        ${rows}\n      </tbody>\n    </table>\n    <p style=\"margin-top: 30px; font-size: 13px; color: #999;\">This is an automated summary of your current task assignments.</p>\n  </div>\n`;\n\nreturn [\n  {\n    json: {\n      emailBody\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        112
+      ],
+      "id": "9701d794-ef67-4d4b-b554-88b56b2e7edd",
+      "name": "Format in HTML1"
+    },
+    {
+      "parameters": {
+        "content": "# Check calendar Events for the day\n",
+        "height": 300,
+        "width": 360
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -208,
+        -480
+      ],
+      "typeVersion": 1,
+      "id": "7a93dd50-2dc9-48bd-a905-d48d35b5237d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Format and Aggregate all events",
+        "height": 300,
+        "width": 320,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        32,
+        -480
+      ],
+      "typeVersion": 1,
+      "id": "4e06e63a-ee5e-4aa8-ac63-18f9a63c4f9d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Generate Prep Note and Format in HTML",
+        "height": 400,
+        "width": 520,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        336,
+        -320
+      ],
+      "typeVersion": 1,
+      "id": "f8b7a915-318d-4f39-91cf-badc17c90da2",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "# Get all ClickUp Tasks",
+        "height": 260,
+        "width": 440,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -256,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "0a94f737-5c59-4256-8efe-2b45a0f5f4f3",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Aggregate Tasks and format in HTML",
+        "height": 240,
+        "width": 480,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        96,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "6c8e481e-0ffc-405c-95ab-2740a27478bd",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Aggregate Tasks and Calendar Events and format in HTML",
+        "height": 464,
+        "width": 680,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        880,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "85aae093-26d4-43f5-9ffa-d7153c6bc798",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "tableId": "daily_schedule_email",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "=Daily Schedule - {{ $today.toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $json.output[0].message }}"
+            },
+            {
+              "fieldId": "email_body",
+              "fieldValue": "={{ $json.output[1].emailBody }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        -128
+      ],
+      "id": "fdc45019-8166-4ac8-9e75-2ab49d03e675",
+      "name": "Create a row"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -304,
+        160
+      ],
+      "id": "632af8dd-698e-4805-917b-7c58fc9bebb3",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "tableId": "daily_schedule",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "summary",
+              "fieldValue": "={{ $json.summary }}"
+            },
+            {
+              "fieldId": "attendees",
+              "fieldValue": "={{ $json.attendees }}"
+            },
+            {
+              "fieldId": "start",
+              "fieldValue": "={{ $json.start }}"
+            },
+            {
+              "fieldId": "end",
+              "fieldValue": "={{ $json.end }}"
+            },
+            {
+              "fieldId": "event_id",
+              "fieldValue": "={{ $json.event_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        432,
+        -480
+      ],
+      "id": "3ed19c8d-1517-4876-a6f6-997c77092832",
+      "name": "Create a row1"
+    },
+    {
+      "parameters": {
+        "tableId": "daily_tasks",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "task_name",
+              "fieldValue": "={{ $json.taskName }}"
+            },
+            {
+              "fieldId": "due_date",
+              "fieldValue": "={{ $json.dueDate }}"
+            },
+            {
+              "fieldId": "assignee",
+              "fieldValue": "={{ $json.assignee }}"
+            },
+            {
+              "fieldId": "project_name",
+              "fieldValue": "={{ $json.projectName }}"
+            },
+            {
+              "fieldId": "list_name",
+              "fieldValue": "={{ $json.listName }}"
+            },
+            {
+              "fieldId": "task_link",
+              "fieldValue": "={{ $json.taskLink }}"
+            },
+            {
+              "fieldId": "priority",
+              "fieldValue": "={{ $json.priority }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "={{ $json.status }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        496,
+        256
+      ],
+      "id": "5c089dfe-97ca-457d-a336-a21ac461655f",
+      "name": "Create a row2"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Check Calendar Events",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get All Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Prep Note",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate Prep Note",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        []
+      ]
+    },
+    "Format Task Data": {
+      "main": [
+        [
+          {
+            "node": "Format in HTML1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Calendar Events": {
+      "main": [
+        [
+          {
+            "node": "Format and aggregate events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format and aggregate events": {
+      "main": [
+        [
+          {
+            "node": "Generate Prep Note",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Prep Note": {
+      "main": [
+        [
+          {
+            "node": "Format in HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format in HTML": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Tasks": {
+      "main": [
+        [
+          {
+            "node": "Format Task Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format in HTML1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Calendar Events",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get All Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "d020568f-f527-465e-8a3b-9cd5e3d55da6",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "0gVhnB65WnbODwqv",
+  "tags": []
+}

@@ -1,0 +1,237 @@
+{
+  "name": "Send Meeting Tasks to ClickUp",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        256,
+        32
+      ],
+      "id": "78b89019-1525-4578-bd07-d95b516dacda",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Navigate to the actual meeting data inside the nested payload\nconst meetingData = items[0].json.body[0].body;\n\n// Start building aggregated meeting text\nlet aggregatedText = `Meeting Title: ${meetingData.title || ''}\\n\\n`;\n\n// Add participants\nif (Array.isArray(meetingData.participants) && meetingData.participants.length > 0) {\n  aggregatedText += `Participants:\\n`;\n  meetingData.participants.forEach((p, index) => {\n    aggregatedText += `${index + 1}. ${p.name || ''} - ${p.email || ''}\\n`;\n  });\n  aggregatedText += '\\n';\n}\n\n// Add summary\naggregatedText += `Summary:\\n${meetingData.summary || ''}\\n\\n`;\n\n// Add action items\nif (Array.isArray(meetingData.action_items) && meetingData.action_items.length > 0) {\n  aggregatedText += `Action Items:\\n`;\n  meetingData.action_items.forEach((item, index) => {\n    aggregatedText += `${index + 1}. ${item.text}\\n`;\n  });\n  aggregatedText += '\\n';\n}\n\n// Optional: Include transcript if available\nif (meetingData.transcript && Array.isArray(meetingData.transcript.speaker_blocks)) {\n  aggregatedText += `Transcript:\\n`;\n  meetingData.transcript.speaker_blocks.forEach(block => {\n    aggregatedText += `${block.speaker?.name || 'Unknown'}: ${block.words}\\n`;\n  });\n}\n\nreturn [\n  {\n    json: {\n      aggregatedMeetingData: aggregatedText\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        32
+      ],
+      "id": "e9c69acf-be0a-4630-840e-e5505181fb16",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Meeting information:\n\n{{ $json.aggregatedMeetingData }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an assistant that extracts actionable tasks from meeting data.\n\nYou will be given:\n- A meeting summary\n- Participants (name and emails)\n- Action items list\n- Optional transcript\n\nYour job:\n1. Identify each distinct actionable task mentioned.\n2. For each task, determine:\n   - Task name (clear and concise)\n   - Task description (clear and concise)\n   - Assignee (person's email address based on names mentioned)\n   - Due date (explicit date/time or relative like “tomorrow”, “by Friday”). Convert to Unix timestamp in milliseconds (not an ISO date string). The time now is {{ $now.toLocal().toMillis() }}\n   - Task priority: output 0 for low, 1 for normal, 2 for high and 3 for urgent\n3. If a due date is relative, convert it to an exact date based on the meeting's end date if provided in metadata.\n4. Output only valid tasks — skip non-actionable statements.\n\nRespond ONLY in valid JSON array format like this:\n[\n  {\n    \"task_name\": \"Complete integration of workflows\",\n    \"task_description\": \"\",\n    \"assignee\": \"goodness@example.com\",\n    \"due_date\": 43589473484,\n    \"priority\": 2\n  },\n  {\n    \"task_name\": \"Complete integration of workflows\",\n    \"task_description\": \"\",\n    \"assignee\": \"uche@example.com\",\n    \"due_date\": 43589473484\",\n    \"priority\": 2\n  }\n]\n\nDo not include explanations or extra text.\n\nAlways bear in mind that the time now is {{ $now.toLocal() }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        32
+      ],
+      "id": "f02cfbb7-b337-488e-8a7b-43e9b5b1a4eb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        656,
+        288
+      ],
+      "id": "e86ee841-ab63-4508-91aa-e01fe2d33119",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        32
+      ],
+      "id": "b4f2674b-4cff-440b-970e-a6c8c95a8314",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"task_name\": \"Complete integration of workflows\",\n    \"task_description\": \"\",\n    \"assignee\": \"goodness@example.com\",\n    \"due_date\": 43589473484,\n    \"priority\": 2\n  },\n  {\n    \"task_name\": \"Complete integration of workflows\",\n    \"task_description\": \"\",\n    \"assignee\": \"uche@example.com\",\n    \"due_date\": 43589473484,\n    \"priority\": 2\n  }\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        896,
+        368
+      ],
+      "id": "74cdbf4b-ed01-4750-92ac-02fb9cdc0051",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        784,
+        224
+      ],
+      "id": "97657632-ec0b-4e24-8f0c-80ebc730ec15",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.clickup.com/api/v2/list/901213289463/task",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "REDACTED"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $json.task_name }}\",\n  \"description\": \"{{ $json.task_description }}\",\n  \"assignees\": \"\",\n  \"status\": \"\",\n  \"priority\": {{ $json.priority }}, \n  \"due_date\": {{ $json.due_date }},\n  \"custom_fields\": [\n    {\n      \"id\": \"8cff7b9c-667c-4ec0-9f92-8b0d4236d73b\",\n      \"value\": \"{{ $json.assignee }}\"\n    }\n  ]\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1232,
+        32
+      ],
+      "id": "df5d2805-247f-4482-8b5e-e742c17ab1dc",
+      "name": "Create ClickUp tasks"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Create ClickUp tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "6dfdf33d-b833-4bc8-908e-c859203bcfff",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "FQ8wCVMmq7Cj1LTP",
+  "tags": []
+}

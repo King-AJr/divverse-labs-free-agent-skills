@@ -1,0 +1,215 @@
+{
+  "name": "Polar Chart gen sub-workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -64
+      ],
+      "id": "37a1e4c5-79a0-4bd8-94d4-982357fce4da",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -592,
+        128
+      ],
+      "id": "fd6c15ed-1ee7-4ec6-b5b7-184f91359489",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "url": "https://quickchart.io/chart",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "c",
+              "value": "={{ $('When Executed by Another Workflow').item.json.query }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -224,
+        16
+      ],
+      "id": "098ebc60-e3bb-4547-9730-5906855cfedc",
+      "name": "Generate Polar Chart"
+    },
+    {
+      "parameters": {
+        "jsCode": "const randomNum = Math.floor(Math.random() * 1000000);\nconst timestamp = Date.now();\nconst randomStr = Math.floor().toString(36).substring(2, 8);\n\nreturn {\n  uniqueId: `${randomNum}-${timestamp}-${randomStr}`\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        128
+      ],
+      "id": "35833373-56d6-4063-9f01-47f9eac5bc8e",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://xotluybvqxcwykhexuby.supabase.co/storage/v1/object/n8n_image_bucket/chart-{{ $('Code').item.json.uniqueId }}.png\n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "REDACTED_JWT"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            },
+            {
+              "name": "Content-Type",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        16
+      ],
+      "id": "d4461edd-f6e8-4cc8-9e28-73ab953b8769",
+      "name": "Upload to Supabase"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6387f820-5bee-4172-a5b9-57f50a6f4bd8",
+              "name": "publicUrl",
+              "value": "=https://xotluybvqxcwykhexuby.supabase.co/storage/v1/object/public/n8n_image_bucket/{{ $json.filename }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        16
+      ],
+      "id": "114c5523-3b8f-4fdb-ba5b-ef893ec7ef71",
+      "name": "Construct public url"
+    },
+    {
+      "parameters": {
+        "jsCode": "// In the n8n Function node:\n\n// Example input\nconst fullPath = $input.first().json.Key; // e.g., \"n8n image buckets/chart-20250825194719.png\"\n\n// Option 1: Using `split()` and `pop()`\nconst filename = fullPath.split(\"/\").pop();\n\n// Option 2: Using `lastIndexOf()` and `substring()`\nconst lastSlash = fullPath.lastIndexOf(\"/\");\nconst filenameAlt = lastSlash !== -1\n  ? fullPath.substring(lastSlash + 1)\n  : fullPath;\n\n// Return in correct n8n structure\nreturn [\n  {\n    json: {\n      filename: filename  // or filenameAlt, same result\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        16
+      ],
+      "id": "5d85926f-831b-440b-8263-e672763c1955",
+      "name": "Extract image path"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Generate Polar Chart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Polar Chart": {
+      "main": [
+        [
+          {
+            "node": "Upload to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Generate Polar Chart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Extract image path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract image path": {
+      "main": [
+        [
+          {
+            "node": "Construct public url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "fcdaf955-7b83-44e0-bc73-3a42d9abcfa9",
+  "meta": null,
+  "id": "X2zhmnH4EafJGAjx",
+  "tags": []
+}

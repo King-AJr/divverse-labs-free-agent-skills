@@ -1,0 +1,684 @@
+{
+  "name": "US Restaurant Scraper 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        384
+      ],
+      "id": "8c9a4b1a-1df8-4b38-bf47-5497493d49c1",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        32,
+        -32
+      ],
+      "id": "365fb1b3-712f-471a-ab17-2ea78fd35064",
+      "name": "Edit Fields",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/nwua9Gu5YrADL7ZDj/run-sync-get-dataset-items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"includeWebResults\": true,\n    \"language\": \"en\",\n    \"locationQuery\": \"New York, USA\",\n    \"maxCrawledPlacesPerSearch\": 200,\n    \"maxImages\": 0,\n    \"maximumLeadsEnrichmentRecords\": 0,\n    \"reviewsSort\": \"newest\",\n    \"scrapeContacts\": false,\n    \"scrapeDirectories\": true,\n    \"scrapeImageAuthors\": false,\n    \"scrapePlaceDetailPage\": true,\n    \"scrapeReviewsPersonalData\": true,\n    \"scrapeTableReservationProvider\": true,\n    \"searchStringsArray\": [\n        \"amala restaurant\",\n        \"nigerian jollof rice\",\n        \"Egusi soup\",\n        \"Nigerian fried rice\",\n        \"Ewa agoyin\",\n        \"Suya\",\n        \"Asun (goat meat)\",\n        \"Pepper Soup\",\n        \"Eba (garri)\",\n        \"Afang Soup\",\n        \"akara\",\n        \"Efo riro\",\n        \"Fried Plantain\",\n        \"moin moin\",\n        \"nigerian pepper soup restaurant\",\n        \"pounded yam\",\n        \"banga soup\",\n        \"nigerian Edikang Ikong soup\",\n        \"Ofada Rice sellers\",\n        \"ogbono soup\",\n        \"nigerian white rice and stew\",\n        \"okro soup\"\n    ],\n    \"skipClosedPlaces\": false\n}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        192,
+        -80
+      ],
+      "id": "6d2f45b0-0163-4d08-a1d3-96fb135050cc",
+      "name": "HTTP Request",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "50e3a1a9-9867-4bed-8744-d40618aa6240",
+              "name": "States",
+              "value": "=[\n  { \"state\": \"Arkansas\", \"latlong\": \"@34.9697,-92.3731,-12z\" },\n  { \"state\": \"California\", \"latlong\": \"@36.7783,-119.4179,-12z\" },\n  { \"state\": \"Colorado\", \"latlong\": \"@39.5501,-105.7821,-12z\" },\n  { \"state\": \"Connecticut\", \"latlong\": \"@41.6032,-73.0877,-12z\" },\n  { \"state\": \"Delaware\", \"latlong\": \"@38.9108,-75.5277,-12z\" },\n  { \"state\": \"Florida\", \"latlong\": \"@27.6648,-81.5158,-12z\" },\n  { \"state\": \"Georgia\", \"latlong\": \"@32.1656,-82.9001,-12z\" },\n  { \"state\": \"Hawaii\", \"latlong\": \"@19.8968,-155.5828,-12z\" },\n  { \"state\": \"Idaho\", \"latlong\": \"@44.0682,-114.7420,-12z\" },\n  { \"state\": \"Illinois\", \"latlong\": \"@40.6331,-89.3985,-12z\" },\n  { \"state\": \"Indiana\", \"latlong\": \"@40.2672,-86.1349,-12z\" },\n  { \"state\": \"Iowa\", \"latlong\": \"@41.8780,-93.0977,-12z\" },\n  { \"state\": \"Kansas\", \"latlong\": \"@39.0119,-98.4842,-12z\" },\n  { \"state\": \"Kentucky\", \"latlong\": \"@37.8393,-84.2700,-12z\" },\n  { \"state\": \"Louisiana\", \"latlong\": \"@30.9843,-91.9623,-12z\" },\n  { \"state\": \"Maine\", \"latlong\": \"@45.2538,-69.4455,-12z\" },\n  { \"state\": \"Maryland\", \"latlong\": \"@39.0458,-76.6413,-12z\" },\n  { \"state\": \"Massachusetts\", \"latlong\": \"@42.4072,-71.3824,-12z\" },\n  { \"state\": \"Michigan\", \"latlong\": \"@44.3148,-85.6024,-12z\" },\n  { \"state\": \"Minnesota\", \"latlong\": \"@46.7296,-94.6859,-12z\" },\n  { \"state\": \"Mississippi\", \"latlong\": \"@32.3547,-89.3985,-12z\" },\n  { \"state\": \"Missouri\", \"latlong\": \"@37.9643,-91.8318,-12z\" },\n  { \"state\": \"Montana\", \"latlong\": \"@46.8797,-110.3626,-12z\" },\n  { \"state\": \"Nebraska\", \"latlong\": \"@41.4925,-99.9018,-12z\" },\n  { \"state\": \"Nevada\", \"latlong\": \"@38.8026,-116.4194,-12z\" },\n  { \"state\": \"New Hampshire\", \"latlong\": \"@43.1939,-71.5724,-12z\" },\n  { \"state\": \"New Jersey\", \"latlong\": \"@40.0583,-74.4057,-12z\" },\n  { \"state\": \"New Mexico\", \"latlong\": \"@34.5199,-105.8701,-12z\" },\n  { \"state\": \"New York\", \"latlong\": \"@43.2994,-74.2179,-12z\" },\n  { \"state\": \"North Carolina\", \"latlong\": \"@35.7596,-79.0193,-12z\" },\n  { \"state\": \"North Dakota\", \"latlong\": \"@47.5515,-101.0020,-12z\" },\n  { \"state\": \"Ohio\", \"latlong\": \"@40.4173,-82.9071,-12z\" },\n  { \"state\": \"Oklahoma\", \"latlong\": \"@35.4676,-97.5164,-12z\" },\n  { \"state\": \"Oregon\", \"latlong\": \"@43.8041,-120.5542,-12z\" },\n  { \"state\": \"Pennsylvania\", \"latlong\": \"@41.2033,-77.1945,-12z\" },\n  { \"state\": \"Rhode Island\", \"latlong\": \"@41.5801,-71.4774,-12z\" },\n  { \"state\": \"South Carolina\", \"latlong\": \"@33.8361,-81.1637,-12z\" },\n  { \"state\": \"South Dakota\", \"latlong\": \"@43.9695,-99.9018,-12z\" },\n  { \"state\": \"Tennessee\", \"latlong\": \"@35.5175,-86.5804,-12z\" },\n  { \"state\": \"Texas\", \"latlong\": \"@31.9686,-99.9018,-12z\" },\n  { \"state\": \"Utah\", \"latlong\": \"@39.3210,-111.0937,-12z\" },\n  { \"state\": \"Vermont\", \"latlong\": \"@44.5588,-72.5778,-12z\" },\n  { \"state\": \"Virginia\", \"latlong\": \"@37.4316,-78.6569,-12z\" },\n  { \"state\": \"Washington\", \"latlong\": \"@47.7511,-120.7401,-12z\" },\n  { \"state\": \"West Virginia\", \"latlong\": \"@38.5976,-80.4549,-12z\" },\n  { \"state\": \"Wisconsin\", \"latlong\": \"@43.7844,-88.7879,-12z\" },\n  { \"state\": \"Wyoming\", \"latlong\": \"@43.0759,-107.2903,-12z\" }\n]\n",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        0
+      ],
+      "id": "c73d163d-fcff-4944-871b-e3f5636b05bb",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/maps",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "=nigerian restaurants in vermont"
+            },
+            {
+              "name": "ll",
+              "value": "=@44.045876,-72.710686"
+            },
+            {
+              "name": "page",
+              "value": "5"
+            },
+            {
+              "name": "num",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1312,
+        384
+      ],
+      "id": "fed0a749-110b-4350-8247-d67ee7109f91",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "places",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        560,
+        288
+      ],
+      "id": "52fe5ba9-c322-4f7e-b8fd-8753cd76c06e",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate items 1 to 5\nconst items = [];\n\nfor (let i = 1; i <= 5; i++) {\n  items.push({\n    json: {\n      number: i\n    }\n  });\n}\n\nreturn items;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        256
+      ],
+      "id": "5917c1cc-d331-4487-aaaa-b76c28b0b418",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nigerian dishes\nconst dishes = [\n  \"amala restaurant\",\n  \"nigerian jollof rice\",\n  \"Egusi soup\",\n  \"Nigerian fried rice\",\n  \"Ewa agoyin\",\n  \"Suya\",\n  \"Asun (goat meat)\",\n  \"Pepper Soup\",\n  \"Eba (garri)\",\n  \"Afang Soup\",\n  \"akara\",\n  \"Efo riro\",\n  \"Fried Plantain\",\n  \"moin moin\",\n  \"nigerian pepper soup restaurant\",\n  \"pounded yam\",\n  \"banga soup\",\n  \"nigerian Edikang Ikong soup\",\n  \"Ofada Rice sellers\",\n  \"ogbono soup\",\n  \"nigerian white rice and stew\",\n  \"okro soup\"\n];\n\n// States should come from previous node\nconst states = $input.first().json.States; // each has {state, latlong}\n\nconst combinations = [];\n\nfor (const dish of dishes) {\n  for (const s of states) {\n    for (let page = 1; page <= 3; page++) {\n      combinations.push({\n        json: {\n          dish,\n          state: s.state,\n          latlong: s.latlong,\n          page,\n          query: `${dish} in ${s.state} ${s.latlong}`,\n        }\n      });\n    }\n  }\n}\n\nreturn combinations;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        0
+      ],
+      "id": "91300bf9-85c6-4add-bbdb-c3f5dcf898aa",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1184,
+        0
+      ],
+      "id": "4edfa153-32d5-4705-9c6b-7e6199ea96ca",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "maxItems": 132
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        960,
+        0
+      ],
+      "id": "4cb59fd4-326f-41df-b568-a1ff430c745b",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "query": "=list all the menus and dishes offered by the restaurant:\n\n{{ $json.title }} in {{ $json.address }}",
+        "options": {
+          "search_depth": "advanced",
+          "include_answer": "advanced"
+        }
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavily",
+      "typeVersion": 1,
+      "position": [
+        2560,
+        16
+      ],
+      "id": "ee1540b2-1a64-4bd7-bc77-6b432d1ca58b",
+      "name": "Search"
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        -96
+      ],
+      "id": "a85b3877-d1ce-489b-9fca-615134f72b9c",
+      "name": "Limit1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "places",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        384
+      ],
+      "id": "13481cae-534b-47b0-9acf-061d355c699c",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2272,
+        -128
+      ],
+      "id": "ae030b7b-89f4-46dd-9493-6ae8312126ef",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2800,
+        80
+      ],
+      "id": "288e20f2-1042-4e2e-b6dd-eaafc46b1e83",
+      "name": "Wait"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4367ee14-a24a-4447-8f38-c0e85c31afc2",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "African restaurant",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "e78ed9fc-c39c-4bc5-a6b3-275851b54f22",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "West African restaurant",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        2016,
+        -80
+      ],
+      "id": "816658e1-64fc-48d0-aec1-3ff7e5908642",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "placeId",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1744,
+        384
+      ],
+      "id": "286721be-f619-45fb-ab9c-9074af81c3c7",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "tableId": "restaurants",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $json.title }}"
+            },
+            {
+              "fieldId": "clean_name",
+              "fieldValue": "={{ $json.title }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $json.phoneNumber }}"
+            },
+            {
+              "fieldId": "address_full",
+              "fieldValue": "={{ $json.address }}"
+            },
+            {
+              "fieldId": "work_hours",
+              "fieldValue": "={{ JSON.stringify($json.openingHours) }}"
+            },
+            {
+              "fieldId": "latitude",
+              "fieldValue": "={{ $json.latitude }}"
+            },
+            {
+              "fieldId": "longitude",
+              "fieldValue": "={{ $json.longitude }}"
+            },
+            {
+              "fieldId": "uber_url",
+              "fieldValue": "={{ $json.website }}"
+            },
+            {
+              "fieldId": "zip_code",
+              "fieldValue": "={{ $json.zipcode }}"
+            },
+            {
+              "fieldId": "city",
+              "fieldValue": "={{ $json.city }}"
+            },
+            {
+              "fieldId": "state",
+              "fieldValue": "={{ $json.state }}"
+            },
+            {
+              "fieldId": "place_id",
+              "fieldValue": "={{ $json.placeId }}"
+            },
+            {
+              "fieldId": "fid",
+              "fieldValue": "={{ $json.fid }}"
+            },
+            {
+              "fieldId": "cid",
+              "fieldValue": "={{ $json.cid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2672,
+        592
+      ],
+      "id": "673d7d17-c5b8-4b9e-bf66-e2c57678590e",
+      "name": "Create a row",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Expecting field: item.json.address\n// Example: \"2464 E State St, Burnham, IL 60633\"\n\nreturn items.map(item => {\n  const address = $input.first().json.address || \"\";\n\n  // Regex to extract: City, State, Zip\n  const regex = /,\\s*([^,]+),\\s*([A-Z]{2})\\s+(\\d{5})/i;\n  const match = address.match(regex);\n\n  let city = null;\n  let state = null;\n  let zipcode = null;\n\n  if (match) {\n    city = match[1].trim();\n    state = match[2].trim();\n    zipcode = match[3].trim();\n  }\n\n  return {\n    json: {\n      ...item.json,\n      city,\n      state,\n      zipcode\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        496
+      ],
+      "id": "b4bad8e5-6144-473b-b18e-64b16b1ec856",
+      "name": "Extract city, state & zip code"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2240,
+        432
+      ],
+      "id": "512a8f41-8c30-43b0-b33e-834c7c309834",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2608,
+        288
+      ],
+      "id": "171904a8-4afb-4fc4-b7a6-02ff641cac8a",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2816,
+        -320
+      ],
+      "id": "628231ed-2605-46a5-a31f-e517c3a9228a",
+      "name": "Merge"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        []
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract city, state & zip code": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract city, state & zip code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "f836940a-3105-4771-93c3-21d7c4e90f2a",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "fne5g6AWWSqJs4Qf",
+  "tags": []
+}

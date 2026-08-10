@@ -1,0 +1,243 @@
+{
+  "name": "WhatsApp and Slack Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        -32
+      ],
+      "id": "82e7cb7d-899a-4c3d-a727-c0b2e8feb723",
+      "name": "Gmail Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1RDnYZapvUoaSPP-aNo9kdnuym-2tlx286GxrZPpxWy0",
+          "mode": "list",
+          "cachedResultName": "Sample Email Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RDnYZapvUoaSPP-aNo9kdnuym-2tlx286GxrZPpxWy0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RDnYZapvUoaSPP-aNo9kdnuym-2tlx286GxrZPpxWy0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        112,
+        -32
+      ],
+      "id": "b1fce75c-4f74-43dc-b66e-6804ea500a9f",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "43fe5fb8-336e-4ce0-97d8-709931930888",
+              "leftValue": "={{ $json.Email.toString() }}",
+              "rightValue": "={{ $('Gmail Trigger').item.json.from.value[0].address }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        -32
+      ],
+      "id": "3490e7e2-b697-4ef3-92e2-212bbf2a178c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C087L4932LA",
+          "mode": "list",
+          "cachedResultName": "social"
+        },
+        "text": "={{ $json.output    // Headings: #, ##, ###... → *Heading*    .replace(/^#{1,6} (.*)$/gm, \"*$1*\")     // Bold: **bold** → *bold*    .replace(/\\*\\*(.*?)\\*\\*/g, \"*$1*\")     // Italics: *italic* or _italic_ → _italic_    .replace(/(^|[^*])\\*(?!\\s)([^*]+?)\\*(?!\\s)/g, \"$1_$2_\")  // single * → _    .replace(/_(.*?)_/g, \"_$1_\")     // Inline code: `code` → `code`    .replace(/`([^`]+)`/g, \"`$1`\")     // Code block: ```...``` → ```...```    .replace(/```([\\s\\S]*?)```/g, \"```\\n$1\\n```\")     // Links: [text](url) → <url|text>    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, \"<$2|$1>\")     // Bullets: - item or * item → • item    .replace(/^- (.*)$/gm, \"• $1\")    .replace(/^\\* (.*)$/gm, \"• $1\")     // Convert escaped \\n to actual newlines    .replace(/\\\\n/g, \"\\n\") }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        880,
+        -272
+      ],
+      "id": "f87a0208-7c5b-4eae-9e0b-6bd83c84f82f",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        832,
+        -48
+      ],
+      "id": "f000f713-3f41-4efd-9b61-2fd3fbc6ae21",
+      "name": "Send message"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "Email"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -32
+      ],
+      "id": "eaeeb556-c0ce-480c-a2a2-3cce4ba14595",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "935425a9-8097-435d-82cb-51bfcfef00d7",
+              "name": "output",
+              "value": "=New Email Alert|\n\n> 📥 From: {{ $('Gmail Trigger').item.json.from.value[0].name }} ({{ $('Gmail Trigger').item.json.from.value[0].address }}) \n\n> 📝 Subject:  {{ $('Gmail Trigger').item.json.subject }}\n\n> 💬 Message: \"{{ $('Gmail Trigger').item.json.text }}\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        688,
+        -272
+      ],
+      "id": "090beaf7-4d5d-4a11-ac82-a91d95a0acb7",
+      "name": "Edit Fields"
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "4d5091be-674e-4eed-a132-5133687c6ab4",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "kYn1nT9wkh5nIvDz",
+  "tags": []
+}

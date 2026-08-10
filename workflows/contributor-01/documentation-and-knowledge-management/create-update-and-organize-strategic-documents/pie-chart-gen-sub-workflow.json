@@ -1,0 +1,214 @@
+{
+  "name": "Pie chart gen sub-workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        -176
+      ],
+      "id": "7a838efe-440d-406d-a7a6-c974052ba6b2",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -656,
+        16
+      ],
+      "id": "65382df7-d506-48e1-9f4d-b654ce219baa",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "url": "https://quickchart.io/chart",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "c",
+              "value": "={{ $('When Executed by Another Workflow').item.json.query }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -304,
+        -96
+      ],
+      "id": "5de8cb13-09d8-44f9-ad0c-61db14634d08",
+      "name": "Generate Pie Chart"
+    },
+    {
+      "parameters": {
+        "jsCode": "const randomNum = Math.floor(Math.random() * 1000000);\nconst timestamp = Date.now();\nconst randomStr = Math.floor().toString(36).substring(2, 8);\n\nreturn {\n  uniqueId: `${randomNum}-${timestamp}-${randomStr}`\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        16
+      ],
+      "id": "779920a2-b752-4d6d-beba-e4d77503c31d",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://xotluybvqxcwykhexuby.supabase.co/storage/v1/object/n8n_image_bucket/chart-{{ $('Code').item.json.uniqueId }}.png\n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "REDACTED_JWT"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            },
+            {
+              "name": "Content-Type",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -64,
+        -112
+      ],
+      "id": "d2fa419c-8ec2-47ea-b2b0-7b5846aaef45",
+      "name": "Upload to Supabase"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6387f820-5bee-4172-a5b9-57f50a6f4bd8",
+              "name": "publicUrl",
+              "value": "=https://xotluybvqxcwykhexuby.supabase.co/storage/v1/object/public/n8n_image_bucket/{{ $json.filename }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        -112
+      ],
+      "id": "718baac8-0d81-46c6-94e8-f448114a8eeb",
+      "name": "Construct public url"
+    },
+    {
+      "parameters": {
+        "jsCode": "// In the n8n Function node:\n\n// Example input\nconst fullPath = $input.first().json.Key; // e.g., \"n8n image buckets/chart-20250825194719.png\"\n\n// Option 1: Using `split()` and `pop()`\nconst filename = fullPath.split(\"/\").pop();\n\n// Option 2: Using `lastIndexOf()` and `substring()`\nconst lastSlash = fullPath.lastIndexOf(\"/\");\nconst filenameAlt = lastSlash !== -1\n  ? fullPath.substring(lastSlash + 1)\n  : fullPath;\n\n// Return in correct n8n structure\nreturn [\n  {\n    json: {\n      filename: filename  // or filenameAlt, same result\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        -112
+      ],
+      "id": "3c206436-058d-4ff1-8fab-c1e946f210bc",
+      "name": "Extract image path"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Generate Pie Chart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Pie Chart": {
+      "main": [
+        [
+          {
+            "node": "Upload to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Generate Pie Chart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Extract image path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract image path": {
+      "main": [
+        [
+          {
+            "node": "Construct public url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "0fdbf68c-dd76-4d44-840d-b52b8accade3",
+  "meta": null,
+  "id": "lHnS4heSDVLvhM7b",
+  "tags": []
+}

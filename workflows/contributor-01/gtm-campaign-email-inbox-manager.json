@@ -1,0 +1,4104 @@
+{
+  "name": "GTM Campaign Email Inbox Manager",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "-subject:\"Urgent! Approval Required\" -subject:\"SCHEDULE UPDATE\" -subject:\"New Offer Inquiry – Immediate Attention Required\" -from:\"alabiayomide14gmail.com\""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -784,
+        -16
+      ],
+      "id": "7e2c9d56-9072-4ba9-9da9-abbbb1bc4a3d",
+      "name": "Watch for new emails"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appXXti9Rxy47axDY",
+          "mode": "list",
+          "cachedResultName": "GTM Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appXXti9Rxy47axDY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblIxDNhfqCByF9L9",
+          "mode": "list",
+          "cachedResultName": "Email Conversations",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblIxDNhfqCByF9L9"
+        },
+        "filterByFormula": "={Thread ID} = '{{ $json.threadId }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -352,
+        -16
+      ],
+      "id": "fb7fe2cd-82b1-49ca-9d08-3ae1ec28d92a",
+      "name": "Search for thread",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b7250a06-5828-4238-94c3-402a46b575d4",
+              "leftValue": "={{ $json['Thread ID'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -128,
+        -16
+      ],
+      "id": "28392656-ff91-4140-b1e9-579aa55d7257",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appXXti9Rxy47axDY",
+          "mode": "list",
+          "cachedResultName": "GTM Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appXXti9Rxy47axDY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblIxDNhfqCByF9L9",
+          "mode": "list",
+          "cachedResultName": "Email Conversations",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblIxDNhfqCByF9L9"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $('Watch for new emails').item.json.threadId }}",
+            "Client Email": "={{ $('Watch for new emails').item.json.from.value[0].address }}",
+            "Executive Email": "={{ $('Watch for new emails').item.json.to.value[0].address }}",
+            "Status": "New"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Client Email",
+              "displayName": "Client Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Executive Email",
+              "displayName": "Executive Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Waiting on Exec",
+                  "value": "Waiting on Exec"
+                },
+                {
+                  "name": "Waiting on Client",
+                  "value": "Waiting on Client"
+                },
+                {
+                  "name": "Client Proposed Time",
+                  "value": "Client Proposed Time"
+                },
+                {
+                  "name": "Resolved",
+                  "value": "Resolved"
+                },
+                {
+                  "name": "Ignored",
+                  "value": "Ignored"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last Updated",
+              "displayName": "Last Updated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email Messages",
+              "displayName": "Email Messages",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        848,
+        768
+      ],
+      "id": "559fe5af-6cd7-4902-9f9d-48cfb428a019",
+      "name": "Create new thread"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appXXti9Rxy47axDY",
+          "mode": "list",
+          "cachedResultName": "GTM Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appXXti9Rxy47axDY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message ID": "={{ $('Watch for new emails').item.json.messageId }}",
+            "Thread ID": "={{ $('Watch for new emails').item.json.threadId }}",
+            "Sender": "={{ $('Watch for new emails').item.json.from.value[0].address }}",
+            "Role": "Client",
+            "Message": "={{ $('Watch for new emails').item.json.text }}",
+            "Direction": "Incoming"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1024,
+        768
+      ],
+      "id": "f48a8907-2227-49ec-9b40-86bcc3f902a9",
+      "name": "Log Message"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appXXti9Rxy47axDY",
+          "mode": "list",
+          "cachedResultName": "GTM Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appXXti9Rxy47axDY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message ID": "={{ $('Watch for new emails').item.json.messageId }}",
+            "Thread ID": "={{ $('Watch for new emails').item.json.threadId }}",
+            "Sender": "={{ $('Watch for new emails').item.json.from.value[0].address }}",
+            "Role": "Client",
+            "Message": "={{ $('Watch for new emails').item.json.text }}",
+            "Timestamp": "={{ $('Watch for new emails').item.json.date.toDateTime() }}",
+            "Direction": "Incoming"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        192,
+        -976
+      ],
+      "id": "d3901c88-6120-4f61-9eb2-f8f5ab90aa76",
+      "name": "Log Message1"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appXXti9Rxy47axDY",
+          "mode": "list",
+          "cachedResultName": "GTM Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appXXti9Rxy47axDY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "filterByFormula": "={Thread ID} = \"{{ $json.fields['Thread ID'] }}\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        -976
+      ],
+      "id": "750621e4-f9f0-4b6a-92b6-c8fec03b1eb4",
+      "name": "Pull all thread messages"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "Role"
+            },
+            {
+              "fieldToAggregate": "Message"
+            },
+            {
+              "fieldToAggregate": "Direction"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -976
+      ],
+      "id": "159b12e5-d4f1-48cf-afaf-892d190cc239",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "const thread = items[0].json; // assuming this is the only item\n\nlet formatted = '';\n\nfor (let i = 0; i < thread.Role.length; i++) {\n  const role = thread.Role[i];\n  const direction = thread.Direction[i];\n  const message = thread.Message[i].trim();\n\n  formatted += `[${role}] (${direction}): ${message}\\n\\n`;\n}\n\nreturn [{ json: { formattedThread: formatted.trim() } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        -976
+      ],
+      "id": "877cfd54-7782-489c-9b38-eff64afa91b1",
+      "name": "Format Thread"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        1008
+      ],
+      "id": "173ae636-3a22-4e59-9ba4-919190e0870f",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "92cbe7b3-2185-4d88-88c8-218fdc0262cc",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        784
+      ],
+      "id": "19ab4440-5d0f-4365-9284-1cfabb23fcef",
+      "name": "If5"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"output\": \"Yes\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        1024
+      ],
+      "id": "26e57f2e-72f7-4984-8271-1dd217450a73",
+      "name": "Structured Output Parser8"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1376,
+        1264
+      ],
+      "id": "e1008740-1c1d-496e-9ce7-13e003edbd2b",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"intent\": \"<one of the 8 categories>\",\n  \"tone\": \"<Positive / Negative / Neutral>\",\n  \"summary\": \"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1408,
+        1008
+      ],
+      "id": "9fb2c606-17d6-403b-be19-4a1ed1dd5e11",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Email message:\n\"\"\"\n{{ $('Watch for new emails').item.json.text }}\n\"\"\"\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an intelligent email filter for a sales and GTM campaign inbox.\nYour task is to analyze the full content of an incoming email and decide if it is relevant to client engagement or sales opportunities.\nRelevant emails include (but are not limited to):\n\nResponding to a sales outreach message\n\nExpressing interest in our product or service\n\nAsking questions about our product, service, pricing, features, or availability\n\nRequesting more information, a demo, or case studies\n\nRaising objections or concerns about our offer\n\nBooking, rescheduling, confirming, or canceling a meeting\n\nAsking for available time slots or following up on a proposed meeting\n\nProviding business partnership or collaboration proposals\n\nProviding decision-making timelines or next steps in the buying process\n\nIrrelevant emails include:\n\nPromotional messages from other companies\n\nNewsletters or automated marketing updates\n\nInternal company emails not related to sales\n\nPersonal correspondence unrelated to business\n\nProject updates that do not involve sales conversations\n\nGeneral spam or advertisements\n\nOnly respond with one word:\n\n\"Yes\" — if the message is relevant to sales or client engagement as described above\n\n\"No\" — if the message is irrelevant or falls into the excluded categories\n\nDo not explain. Do not add any other text."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        128,
+        768
+      ],
+      "id": "eee280e1-5bfa-4312-9dc8-68a41c1ba768",
+      "name": "Email Filter",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Email message:\n\"\"\"\nSubject: {{ $('Watch for new emails').first().json.headers.subject }}\n\nBody: {{ $('Watch for new emails').first().json.text }}\n\"\"\"\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an intelligent email intent and tone classifier. Your job is to read the client's email and classify it into one of the predefined intent categories, and also determine the tone.\n\nPossible intents:\n1. Meeting Booking / Scheduling – Request to book, schedule, reschedule, or cancel a meeting.\n2. Information Request – Request for product, service, pricing, or company details.\n3. Objection / Concern – Client expresses doubts, issues, or hesitations.\n4. Proposal / Offer – Business proposal, collaboration, or partnership request. The client shows interest in our product or service and wants to partner, collaborate or purchase our service. He may request more information also. This should be in this category as it needs urgent attention\n5. Support Request – Request for assistance with an existing product or service. A client may be experiencing some issues with our product or service and needs support.\n6. Uninterested – Client is not interested in our product or service\n7. General Inquiry – Other relevant business inquiries.\n8. Not Relevant / Spam / Promotions – Irrelevant content, ads, newsletters, personal notes.\n\nTone options:\n- Positive: Enthusiastic, interested, or supportive.\n- Negative: Disinterested, dissatisfied, or resistant.\n- Neutral: Objective, factual, or unclear sentiment.\n\nOutput your result strictly in JSON format as:\n{\n  \"intent\": \"<one of the 8 categories>\",\n  \"tone\": \"<Positive / Negative / Neutral>\",\n  \"summary\": \"string\"\n}\n\nsummary: 1 - 2 sentence plain - language summary of the email content\n\nClassify into only one of the categories and not more than one category"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1216,
+        768
+      ],
+      "id": "049e43f3-036b-416c-8f2e-7983431052b1",
+      "name": "Email Intent & Tone classifier"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Information Request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "131d4847-07d3-428a-aab7-8a7a5dd9f9c7"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Info Request"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1c9e36eb-70ba-4aaf-99d7-4ffebc2de919",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Meeting Booking",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Meeting Booking"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "96b4aba7-63d0-4649-ad09-c4200b068657",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Proposal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Proposal / Offer"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "64de12f3-a712-438d-953d-00cb28daef6f",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Objection / Concern",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Objection / Concern"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "14f0de3a-2b40-4924-883f-462cfbe90101",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Uninterested",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Uninterested"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "527130ed-36ba-4c6d-a065-c282b0805d9b",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "General Inquiry",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "General Inquiry"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6aea619d-1804-4b61-b06a-770e036156cc",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Support Request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Support Request"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1520,
+        688
+      ],
+      "id": "fa6e2e28-4007-4c98-a817-6b6523d565e8",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Client's email:\n\n{{ $('Watch for new emails').item.json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an AI email assistant for a B2B SaaS company providing an all-in-one project management, workflow automation, and analytics platform for businesses.\n\nYou have access to the knowledge base tool\n\nYour job:\n\nRead the client’s email carefully.\n\nUse the knowledge base tool for the most relevant information that answers their request.\n\nIf multiple knowledge base entries are relevant, combine them into a clear, complete answer.\n\nIf the knowledge base does not contain the answer, politely inform the client that their request will be escalated to a human support representative. Do not make up information.\n\nTone & style:\n\nProfessional, friendly, and confident.\n\nSimple, concise language — suitable for busy professionals.\n\nAddress the client directly and avoid unnecessary filler.\n\nOutput format:\nWrite the final email reply that can be sent directly to the client, including:\n\nA greeting (use the client’s name if provided, otherwise “Hello,”).\n\nThe answer from the knowledge base, adapted into a conversational format.\n\nA polite closing.\n\nExample:\n\nClient email:\n\nHi, does your platform support multi-user dashboards?\n\nKnowledge base excerpt:\n\nOur dashboards support multi-user collaboration. Users with the appropriate permissions can view, edit, and customize dashboards simultaneously in real-time.\n\nResponse:\n\nHello,\n\nYes — our dashboards fully support multi-user collaboration. Any user with the right permissions can view, edit, and customize them in real time, ensuring your team stays on the same page.\n\nBest regards,\nContributor 01\nDivVerse Support"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1920,
+        224
+      ],
+      "id": "1b9d0e67-0d8d-4fb6-a65d-75380b93d17e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1856,
+        432
+      ],
+      "id": "3d7abc77-c2ee-48bc-a117-b8b7a5cfc7f4",
+      "name": "OpenAI Chat Model2"
+    },
+    {
+      "parameters": {
+        "name": "product_information",
+        "description": "Product information, pricing, onboarding, features, etc",
+        "topK": 5
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        448
+      ],
+      "id": "9e5e6670-bda8-4ee8-b256-a9f9e506a301",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2176,
+        848
+      ],
+      "id": "9d2819c0-6ef5-43b2-91b9-2b511a953400",
+      "name": "OpenAI Chat Model3"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8n-kb",
+          "mode": "list",
+          "cachedResultName": "n8n-kb"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        1952,
+        640
+      ],
+      "id": "3114c202-83ca-49a5-9ba9-e0d31f2e31a0",
+      "name": "Pinecone Vector Store"
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2000,
+        864
+      ],
+      "id": "ef30ae21-3419-4528-965a-08cbf250c807",
+      "name": "Embeddings OpenAI"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"output\": \"email_body\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2320,
+        608
+      ],
+      "id": "cf4776a3-3871-407f-bbda-62f9ba017008",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09G0LQQCJC",
+          "mode": "list",
+          "cachedResultName": "gtm-automation"
+        },
+        "message": "=Hello, a client just sent the email below:\n\n\"{{ $('Watch for new emails').item.json.text }}\"\n\nI have crafted the response for it below:\n\n\"{{ $json.output }}\"\n\nPlease confirm if I should proceed with replying the client",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2272,
+        224
+      ],
+      "id": "1ef18885-b65d-40ff-96f6-1c9b6aaafdf0",
+      "name": "Slack"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6362db19-665f-405c-a51c-4489298ce797",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2496,
+        224
+      ],
+      "id": "872287c7-1136-41d4-93a3-81e17a498f97",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $('AI Agent').item.json.output }}",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2800,
+        208
+      ],
+      "id": "d62fbd7d-691a-42e3-b93e-cc6b72dbf1d0",
+      "name": "Gmail"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Urgent! Approval Required",
+        "message": "=Hello,\n\nYou received a request from {{ $('Watch for new emails').item.json.from.value[0].name }} to book a meeting.\n\nHere's what the client sent:\n\n\"{{ $('Watch for new emails').item.json.text }}\"\n\nPlease confirm if you want me to send the calendly meeting link\n",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2000,
+        1024
+      ],
+      "id": "d2365560-6de3-4646-a364-f7d07a1178f7",
+      "name": "Gmail4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.calendly.com/scheduling_links",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "max_event_count",
+              "value": "1"
+            },
+            {
+              "name": "owner",
+              "value": "={{ $json.collection[0].uri }}"
+            },
+            {
+              "name": "owner_type",
+              "value": "EventType"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2880,
+        1024
+      ],
+      "id": "bcd259e4-b6d8-421d-b2c2-4ee75db282e6",
+      "name": "Create Calendly Scheduling link2"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/users/me",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2448,
+        1024
+      ],
+      "id": "173c019f-1dea-4884-b964-b43606e7d183",
+      "name": "Get Calendly user2"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/event_types",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "user",
+              "value": "={{ $json.resource.uri }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2672,
+        1024
+      ],
+      "id": "83084c80-d7b8-4af2-8ccb-060451b89e09",
+      "name": "List event types2"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Watch for new emails').item.json.threadId }}",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "message": "=Hello, thanks for your interest. Please find below the link to book a meeting with us.\n\n{{ $json.resource.booking_url }}\n\nPlease reach out if you need any other request",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3088,
+        1024
+      ],
+      "id": "3bdfe8c5-bdf3-403a-ab83-ffb8e8a273e7",
+      "name": "Gmail5"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appXXti9Rxy47axDY",
+          "mode": "list",
+          "cachedResultName": "GTM Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appXXti9Rxy47axDY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $json.threadId }}",
+            "Message ID": "={{ $json.id }}",
+            "Role": "Assistant",
+            "Sender": "Assistant",
+            "Message": "={{ $json.text }}",
+            "Timestamp": "={{ $now.toLocal() }}",
+            "Direction": "Outgoing"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        3536,
+        1024
+      ],
+      "id": "5b130604-7741-418d-8a14-23e7e1b480cb",
+      "name": "Airtable2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "62478795-bde0-4756-832e-7687bf76648c",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2208,
+        1024
+      ],
+      "id": "e9ee0a53-3c0e-4b72-9ffb-bd9ab2388be6",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3312,
+        1024
+      ],
+      "id": "68406a98-5c5b-44c9-ad7e-4f250d849255",
+      "name": "Gmail1"
+    },
+    {
+      "parameters": {
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "New Offer Inquiry – Immediate Attention Required",
+        "emailType": "text",
+        "message": "=Hi,\n\nYou’ve received a new message from {{ $('Watch for new emails').item.json.from.value[0].address }} expressing interest in our offer:  \n\nClient message: “{{ $('Watch for new emails').item.json.text }}”  \n\nThis is a potential lead and should be handled promptly. Please review the inquiry and respond as soon as possible.  \n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2048,
+        1184
+      ],
+      "id": "a0d475b2-50ea-49b1-8e4c-a9d19a0e016d",
+      "name": "Alert via Email"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Email message:\n\"\"\"\nSubject: {{ $('Watch for new emails').first().json.headers.subject }}\n\nBody: {{ $('Watch for new emails').first().json.text }}\n\"\"\"\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an email assistant for a B2B SaaS provider of project management, workflow automation, and analytics tools.\n\nThe user has indicated they are not interested in our product at this time.\n\nYour task: Write a short, polite, and professional reply that:\n\nAcknowledges their message and decision.\n\nThanks them for considering our product.\n\nLeaves the door open for future engagement.\n\nAvoids any pushy sales language.\n\nTone: Friendly, respectful, and concise.\n\nExample Output:\nHello,\n\nThank you for letting us know. We appreciate you considering our platform and understand it may not be the right time.\n\nShould your needs change in the future, we’d be happy to reconnect and explore how we can support your goals.\n\nBest regards,"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1872,
+        1360
+      ],
+      "id": "bdcd7515-835a-4ff8-8075-88f1778da8d9",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"email_body\": \"<body>\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2048,
+        1568
+      ],
+      "id": "dc7e1a2b-f44e-4a69-b0f7-61fc755c56ff",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $json.output.email_body }}",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2240,
+        1360
+      ],
+      "id": "5fb54af0-c290-4a2f-8d98-c4102f1cf6b4",
+      "name": "Gmail2"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appXXti9Rxy47axDY",
+          "mode": "list",
+          "cachedResultName": "GTM Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appXXti9Rxy47axDY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $json.threadId }}",
+            "Message ID": "={{ $json.id }}",
+            "Role": "Assistant",
+            "Sender": "Assistant",
+            "Message": "={{ $('AI Agent1').item.json.output.email_body }}",
+            "Timestamp": "={{ $now.toLocal() }}",
+            "Direction": "Outgoing"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2432,
+        1360
+      ],
+      "id": "685c9481-532a-48da-9ecb-a6516ba44b58",
+      "name": "Airtable"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C087L4932LA",
+          "mode": "list",
+          "cachedResultName": "social"
+        },
+        "text": "🚨 New Urgent Support Request Received 🚨\n\nClient Name: [Client Name]\nEmail: [Client Email]\nIssue: [Brief description of the problem from the email]\n\nPlease reach out to the client immediately to resolve this issue.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1856,
+        1712
+      ],
+      "id": "5de33595-1adb-4ac9-9473-2f19a12637c2",
+      "name": "Slack2"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Watch for new emails').item.json.threadId }}",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "message": "=Hello,\n\nThank you for contacting us. We’ve received your support request.\n\nOur support team is already reviewing your case and will reach out to you shortly with assistance.\n\nIf you have any additional details or updates in the meantime, please reply to this email so we can better assist you.\n\nBest regards,",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2048,
+        1712
+      ],
+      "id": "b1bff546-d35c-4c06-9586-e17b7de449e8",
+      "name": "Gmail10"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appXXti9Rxy47axDY",
+          "mode": "list",
+          "cachedResultName": "GTM Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appXXti9Rxy47axDY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $json.threadId }}",
+            "Message ID": "={{ $json.id }}",
+            "Role": "Assistant",
+            "Sender": "Assistant",
+            "Message": "={{ $json.text }}",
+            "Timestamp": "={{ $now.toLocal() }}",
+            "Direction": "Outgoing"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2496,
+        1712
+      ],
+      "id": "57568b3e-53eb-4aa2-bde2-f7d008465e6c",
+      "name": "Airtable4"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2272,
+        1712
+      ],
+      "id": "cf13b751-93e9-40fd-8fee-df0776d3f990",
+      "name": "Gmail11"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        -480
+      ],
+      "id": "93211e99-e797-4cb2-bebe-ace760da08a0",
+      "name": "OpenAI Chat Model4"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"intent\": \"<one of the 8 categories>\",\n  \"tone\": \"<Positive / Negative / Neutral>\",\n  \"summary\": \"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        -736
+      ],
+      "id": "610f76da-22bb-43c8-a70f-288648dbe9d4",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=THREAD CONTEXT:\n{{ $json.formattedThread }}\n\nLATEST MESSAGE:\n\nEmail message:\n\"\"\"\nSubject: {{ $('Watch for new emails').first().json.headers.subject }}\n\nBody: {{ $('Watch for new emails').first().json.text }}\n\"\"\"\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an intelligent email intent and tone classifier. Your job is to read the client's email and classify it into one of the predefined intent categories, and also determine the tone.\n\nPossible intents:\n1. Meeting Booking / Scheduling – Request to book, schedule, reschedule, or cancel a meeting.\n2. Information Request – Request for product, service, pricing, or company details.\n3. Objection / Concern – Client expresses doubts, issues, or hesitations.\n4. Proposal / Offer – Business proposal, collaboration, or partnership request. The client shows interest in our product or service and wants to partner, collaborate or purchase our service. He may request more information also. This should be in this category as it needs urgent attention\n5. Support Request – Request for assistance with an existing product or service. A client may be experiencing some issues with our product or service and needs support.\n6. Uninterested – Client is not interested in our product or service\n7. General Inquiry – Other relevant business inquiries.\n8. Not Relevant / Spam / Promotions – Irrelevant content, ads, newsletters, personal notes.\n\nTone options:\n- Positive: Enthusiastic, interested, or supportive.\n- Negative: Disinterested, dissatisfied, or resistant.\n- Neutral: Objective, factual, or unclear sentiment.\n\nOutput your result strictly in JSON format as:\n{\n  \"intent\": \"<one of the 8 categories>\",\n  \"tone\": \"<Positive / Negative / Neutral>\",\n  \"summary\": \"string\"\n}\n\nsummary: 1 - 2 sentence plain - language summary of the email content\n\nClassify into only one of the categories and not more than one category"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1088,
+        -976
+      ],
+      "id": "db6a4bfe-c0fc-4282-839d-ba17e5b676c9",
+      "name": "Email Intent & Tone classifier1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Information Request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "131d4847-07d3-428a-aab7-8a7a5dd9f9c7"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Info Request"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1c9e36eb-70ba-4aaf-99d7-4ffebc2de919",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Meeting Booking",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Meeting Booking"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "96b4aba7-63d0-4649-ad09-c4200b068657",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Proposal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Proposal / Offer"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "64de12f3-a712-438d-953d-00cb28daef6f",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Objection / Concern",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Objection / Concern"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "14f0de3a-2b40-4924-883f-462cfbe90101",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Uninterested",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Uninterested"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "527130ed-36ba-4c6d-a065-c282b0805d9b",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "General Inquiry",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "General Inquiry"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6aea619d-1804-4b61-b06a-770e036156cc",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "Support Request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Support Request"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1440,
+        -1056
+      ],
+      "id": "b117bdca-c9fc-456f-b791-98fe84dc203b",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Client's email:\n\n{{ $('Watch for new emails').item.json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an AI email assistant for a B2B SaaS company providing an all-in-one project management, workflow automation, and analytics platform for businesses.\n\nYou have access to the knowledge base tool\n\nYour job:\n\nRead the client’s email message carefully.\n\nUse the knowledge base tool for the most relevant information that answers their request.\n\nIf the knowledge base does not contain the answer, politely inform the client that their request will be escalated to a human support representative. Do not make up information.\n\nTone & style:\n\nProfessional, friendly, and confident.\n\nSimple, concise language — suitable for busy professionals.\n\nAddress the client directly and avoid unnecessary filler.\n\nOutput format:\nWrite the final email reply that can be sent directly to the client, including:\n\nA greeting (use the client’s name if provided, otherwise “Hello,”).\n\nThe answer from the knowledge base, adapted into a conversational format.\n\nA polite closing.\n\nExample:\n\nClient email:\n\nHi, does your platform support multi-user dashboards?\n\nKnowledge base excerpt:\n\nOur dashboards support multi-user collaboration. Users with the appropriate permissions can view, edit, and customize dashboards simultaneously in real-time.\n\nResponse:\n\nHello,\n\nYes — our dashboards fully support multi-user collaboration. Any user with the right permissions can view, edit, and customize them in real time, ensuring your team stays on the same page.\n\nBest regards,\nContributor 01\nDivVerse Support"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1840,
+        -1520
+      ],
+      "id": "a6baf155-9f5d-4135-ab6e-c79eace2db6d",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1776,
+        -1328
+      ],
+      "id": "767ec166-168a-436a-8c03-0836d0542549",
+      "name": "OpenAI Chat Model5"
+    },
+    {
+      "parameters": {
+        "name": "product_information",
+        "description": "Product information, pricing, onboarding, features, etc",
+        "topK": 5
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        -1296
+      ],
+      "id": "3922c71e-f756-4600-8b2c-8b677072151c",
+      "name": "Answer questions with a vector store1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2096,
+        -896
+      ],
+      "id": "716caeb6-ea5d-4451-9261-e3ca4bcfd299",
+      "name": "OpenAI Chat Model6"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8n-kb",
+          "mode": "list",
+          "cachedResultName": "n8n-kb"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        1872,
+        -1104
+      ],
+      "id": "43760b66-684d-455a-b4a7-9a623ac22ce5",
+      "name": "Pinecone Vector Store1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1920,
+        -880
+      ],
+      "id": "a66be183-a54e-4ae2-bba7-abd3052c05bd",
+      "name": "Embeddings OpenAI1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"output\": \"email_body\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2304,
+        -1072
+      ],
+      "id": "5c1697e1-e31b-4cef-b369-5903fb966151",
+      "name": "Structured Output Parser4"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09G0LQQCJC",
+          "mode": "list",
+          "cachedResultName": "gtm-automation"
+        },
+        "message": "=Hello, a client just sent the email below:\n\n\"{{ $('Watch for new emails').item.json.text }}\"\n\nI have crafted the response for it below:\n\n\"{{ $json.output }}\"\n\nPlease confirm if I should proceed with replying the client",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2192,
+        -1520
+      ],
+      "id": "7956ba78-44da-4831-b16d-e619b9930575",
+      "name": "Slack1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6362db19-665f-405c-a51c-4489298ce797",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2416,
+        -1520
+      ],
+      "id": "8b5cd029-416a-4eea-aa16-dc2bc0f2704c",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $('AI Agent2').item.json.output }}",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2720,
+        -1536
+      ],
+      "id": "01553e50-b229-41e0-af22-62362aae52ae",
+      "name": "Gmail3"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Urgent! Approval Required",
+        "message": "=Hello,\n\nYou received a request from {{ $('Watch for new emails').item.json.from.value[0].name }} to book a meeting.\n\nHere's what the client sent:\n\n\"{{ $('Watch for new emails').item.json.text }}\"\n\nPlease confirm if you want me to send the calendly meeting link\n",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        -720
+      ],
+      "id": "49a2c9b5-6ea4-43bc-a392-1b72ac98fbf9",
+      "name": "Gmail6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.calendly.com/scheduling_links",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "max_event_count",
+              "value": "1"
+            },
+            {
+              "name": "owner",
+              "value": "={{ $json.collection[0].uri }}"
+            },
+            {
+              "name": "owner_type",
+              "value": "EventType"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2800,
+        -720
+      ],
+      "id": "601de0ab-acd2-4a07-a18c-ebee90f631d7",
+      "name": "Create Calendly Scheduling link"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/users/me",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2368,
+        -720
+      ],
+      "id": "575c3733-dc8f-42b8-b31c-8f4487afc9ac",
+      "name": "Get Calendly user"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/event_types",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "user",
+              "value": "={{ $json.resource.uri }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2592,
+        -720
+      ],
+      "id": "5d222ce0-417c-4dad-a3af-93e7c78fee00",
+      "name": "List event types"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Watch for new emails').item.json.threadId }}",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "message": "=Hello, thanks for your interest. Please find below the link to book a meeting with us.\n\n{{ $json.resource.booking_url }}\n\nPlease reach out if you need any other request",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3008,
+        -720
+      ],
+      "id": "78cfced0-a838-4459-bd11-90ab55b04220",
+      "name": "Gmail7"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appXXti9Rxy47axDY",
+          "mode": "list",
+          "cachedResultName": "GTM Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appXXti9Rxy47axDY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $json.threadId }}",
+            "Message ID": "={{ $json.id }}",
+            "Role": "Assistant",
+            "Sender": "Assistant",
+            "Message": "={{ $json.text }}",
+            "Timestamp": "={{ $now.toLocal() }}",
+            "Direction": "Outgoing"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        3456,
+        -720
+      ],
+      "id": "fc8f1d11-572c-4c39-9cdf-adab87f61948",
+      "name": "Airtable3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "62478795-bde0-4756-832e-7687bf76648c",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2128,
+        -720
+      ],
+      "id": "33f6cd89-0905-4260-9b39-257c45f8b48c",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3232,
+        -720
+      ],
+      "id": "736cd061-66c6-4c84-809b-580b38718a2c",
+      "name": "Gmail8"
+    },
+    {
+      "parameters": {
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "New Offer Inquiry – Immediate Attention Required",
+        "emailType": "text",
+        "message": "=Hi,\n\nYou’ve received a new message from {{ $('Watch for new emails').item.json.from.value[0].address }} expressing interest in our offer:  \n\nClient message: “{{ $('Watch for new emails').item.json.text }}”  \n\nThis is a potential lead and should be handled promptly. Please review the inquiry and respond as soon as possible.  \n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1968,
+        -560
+      ],
+      "id": "1fd6d17c-10b3-454b-a11a-7ebe7a35a389",
+      "name": "Alert via Email1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Email message:\n\"\"\"\nSubject: {{ $('Watch for new emails').first().json.headers.subject }}\n\nBody: {{ $('Watch for new emails').first().json.text }}\n\"\"\"\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an email assistant for a B2B SaaS provider of project management, workflow automation, and analytics tools.\n\nThe user has indicated they are not interested in our product at this time.\n\nYour task: Write a short, polite, and professional reply that:\n\nAcknowledges their message and decision.\n\nThanks them for considering our product.\n\nLeaves the door open for future engagement.\n\nAvoids any pushy sales language.\n\nTone: Friendly, respectful, and concise.\n\nExample Output:\nHello,\n\nThank you for letting us know. We appreciate you considering our platform and understand it may not be the right time.\n\nShould your needs change in the future, we’d be happy to reconnect and explore how we can support your goals.\n\nBest regards,"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1792,
+        -384
+      ],
+      "id": "9e488e8c-9f88-487d-acd2-e5aa7b03aa63",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"email_body\": \"<body>\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1968,
+        -176
+      ],
+      "id": "b9b708be-7b60-4b79-b05b-c7d34bd06c3b",
+      "name": "Structured Output Parser5"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $json.output.email_body }}",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2160,
+        -384
+      ],
+      "id": "dbc6c99a-3327-4f0a-9bc0-aab9116ac9e2",
+      "name": "Gmail9"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appXXti9Rxy47axDY",
+          "mode": "list",
+          "cachedResultName": "GTM Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appXXti9Rxy47axDY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $json.threadId }}",
+            "Message ID": "={{ $json.id }}",
+            "Role": "Assistant",
+            "Sender": "Assistant",
+            "Message": "={{ $('AI Agent3').item.json.output.email_body }}",
+            "Timestamp": "={{ $now.toLocal() }}",
+            "Direction": "Outgoing"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2352,
+        -384
+      ],
+      "id": "db8c5be7-efd7-4a86-8d36-c10a9b089edc",
+      "name": "Airtable1"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C087L4932LA",
+          "mode": "list",
+          "cachedResultName": "social"
+        },
+        "text": "🚨 New Urgent Support Request Received 🚨\n\nClient Name: [Client Name]\nEmail: [Client Email]\nIssue: [Brief description of the problem from the email]\n\nPlease reach out to the client immediately to resolve this issue.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1776,
+        -48
+      ],
+      "id": "34dbc03a-aeb9-4d76-9a4a-ab887ff5bd75",
+      "name": "Slack3"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Watch for new emails').item.json.threadId }}",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "message": "=Hello,\n\nThank you for contacting us. We’ve received your support request.\n\nOur support team is already reviewing your case and will reach out to you shortly with assistance.\n\nIf you have any additional details or updates in the meantime, please reply to this email so we can better assist you.\n\nBest regards,",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1968,
+        -16
+      ],
+      "id": "2c165c46-d2fb-4cb4-b576-2b56fc0b9c53",
+      "name": "Gmail12"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appXXti9Rxy47axDY",
+          "mode": "list",
+          "cachedResultName": "GTM Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appXXti9Rxy47axDY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $json.threadId }}",
+            "Message ID": "={{ $json.id }}",
+            "Role": "Assistant",
+            "Sender": "Assistant",
+            "Message": "={{ $json.text }}",
+            "Timestamp": "={{ $now.toLocal() }}",
+            "Direction": "Outgoing"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2416,
+        -48
+      ],
+      "id": "6534b0aa-5d23-49cd-9fa1-8ae43eb4626f",
+      "name": "Airtable5"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2272,
+        48
+      ],
+      "id": "7da4a3b5-3d2e-415b-a309-1dd958132ff9",
+      "name": "Gmail13"
+    },
+    {
+      "parameters": {
+        "content": "# GTM Campaign Inbox Manager Automation\n##  An automation that manages inbound replies from GTM campaigns in real time. \n\n## It detects new emails instantly, classifies intent and tone, and routes them to the right path: auto-sending a Calendly link for meeting requests, answering info requests with a knowledge base, escalating proposals to executives, notifying support via Slack, or sending polite decline replies. \n\n## This ensures every client message is handled within minutes, keeping leads warm and support responsive.\n\n# Components:\n\n## Gmail for sending mails\n\n## Vector Database (Pinecone) for anwering client info requests and inquiries\n\n## Human in the loop for approval\n\n## Slack for proposal escalation and notification\n\n## Calendly for booking appointments\n\n## Airtable for storing email threads and tracking messages",
+        "height": 992,
+        "width": 768
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1056,
+        -1280
+      ],
+      "typeVersion": 1,
+      "id": "9d0f5e6a-ae8b-4d67-86b6-3ed82dc7f935",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        2144,
+        -1200
+      ],
+      "id": "f025bcd6-ea56-4cec-85fa-7c8ae71b7f61",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        448
+      ],
+      "id": "3c44f2b5-3421-4794-8097-f6c115c2e788",
+      "name": "Auto-fixing Output Parser1"
+    },
+    {
+      "parameters": {
+        "errorMessage": "An error occurred"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        480,
+        864
+      ],
+      "id": "2850ab8f-349a-4bfe-8118-a02c529b6790",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3e24230b-ae7c-423c-a5a9-a2d23c91e510",
+              "leftValue": "={{ $json.from.value[0].address }}",
+              "rightValue": "alabiayomide14@gmail.com",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -576,
+        -16
+      ],
+      "id": "debb633f-930b-4593-8b1f-023be232894d",
+      "name": "Filter"
+    }
+  ],
+  "connections": {
+    "Watch for new emails": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search for thread": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Log Message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create new thread": {
+      "main": [
+        [
+          {
+            "node": "Log Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Message1": {
+      "main": [
+        [
+          {
+            "node": "Pull all thread messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull all thread messages": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Format Thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Filter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
+            "node": "Create new thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser8": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Email Filter",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Message": {
+      "main": [
+        [
+          {
+            "node": "Email Intent & Tone classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Intent & Tone classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Email Intent & Tone classifier",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Filter": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Intent & Tone classifier": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert via Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail4": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calendly Scheduling link2": {
+      "main": [
+        [
+          {
+            "node": "Gmail5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Calendly user2": {
+      "main": [
+        [
+          {
+            "node": "List event types2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List event types2": {
+      "main": [
+        [
+          {
+            "node": "Create Calendly Scheduling link2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail5": {
+      "main": [
+        [
+          {
+            "node": "Gmail1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Get Calendly user2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail1": {
+      "main": [
+        [
+          {
+            "node": "Airtable2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Gmail2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail2": {
+      "main": [
+        [
+          {
+            "node": "Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Thread": {
+      "main": [
+        [
+          {
+            "node": "Email Intent & Tone classifier1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail10": {
+      "main": [
+        [
+          {
+            "node": "Gmail11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail11": {
+      "main": [
+        [
+          {
+            "node": "Airtable4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack2": {
+      "main": [
+        [
+          {
+            "node": "Gmail10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Intent & Tone classifier1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Email Intent & Tone classifier1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Intent & Tone classifier1": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert via Email1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Slack1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store1",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack1": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Gmail3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail6": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calendly Scheduling link": {
+      "main": [
+        [
+          {
+            "node": "Gmail7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Calendly user": {
+      "main": [
+        [
+          {
+            "node": "List event types",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List event types": {
+      "main": [
+        [
+          {
+            "node": "Create Calendly Scheduling link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail7": {
+      "main": [
+        [
+          {
+            "node": "Gmail8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Get Calendly user",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail8": {
+      "main": [
+        [
+          {
+            "node": "Airtable3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Gmail9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser5": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail9": {
+      "main": [
+        [
+          {
+            "node": "Airtable1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack3": {
+      "main": [
+        [
+          {
+            "node": "Gmail12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail12": {
+      "main": [
+        [
+          {
+            "node": "Gmail13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail13": {
+      "main": [
+        [
+          {
+            "node": "Airtable5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Search for thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "bd0a929e-b02f-4a40-a161-503b1a13f840",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "aE9YHfvs5L9ciZIy",
+  "tags": []
+}

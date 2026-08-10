@@ -1,0 +1,63 @@
+{
+  "name": "My workflow 59",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -20
+      ],
+      "id": "7364a5dd-36e7-41fe-9e86-21130e2ca7c6",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1zMFKzVKrl6hQHw_K1IL7v9XBZUsxuJkw",
+            "mode": "list",
+            "cachedResultName": "n8n knowledge base",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1zMFKzVKrl6hQHw_K1IL7v9XBZUsxuJkw"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -20,
+        -20
+      ],
+      "id": "7b69c746-6fe6-4d51-945b-9fbf2b527eb3",
+      "name": "Google Drive"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "f068652b-daa3-48f2-b0eb-3e485d5c8dde",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "lUcfvi93EDYBpMxX",
+  "tags": []
+}

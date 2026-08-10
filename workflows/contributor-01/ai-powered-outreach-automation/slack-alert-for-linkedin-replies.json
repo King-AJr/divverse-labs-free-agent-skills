@@ -1,0 +1,141 @@
+{
+  "name": "Slack Alert for LinkedIn Replies",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -256,
+        -48
+      ],
+      "id": "eef203e1-6e93-485f-ba60-f374e8ad0269",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=conversation: \n\n{{ $json.body.resultObject }}",
+        "options": {
+          "systemMessage": "=You are given a JSON object containing LinkedIn conversation threads. Each thread includes messages, authors, and metadata. \nYour task is to:\n\n1. Identify the prospects (anyone who is NOT \"Contributor 01\").\n2. Check which prospects have replied in the conversation.\n3. Create a short Slack message listing the prospects who replied and their responses.\n\nFormat the Slack message like this:\n\nThe following people have responded on LinkedIn:\n\n- [Prospect Name] (<LinkedIn URL>): \"[Most recent reply]\"\n- [Prospect Name] (<LinkedIn URL>): \"[Most recent reply]\"\n\nIf no prospects have replied, respond with:\n\"No prospects have replied yet.\"\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -48,
+        -48
+      ],
+      "id": "56caf400-0cd1-4a91-9c7a-6ce4f885dcbb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        128
+      ],
+      "id": "aa100020-556c-4f18-9f16-d21dafb00fba",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"name\": \"\",\n    \"profileUrl\": \"\",\n    \"latestReply\": \"\"\n  },\n  {\n    \"name\": \"\",\n    \"profileUrl\": \"\",\n    \"latestReply\": \"\"\n  },\n    {\n    \"name\": \"\",\n    \"profileUrl\": \"\",\n    \"latestReply\": \"\"\n  }\n]\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        128,
+        160
+      ],
+      "id": "7b997697-7f8f-4918-9b02-681cc6acb104",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09AK5CK010",
+          "mode": "list",
+          "cachedResultName": "meeting-and-email-automation"
+        },
+        "text": "={{ $json.output    // Headings: #, ##, ###... → *Heading*    .replace(/^#{1,6} (.*)$/gm, \"*$1*\")     // Bold: **bold** → *bold*    .replace(/\\*\\*(.*?)\\*\\*/g, \"*$1*\")     // Italics: *italic* or _italic_ → _italic_    .replace(/(^|[^*])\\*(?!\\s)([^*]+?)\\*(?!\\s)/g, \"$1_$2_\")  // single * → _    .replace(/_(.*?)_/g, \"_$1_\")     // Inline code: `code` → `code`    .replace(/`([^`]+)`/g, \"`$1`\")     // Code block: ```...``` → ```...```    .replace(/```([\\s\\S]*?)```/g, \"```\\n$1\\n```\")     // Links: [text](url) → <url|text>    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, \"<$2|$1>\")     // Bullets: - item or * item → • item    .replace(/^- (.*)$/gm, \"• $1\")    .replace(/^\\* (.*)$/gm, \"• $1\")     // Convert escaped \\n to actual newlines    .replace(/\\\\n/g, \"\\n\") }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        304,
+        -48
+      ],
+      "id": "1fdc3d4e-480b-4289-b84a-8b47ecc23d10",
+      "name": "Send a message"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        []
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "e58ebd7d-5d2b-4214-9160-86e830d2ee60",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "6EoEY65cVlG4BxNs",
+  "tags": []
+}

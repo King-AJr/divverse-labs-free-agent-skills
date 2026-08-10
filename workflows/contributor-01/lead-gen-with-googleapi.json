@@ -1,0 +1,938 @@
+{
+  "name": "Lead gen with googleapi",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -368,
+        -480
+      ],
+      "id": "ff3381d6-4e8e-4036-826f-0c3355c48634",
+      "name": "Loop Over Items",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "80da4e69-25f3-42f1-b64c-d9538821a767",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "[null]",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        -96
+      ],
+      "id": "61ab896e-1961-4766-9172-f66e93faf1e2",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "065fb28c-cda4-437d-8cd2-8de77795e5f8",
+              "leftValue": "={{ $json.companyWebsite }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "9ff86f08-e739-491b-9c26-91f404a37be8",
+              "leftValue": "={{ $json.fullName }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        -208
+      ],
+      "id": "00174213-4f19-4fc6-849e-1847e68fd40a",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "jsCode": "let start =  0 // Initial page\nconst limit = $input.first().json.output.limit; // Limit to fetch 100 profiles\nconst batchSize = 10; // Google Search returns 100 results per page\nconst output = [];\n\n// Loop through pages by increments of 100\nwhile (start < limit) {\n  output.push({ json: { start: start } });\n  start += batchSize; // increment by 100 for each page\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -480
+      ],
+      "id": "926cc007-2212-4c81-ba2f-d3dfc23e3b96",
+      "name": "Pagination"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/customsearch/v1",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "REDACTED"
+            },
+            {
+              "name": "cx",
+              "value": "70f03658d21cc4de9"
+            },
+            {
+              "name": "q",
+              "value": "={{ $('AI Agent').item.json.output.search_string.replace(/\"/g, '') }}"
+            },
+            {
+              "name": "num",
+              "value": "10"
+            },
+            {
+              "name": "start",
+              "value": "={{ $json.start }}"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 10000
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -48,
+        -464
+      ],
+      "id": "8762aa59-6e86-43ef-861e-1f078059ccfa",
+      "name": "Google Scrape"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the response data\nconst response = $input.first().json;\nconst items = response.items || [];\n\n// Extract search string from input (if available)\nconst searchString = response.searchString || '';\n\n// Track pagination info\nlet nextStartIndex = 1;\nif (response.queries && response.queries.nextPage && response.queries.nextPage[0]) {\n  nextStartIndex = response.queries.nextPage[0].startIndex;\n}\n\n// Calculate if we should continue (Google only allows up to 100 results)\nconst hasMoreResults = nextStartIndex <= 100;\n\n// Process the items and include pagination info in each item\nconst results = items.map(item => {\n  const titleParts = item.title.split(\" - \");\n  return {\n    name: titleParts[0] || null,\n    title: titleParts.slice(1).join(\" - \") || null,\n    link: item.link || null,\n    snippet: item.snippet || null,\n    image: item.pagemap?.cse_thumbnail?.[0]?.src || null,\n    // Add pagination info to each item\n    startIndex: nextStartIndex,\n    hasMoreResults: hasMoreResults,\n    searchString: $input.first().json.queries.request[0].searchTerms // ✅ Added here\n  };\n});\n\n// If there are no results, return at least one item with pagination info\nif (results.length === 0) {\n  return [{ \n    json: {\n      name: null,\n      title: null,\n      link: null,\n      snippet: null,\n      image: null,\n      startIndex: nextStartIndex,\n      hasMoreResults: false,\n      searchString: $input.first().json.queries.request[0].searchTerms // ✅ Added here too\n    }\n  }];\n}\n\n// Return the processed results\nreturn results.map(r => ({ json: r }));\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -464
+      ],
+      "id": "fc092158-892d-4eeb-86e9-efd895cea624",
+      "name": "Extract Results"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/2SyF0bVxmgGr8IVCZ/run-sync-get-dataset-items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"profileUrls\": [\n    \"{{ $json.link }}\"\n  ]\n} ",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -320,
+        -96
+      ],
+      "id": "c723fc8f-57ff-4f62-ad3e-0dfd9d138411",
+      "name": "Get Email & Company domain"
+    },
+    {
+      "parameters": {
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "={{ $json.body.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1904,
+        688
+      ],
+      "id": "1308a0ce-7471-4877-93db-e42929843ffc",
+      "name": "Send Email1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User Input:\n{{ $json.body.description }}\n\nthis is the number of leads the user wants: {{ $json.body.leadCount }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a helpful assistant that extracts structured search parameters from user requests for a lead scraping tool.\nGiven any user input, extract:\n\n    title: the role or position to search for (e.g., CEO, sales manager, marketing director).\n\n    location: the location mentioned (city, state, country).\n\n    company: the company mentioned (if stated). The company name not domain\n\n    keywords: any industry or relevant keywords (e.g., marketing, SaaS, cybersecurity).\n\n    limit: the number of leads the user wants (as an integer, e.g., 10). If the user does not specify a number, default to 10.\n\nthis is the number of leads the user wants: {{ $json.body.leadCount }}\n\nThen, construct a Google search string in this format:\n\n\"position industry Location company(not domain) site:linkedin.com/in\"\n\nExample:\n\n\"CO Sales Benin ABC-Corp (if provided) site:linkedin.com/in\"\n\nReturn your output in the following JSON structure:\n\n    {\n      \"title\": \"\",\n      \"location\": \"\",\n      \"company\": \"\",\n      \"keywords\": \"\",\n      \"limit\": 10,\n      \"search_string\": \"\"\n    }\n\n "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -928,
+        -480
+      ],
+      "id": "30236f08-3d45-4eb8-a623-42084755439c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -912,
+        -256
+      ],
+      "id": "5db2f53b-b813-4e1c-b25a-6d2824565896",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "    {\n      \"title\": \"\",\n      \"location\": \"\",\n      \"keywords\": \"\",\n      \"limit\": 10,\n      \"search_string\": \"\"\n    }\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -768,
+        -256
+      ],
+      "id": "8b71b049-eadb-40d4-b16f-dfa337de1a29",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1136,
+        -480
+      ],
+      "id": "7a1d99cb-171d-42b2-8fc4-19536c3aa89a",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\nconst leads = [];\n\nfor (const item of items) {\n    const id = crypto.randomBytes(6).toString('hex'); // 12-char unique ID\n\n    leads.push({\n        json: {\n            id,\n            name: item.json.fullName ?? null,\n            title: item.json.jobTitle ?? null,\n            company: item.json.companyName ?? null,\n            location: item.json.addressWithCountry ?? null,\n            email: item.json.email ?? null,\n            linkedin: item.json.linkedinUrl ?? null,\n            snippet: item.json.about ?? null,\n            image: item.json.profilePicHighQuality ?? item.json.profilePic ?? null,\n            company_domain: item.json.companyWebsite ?? null\n        }\n    });\n}\n\nreturn leads;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        80
+      ],
+      "id": "7b7530f4-ec04-4a8d-b6f4-e43bb8fd3902",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const crypto = require('crypto');\n\nconst id = crypto.randomBytes(6).toString('hex'); // unique 12-char ID\n\nreturn {\n  json: {\n    id,\n    name: $('Filter').item.json.fullName ?? null,\n    title: $('Filter').item.json.headline ?? null,\n    company: $json.company ?? null,\n    location: $('Get Email & Company domain').item.json.addressWithCountry ?? null,\n    email: $json.email ?? null,\n    linkedin: $('Get Email & Company domain').item.json.linkedinUrl ?? null,\n    snippet: $('Extract Results').item.json.snippet ?? null,\n    image: $('Extract Results').item.json.image ?? $json.profilePic ?? null,\n    company_domain: $json.domain ?? null\n  }\n};\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        -224
+      ],
+      "id": "f8ee3618-0b2a-47fa-8d41-929baefc10ec",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        272
+      ],
+      "id": "ed2d55b0-9cf0-43a5-ad2d-195029e57041",
+      "name": "Webhook1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        688
+      ],
+      "id": "7be634a0-9af9-4471-b688-1fbcded4e048",
+      "name": "Webhook2"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2048,
+        272
+      ],
+      "id": "ebc0d9d3-599b-4f3e-b638-52c2c291414d",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Using the following lead details, write a first cold email introducing our product/service in a way that is personal, engaging, and relevant to the lead. Keep the tone as specified below, and ensure the email sounds human, not robotic.\n\nRequirements:\n\nLength: 100–150 words (this can vary incase the tone is \"concise\" or \"elaborate\")\n\nSubject line: compelling but not clickbait.\n\nOpening: mention something relevant about the lead (role, company, snippet).\n\nClearly articulate the value proposition in 1–2 sentences.\n\nAdd a soft CTA encouraging a reply or interest in a quick call.\n\nKeep language clear, warm, and professional (or adapt based on the provided tone).\n\nAvoid hard selling or sounding spammy.\n\nTone: {{ $json.body.tone }}\nLead Details:\n\nName: {{ $json.body.lead_data.name }}\n\nTitle: {{ $json.body.lead_data.title }}\n\nCompany: {{ $json.body.lead_data.company }}\n\nLocation: {{ $json.body.lead_data.location }}\n\nEmail: {{ $json.body.lead_data.email }}\n\nLinkedIn: {{ $json.body.lead_data.linkedin }}\n\nSnippet: {{ $json.body.lead_data.snippet }}\n\nCompany Domain: {{ $json.body.lead_data.domain }}\n\nIf any of the above parameters are missing, proceed to generate the email regardless. Just work with what you're giving. Do not hallucinate or assume.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert cold outreach email copywriter who specializes in writing concise, clear, personalized cold emails that get high reply rates.\n\nYou work for DivVerse Labs. We specialize in building custom automation and AI solutions.\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1680,
+        272
+      ],
+      "id": "29eba0f4-eca9-48c0-9635-a313806ffab2",
+      "name": "AI Agent1",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1712,
+        480
+      ],
+      "id": "7ad800aa-1489-4045-8da2-9da9df68392c",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"Subject Line\": \"\",\n\t\"Email Body\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1872,
+        480
+      ],
+      "id": "ddde5efd-3df5-479f-9f2d-14059893cf1d",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2496,
+        80
+      ],
+      "id": "baaef87b-4116-4def-b75a-61a3374632b1",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1904,
+        80
+      ],
+      "id": "06bbc249-b660-44f6-91b9-efa464beb9cf",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "maxItems": "={{ $('AI Agent').item.json.output.limit }}"
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        2096,
+        80
+      ],
+      "id": "ee8ac4b6-394b-4e2f-9f20-8405454f093b",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "99413551-caa6-40d6-b1b0-3eece0b6c097",
+              "name": "name",
+              "value": "={{ $('Extract Results').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "4aeb4de7-73eb-4b1c-8f5d-ae18b02ac66c",
+              "name": "title",
+              "value": "={{ $('Extract Results').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "4b993999-1991-4d93-b2ed-ce76dd5ebc61",
+              "name": "link",
+              "value": "={{ $('Extract Results').item.json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "6e8976e4-851c-4a1e-b90e-7761b5f201fd",
+              "name": "snippet",
+              "value": "={{ $('Extract Results').item.json.snippet }}",
+              "type": "string"
+            },
+            {
+              "id": "1ba30c9e-e4b2-4a09-90b6-b757776f36ab",
+              "name": "image",
+              "value": "={{ $('Extract Results').item.json.image }}",
+              "type": "string"
+            },
+            {
+              "id": "06b644d3-8f74-4b0f-88e3-c3dbb2cdc971",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "5b2c4a58-3685-4d39-ae8b-0753e443fa82",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "8ebcda10-2bd0-4572-8292-9d4265e7ac75",
+              "name": "domain",
+              "value": "={{ $json.company_domain }}",
+              "type": "string"
+            },
+            {
+              "id": "5a2486d5-5e84-4815-8454-bff6e3e7f818",
+              "name": "company",
+              "value": "={{ $json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "873dfaf0-1154-4199-9e32-ee2751fae4a2",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2304,
+        80
+      ],
+      "id": "0b2bb0ca-cd7b-484d-a3b4-3c7fd6204c77",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        864,
+        -208
+      ],
+      "id": "e2317bf5-3a3e-4b1c-aed0-e029852f022f",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1328,
+        -80
+      ],
+      "id": "836209be-0c2f-4a6a-bc8c-68c1b15f27a1",
+      "name": "Wait"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/2ZCXRexuH3mcIKw4l/run-sync-get-dataset-items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"domain\": \"ambinteractive.com\",\n    \"name\": \"Joshua\",\n    \"surname\": \"Behr\"\n}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        256
+      ],
+      "id": "f637d2b1-dfcb-45e5-b5e7-5a6cc22a4d38",
+      "name": "Get Email & Company domain1"
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        592,
+        -208
+      ],
+      "id": "b155ed6b-ec53-4517-983a-612fcee3ae9e",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "operation": "emailFinder",
+        "domain": "={{ $json.companyWebsite }}",
+        "firstname": "={{ $json.firstName }}",
+        "lastname": "={{ $json.lastName }}"
+      },
+      "type": "n8n-nodes-base.hunter",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        -80
+      ],
+      "id": "939a1a27-f023-4d7e-8971-5bdb649894f6",
+      "name": "Hunter",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Google Scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pagination": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Scrape": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Results": {
+      "main": [
+        [
+          {
+            "node": "Get Email & Company domain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Email & Company domain": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Pagination",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Send Email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        []
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hunter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Email & Company domain1": {
+      "main": [
+        []
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "6c38dd3f-d2d0-4dcd-b99b-1ed3112bb601",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "1U2QP3gC5UlENNuE",
+  "tags": []
+}

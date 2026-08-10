@@ -1,0 +1,39 @@
+{
+  "name": "My workflow 82",
+  "nodes": [
+    {
+      "parameters": {
+        "trigger": [
+          "message"
+        ],
+        "channelId": {
+          "__rl": true,
+          "value": "C09G0LQQCJC",
+          "mode": "list",
+          "cachedResultName": "gtm-automation"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "70f5c590-dbd5-42d9-b079-879071da83cc",
+      "name": "Slack Trigger"
+    }
+  ],
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "88d082d4-7e01-4ba7-a6b2-4c2c5880a53e",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "Wn5JfsIJvExQqlmz",
+  "tags": []
+}

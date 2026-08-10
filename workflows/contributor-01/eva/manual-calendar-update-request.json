@@ -1,0 +1,4426 @@
+{
+  "name": "Manual calendar update request",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "-subject:\"Urgent! Approval Required\" -subject:\"SCHEDULE UPDATE\""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -620,
+        0
+      ],
+      "id": "a12f3ec4-4d36-48cb-bb11-732be4cace5a",
+      "name": "Watch for new emails"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.calendly.com/scheduling_links",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "max_event_count",
+              "value": "1"
+            },
+            {
+              "name": "owner",
+              "value": "={{ $json.collection[0].uri }}"
+            },
+            {
+              "name": "owner_type",
+              "value": "EventType"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3080,
+        -160
+      ],
+      "id": "374f676b-1180-434f-85d3-a97be9523437",
+      "name": "Create Calendly Scheduling link"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/users/me",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2660,
+        -160
+      ],
+      "id": "d0eb35ed-7e47-413a-b7d8-8425812b86be",
+      "name": "Get Calendly user"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        340
+      ],
+      "id": "67524220-0aaf-4a90-ba4c-31bf3c4ab4cd",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/event_types",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "user",
+              "value": "={{ $json.resource.uri }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2880,
+        -160
+      ],
+      "id": "ba018f73-f8c3-4a03-8a13-7c8dd5533790",
+      "name": "List event types"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1240,
+        -100
+      ],
+      "id": "bf70747d-c3bb-4246-b3f6-36c759cf82f0",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Urgent! Approval Required",
+        "message": "=Hello,\n\nYou received a request from {{ $('Watch for new emails').item.json.from.value[0].name }} to reschedule your upcoming meeting. However, the client did not provide a new time suggestion. \n\nHere's what the client sent:\n\n\"{{ $('Watch for new emails').item.json.text }}\"\n\nPlease review your calendar and confirm how you'd like to proceed:\n\nIf you’re okay with sending your Calendly link, please reply with a message like: “Go ahead and send the link.”\n\nIf you’d rather not send the Calendly link, feel free to respond with a short message you’d like us to send to the client - for example: “Please let me know what time works best for you.”\n\nOnce you reply, I’ll handle the rest automatically.\n\nThanks",
+        "responseType": "freeText",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2100,
+        -140
+      ],
+      "id": "cdf8d9e7-36a8-4c34-89c2-8968d0354194",
+      "name": "Gmail1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6b9284d5-8c6a-4cc6-a179-0b884518471a",
+              "leftValue": "={{ $json.data.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2320,
+        -140
+      ],
+      "id": "16582be8-7ed3-4731-bad2-bf00d95562bc",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appSEJ2oGuCwvkkPh",
+          "mode": "list",
+          "cachedResultName": "EVA's Email Base",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblIxDNhfqCByF9L9",
+          "mode": "list",
+          "cachedResultName": "Email Conversations",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblIxDNhfqCByF9L9"
+        },
+        "filterByFormula": "={Thread ID} = '{{ $json.threadId }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "1f5bffbf-ab14-4845-84b9-d6e615e631e7",
+      "name": "Search for thread",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b7250a06-5828-4238-94c3-402a46b575d4",
+              "leftValue": "={{ $json['Thread ID'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -180,
+        0
+      ],
+      "id": "ac2f6790-03b0-4d56-a259-32a01b67180f",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appSEJ2oGuCwvkkPh",
+          "mode": "list",
+          "cachedResultName": "EVA's Email Base",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblIxDNhfqCByF9L9",
+          "mode": "list",
+          "cachedResultName": "Email Conversations",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblIxDNhfqCByF9L9"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $('Watch for new emails').item.json.threadId }}",
+            "Client Email": "={{ $('Watch for new emails').item.json.from.value[0].address }}",
+            "Executive Email": "={{ $('Watch for new emails').item.json.to.value[0].address }}",
+            "Status": "New"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Client Email",
+              "displayName": "Client Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Executive Email",
+              "displayName": "Executive Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Waiting on Exec",
+                  "value": "Waiting on Exec"
+                },
+                {
+                  "name": "Waiting on Client",
+                  "value": "Waiting on Client"
+                },
+                {
+                  "name": "Client Proposed Time",
+                  "value": "Client Proposed Time"
+                },
+                {
+                  "name": "Resolved",
+                  "value": "Resolved"
+                },
+                {
+                  "name": "Ignored",
+                  "value": "Ignored"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last Updated",
+              "displayName": "Last Updated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email Messages",
+              "displayName": "Email Messages",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        840,
+        520
+      ],
+      "id": "0a17a429-5888-4356-a97d-375394791dc9",
+      "name": "Create new thread"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appSEJ2oGuCwvkkPh",
+          "mode": "list",
+          "cachedResultName": "EVA's Email Base",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message ID": "={{ $('Watch for new emails').item.json.messageId }}",
+            "Thread ID": "={{ $('Watch for new emails').item.json.threadId }}",
+            "Sender": "={{ $('Watch for new emails').item.json.from.value[0].address }}",
+            "Role": "Client",
+            "Message": "={{ $('Watch for new emails').item.json.text }}",
+            "Direction": "Incoming"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1020,
+        520
+      ],
+      "id": "730a4af7-f1f4-4630-a6dd-f5de2b7adb8b",
+      "name": "Log Message"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appSEJ2oGuCwvkkPh",
+          "mode": "list",
+          "cachedResultName": "EVA's Email Base",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message ID": "={{ $('Watch for new emails').item.json.messageId }}",
+            "Thread ID": "={{ $('Watch for new emails').item.json.threadId }}",
+            "Sender": "={{ $('Watch for new emails').item.json.from.value[0].address }}",
+            "Role": "Client",
+            "Message": "={{ $('Watch for new emails').item.json.text }}",
+            "Timestamp": "={{ $('Watch for new emails').item.json.date.toDateTime() }}",
+            "Direction": "Incoming"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        100,
+        -320
+      ],
+      "id": "21c14f58-fa29-4905-bd46-f0c2abf514a4",
+      "name": "Log Message1"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appSEJ2oGuCwvkkPh",
+          "mode": "list",
+          "cachedResultName": "EVA's Email Base",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "filterByFormula": "={Thread ID} = \"{{ $json.fields['Thread ID'] }}\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        320,
+        -320
+      ],
+      "id": "5723c985-ae60-483c-afe2-c99d39af50e4",
+      "name": "Pull all thread messages"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "Role"
+            },
+            {
+              "fieldToAggregate": "Message"
+            },
+            {
+              "fieldToAggregate": "Direction"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        540,
+        -320
+      ],
+      "id": "1f3d42a0-ac64-4021-956f-83eedaf67233",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "const thread = items[0].json; // assuming this is the only item\n\nlet formatted = '';\n\nfor (let i = 0; i < thread.Role.length; i++) {\n  const role = thread.Role[i];\n  const direction = thread.Direction[i];\n  const message = thread.Message[i].trim();\n\n  formatted += `[${role}] (${direction}): ${message}\\n\\n`;\n}\n\nreturn [{ json: { formattedThread: formatted.trim() } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        -320
+      ],
+      "id": "a586b144-be03-402f-b7f1-0d56016c7d0b",
+      "name": "Format Thread"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"summary\": \"\",\n\t\"intent\": \"\",\n    \"next_step\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1020,
+        -100
+      ],
+      "id": "cd5ee963-089c-483c-a7fb-5afada8938e8",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the executive's message:\n\n{{ $('Gmail1').item.json.data.text }}\n\nCalendly link: \n\n{{ $json.resource.booking_url }}\n\nClient name: {{ $('Watch for new emails').item.json.from.value[0].name }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an executive assistant helping to schedule a meeting with a client. The executive has given their input on whether or not to send the calendar booking link.\n\nYour job is to:\n1. Determine whether the executive has approved sending the calendar link.\n2. If they have NOT approved it, use their instructions to compose a clear, natural, and polite reply to the client.\n\nExample output:\n\n{\n  \"send_calendar_link\": true | false,\n  \"email_to_client\": \"Your email message here\"\n}\n\nHow it works:\n\nIf the executive says “Yes, go ahead and send the link”, output:\n\n{\n  \"send_calendar_link\": true,\n  \"email_to_client\": \"Thanks for your interest. Here's a link to book a time that works for you: [Insert Calendar Link]\"\n}\n\nIf the executive says “Ask the client what time works best for them”, output:\n\n{\n  \"send_calendar_link\": false,\n  \"email_to_client\": \"Thank you for reaching out. Could you please let us know a time that works best for you for the meeting?\"\n}\n\nIf the executive proposes a time, output:\n\n{\n  \"send_calendar_link\": false,\n  \"email_to_client\": \"Thanks for reaching out. Would 2 PM tomorrow work for you?\"\n}\n\nThe email must be properly formatted in html and a hyperlink used to embed the calendly link in cases where the calendly link is being sent.\n\nThe email is sent from the DivVerse team"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        3260,
+        -160
+      ],
+      "id": "53614848-1cbd-481a-8d68-ea449ca148cb",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"send_calendar_link\": true,\n  \"email_to_client\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        3460,
+        20
+      ],
+      "id": "7ecc8286-588e-4a6e-9c2e-2b6e07cfc599",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Watch for new emails').item.json.threadId }}",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "emailType": "html",
+        "message": "={{ $json.output.email_to_client }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3620,
+        -160
+      ],
+      "id": "b29546a4-cf15-4862-84a4-7d58d828dc40",
+      "name": "Gmail2"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appSEJ2oGuCwvkkPh",
+          "mode": "list",
+          "cachedResultName": "EVA's Email Base",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $json.threadId }}",
+            "Message ID": "={{ $json.id }}",
+            "Role": "Assistant",
+            "Sender": "Assistant",
+            "Message": "={{ $('AI Agent1').item.json.output.email_to_client }}",
+            "Timestamp": "={{ $now }}",
+            "Direction": "Outgoing"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        3840,
+        -160
+      ],
+      "id": "0d010599-8876-4dc6-8850-ddc78e51931a",
+      "name": "Airtable"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.calendly.com/scheduling_links",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "max_event_count",
+              "value": "1"
+            },
+            {
+              "name": "owner",
+              "value": "={{ $json.collection[0].uri }}"
+            },
+            {
+              "name": "owner_type",
+              "value": "EventType"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2680,
+        1160
+      ],
+      "id": "a297ff62-57cb-4f04-98b6-eb4c3707ca01",
+      "name": "Create Calendly Scheduling link1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/users/me",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2340,
+        1160
+      ],
+      "id": "39b81128-7fbc-477a-89eb-4bff57fe29d8",
+      "name": "Get Calendly user1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/event_types",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "user",
+              "value": "={{ $json.resource.uri }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2520,
+        1160
+      ],
+      "id": "44227b04-2b96-4a39-b1e8-d93b15aff030",
+      "name": "List event types1"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Urgent! Approval Required",
+        "message": "=Hello,\n\nYou received a request from {{ $('Watch for new emails').item.json.from.value[0].name }} to reschedule your upcoming meeting. However, the client did not provide a new time suggestion. \n\nHere's what the client sent:\n\n\"{{ $('Watch for new emails').item.json.text }}\"\n\nPlease review your calendar and confirm how you'd like to proceed:\n\nIf you’re okay with sending your Calendly link, please reply with a message like: “Go ahead and send the link.”\n\nIf you’d rather not send the Calendly link, feel free to respond with a short message you’d like us to send to the client - for example: “Please let me know what time works best for you.”\n\nOnce you reply, I’ll handle the rest automatically.\n\nThanks",
+        "responseType": "freeText",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1720,
+        1180
+      ],
+      "id": "ca810b01-55a1-4686-a0f0-93049f24f7dc",
+      "name": "Gmail"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6b9284d5-8c6a-4cc6-a179-0b884518471a",
+              "leftValue": "={{ $json.data.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2000,
+        1180
+      ],
+      "id": "7d1ea8b5-0de0-4a35-80f9-859c4e2f399b",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "alabiayomide14@gmail.com",
+          "mode": "list",
+          "cachedResultName": "alabiayomide14@gmail.com"
+        },
+        "timeMax": "={{ $now.plus(18, 'hour') }}",
+        "options": {
+          "outputFormat": "bookedSlots"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1720,
+        360
+      ],
+      "id": "be93a23b-a8cc-465f-a9b2-059898b46f06",
+      "name": "Google Calendar1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the executive's message:\n\n{{ $('Gmail').item.json.data.text }}\n\nCalendly link: \n\n{{ $json.resource.booking_url }}\n\nClient name: {{ $('Watch for new emails').item.json.from.value[0].name }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an executive assistant helping to schedule a meeting with a client. The executive has given their input on whether or not to send the calendar booking link.\n\nYour job is to:\n1. Determine whether the executive has approved sending the calendar link.\n2. If they have NOT approved it, use their instructions to compose a clear, natural, and polite reply to the client.\n\nExample output:\n\n{\n  \"send_calendar_link\": true | false,\n  \"email_to_client\": \"Your email message here\"\n}\n\nHow it works:\n\nIf the executive says “Yes, go ahead and send the link”, output:\n\n{\n  \"send_calendar_link\": true,\n  \"email_to_client\": \"Thanks for your interest. Here's a link to book a time that works for you: [Insert Calendar Link]\"\n}\n\nIf the executive says “Ask the client what time works best for them”, output:\n\n{\n  \"send_calendar_link\": false,\n  \"email_to_client\": \"Thank you for reaching out. Could you please let us know a time that works best for you for the meeting?\"\n}\n\nIf the executive proposes a time, output:\n\n{\n  \"send_calendar_link\": false,\n  \"email_to_client\": \"Thanks for reaching out. Would 2 PM tomorrow work for you?\"\n}\n\nThe email must be properly formatted in html and a hyperlink used to embed the calendly link in cases where the calendly link is being sent.\n\nThe email is sent from the DivVerse team"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2960,
+        1140
+      ],
+      "id": "c011810b-3832-43ef-9ac2-653269c6b4a7",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"send_calendar_link\": true,\n  \"email_to_client\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        3140,
+        1360
+      ],
+      "id": "e3163779-98b9-405d-baba-bdfb490830f1",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Watch for new emails').item.json.threadId }}",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "emailType": "html",
+        "message": "={{ $json.output.email_to_client }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3320,
+        1140
+      ],
+      "id": "c6eea0de-ca67-4219-969f-34b799b782e0",
+      "name": "Gmail3"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appSEJ2oGuCwvkkPh",
+          "mode": "list",
+          "cachedResultName": "EVA's Email Base",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $json.threadId }}",
+            "Message ID": "={{ $json.id }}",
+            "Role": "Assistant",
+            "Sender": "Assistant",
+            "Message": "={{ $('AI Agent2').item.json.output.email_to_client }}",
+            "Timestamp": "={{ $now }}",
+            "Direction": "Outgoing"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        3540,
+        1140
+      ],
+      "id": "a519effa-fc70-44d8-89d3-096b8535a0e6",
+      "name": "Airtable1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        940,
+        780
+      ],
+      "id": "45753715-2f89-4460-981e-722db422dd4f",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Client request: {{ $('Watch for new emails').item.json.text }}\n\nBooked slots in calendar:\n\n{{ $json.readableSlots }}\n\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are helping to schedule a meeting between a client and an executive.\n\nYou will be given:\n- A `requested_time`: the date and time the client wants to book (ISO 8601 format, with timezone).\n- A list of `booked_slots`: an array of already booked time slots for the day, in ISO 8601 format.\n- The `current_time`: the current time (for reference, if needed).\n\nYour tasks are:\n1. Convert the `requested_time` into a readable format for the executive.\n2. Convert the `requested_time` into RFC3339 format.\n3. Check if the `requested_time` appears exactly in the `booked_slots`. If it does, set `booked` to `true`, else `false`.\n4. Write a short message to the executive summarizing the client's request and whether the time is free or booked. If booked, the message should suggest asking the client to pick another time. If not booked, the message should ask for approval to proceed.\n\nReturn the result in this JSON format:\n\n```json\n{\n  \"requested_time\": \"today August 4 at 2pm\",\n  \"rfc3339_time\": \"2025-07-30T15:00:00+01:00\",\n  \"booked\": true | false,\n  \"message_for_executive\": \"...\"\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2380,
+        360
+      ],
+      "id": "282a17e7-64f6-46af-932d-f72473a50963",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"requested_time\": \"\",\n  \"rfc3339_time\": \"\",\n  \"booked\": \"\",\n  \"message\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2560,
+        580
+      ],
+      "id": "7713e56d-cee7-42cc-80d3-e5fe8b307bd8",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "start"
+            },
+            {
+              "fieldToAggregate": "end"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1940,
+        360
+      ],
+      "id": "891acf47-5bb8-4161-9358-6e7b33a7ee1e",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = items[0].json;\nconst starts = inputData.start;\nconst ends = inputData.end;\n\nconst merged = [];\n\nfunction toNaturalLanguage(isoString) {\n  const date = new Date(isoString);\n  const options = {\n    weekday: 'long',\n    month: 'long',\n    day: 'numeric',\n    hour: 'numeric',\n    minute: '2-digit',\n    timeZoneName: 'short'\n  };\n  return date.toLocaleString('en-US', options);\n}\n\nfor (let i = 0; i < starts.length; i++) {\n  merged.push({\n    start: starts[i],\n    end: ends[i],\n    naturalStart: toNaturalLanguage(starts[i]),\n    naturalEnd: toNaturalLanguage(ends[i])\n  });\n}\n\nreturn [\n  {\n    json: {\n      readableSlots: JSON.stringify(merged)\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        360
+      ],
+      "id": "5570b1fb-3469-4d90-a2d6-cb054f8a61ab",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "797c6b3c-e811-48ed-a9dd-f3e8aae748f5",
+              "leftValue": "={{ $json.output.booked }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2760,
+        420
+      ],
+      "id": "d18712ba-6298-4eb5-b432-8b46cd7e263d",
+      "name": "If3",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Urgent! Approval Required",
+        "message": "=Hello,\n\nYou received a request from {{ $('Watch for new emails').item.json.from.value[0].name }} to reschedule your upcoming meeting to {{ $('AI Agent3').item.json.output.requested_time }}\n\nUnfortunately, this time slot is already booked. I would recommend asking the client to select a different time or you could just send a calendly link.\n\nHere's what the client sent:\n\n\"{{ $('Watch for new emails').item.json.text }}\"\n\nPlease review your calendar and confirm how you'd like to proceed:\n\nIf you’re okay with sending your Calendly link, please reply with a message like: “Go ahead and send the link.”\n\nIf you’d rather not send the Calendly link, feel free to respond with a short message you’d like us to send to the client - for example: “Please let me know what time works best for you.”\n\nOnce you reply, I’ll handle the rest automatically.\n\nThanks\n",
+        "responseType": "freeText",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2980,
+        320
+      ],
+      "id": "0b3a7de2-e3e1-4ac7-9216-2e5ed8de24e2",
+      "name": "Gmail4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.calendly.com/scheduling_links",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "max_event_count",
+              "value": "1"
+            },
+            {
+              "name": "owner",
+              "value": "={{ $json.collection[0].uri }}"
+            },
+            {
+              "name": "owner_type",
+              "value": "EventType"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3640,
+        320
+      ],
+      "id": "159a45cf-9a58-4794-b2b5-ad443ba66f23",
+      "name": "Create Calendly Scheduling link2"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/users/me",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3220,
+        320
+      ],
+      "id": "9fef0dc2-550f-4050-879a-71477a8b13f0",
+      "name": "Get Calendly user2"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/event_types",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "user",
+              "value": "={{ $json.resource.uri }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3440,
+        320
+      ],
+      "id": "6e431a94-ae71-4015-9d2c-97854b1ea6bb",
+      "name": "List event types2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the executive's message:\n\n{{ $('Watch for new emails').item.json.text }}\n\nCalendly link: \n\n{{ $json.resource.booking_url }}\n\nClient name: {{ $('Watch for new emails').item.json.from.value[0].name }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an executive assistant helping to schedule a meeting with a client. The executive has given their input on whether or not to send the calendar booking link.\n\nYour job is to:\n1. Determine whether the executive has approved sending the calendar link.\n2. If they have NOT approved it, use their instructions to compose a clear, natural, and polite reply to the client.\n\nExample output:\n\n{\n  \"send_calendar_link\": true | false,\n  \"email_to_client\": \"Your email message here\"\n}\n\nHow it works:\n\nIf the executive says “Yes, go ahead and send the link”, output:\n\n{\n  \"send_calendar_link\": true,\n  \"email_to_client\": \"Thanks for your interest. Here's a link to book a time that works for you: [Insert Calendar Link]\"\n}\n\nIf the executive says “Ask the client what time works best for them”, output:\n\n{\n  \"send_calendar_link\": false,\n  \"email_to_client\": \"Thank you for reaching out. Could you please let us know a time that works best for you for the meeting?\"\n}\n\nIf the executive proposes a time, output:\n\n{\n  \"send_calendar_link\": false,\n  \"email_to_client\": \"Thanks for reaching out. Would 2 PM tomorrow work for you?\"\n}\n\nThe email must be properly formatted in html and a hyperlink used to embed the calendly link in cases where the calendly link is being sent.\n\nThe email is sent from the DivVerse team"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        3800,
+        320
+      ],
+      "id": "2ecca39f-15b6-4b6c-8453-a4568b8a620a",
+      "name": "AI Agent4",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"send_calendar_link\": true,\n  \"email_to_client\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        3980,
+        540
+      ],
+      "id": "a7a60175-70bb-44b5-91cd-2af61a05a049",
+      "name": "Structured Output Parser4"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Watch for new emails').item.json.threadId }}",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "emailType": "html",
+        "message": "={{ $json.output.email_to_client }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        4160,
+        320
+      ],
+      "id": "318ea495-0732-4410-aa86-61e9ec90fd58",
+      "name": "Gmail5"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appSEJ2oGuCwvkkPh",
+          "mode": "list",
+          "cachedResultName": "EVA's Email Base",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $json.threadId }}",
+            "Message ID": "={{ $json.id }}",
+            "Role": "Assistant",
+            "Sender": "Assistant",
+            "Message": "={{ $('AI Agent4').item.json.output.email_to_client }}",
+            "Timestamp": "={{ $now }}",
+            "Direction": "Outgoing"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        4380,
+        320
+      ],
+      "id": "e42f3e78-4010-402b-93e8-b7deb8873f3f",
+      "name": "Airtable2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3820,
+        540
+      ],
+      "id": "7241ad0b-ae24-4e58-a6cf-7aa02f0509f4",
+      "name": "OpenAI Chat Model2"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Urgent! Approval Required",
+        "message": "=Hello,\n\nYou received a request from {{ $('Watch for new emails').item.json.from.value[0].name }} to reschedule your upcoming meeting to {{ $('AI Agent3').item.json.output.requested_time }}\n\nThis time slot is available\n\nHere's what the client sent:\n\n\"{{ $('Watch for new emails').item.json.text }}\"\n\nThis time slot is available, should I proceed to book it?\n\nThanks",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2920,
+        800
+      ],
+      "id": "efcd48be-b9f1-4d93-9f6c-4063660bbaad",
+      "name": "Gmail6"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Please recommend three alternative 30 minute time slots. \n\nHere are all the times in the day that are NOT available. YOU MUST NOT RECOMMEND ANY TIMES WITHIN THESE BOOKED SLOTS:\n\n{{ $('Code').item.json.readableSlots }}\n\nHere is the time they tried to book in for, but this time was not available:\n\n{{ $('AI Agent3').item.json.output.rfc3339_time }}\n\nTry and recommend times that are close to the initial booking time. \n\nThis is the current time, you must ensure it is not earlier than this:\n\n{{ $now.toLocal() }}\n\nPlease recommend three times in that would be available for booking. Please output the times as you are speaking to a person. \n\nYOU MUST ENSURE THE TIME SLOTS RECOMMENDED ARE AVAILABLE. PLEASE REFER TO THE UNAVAILABLE TIMES. ",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        4800,
+        920
+      ],
+      "id": "d4999f3c-178d-46c0-9718-a3838e3cc0ac",
+      "name": "AI Agent5"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        4820,
+        1120
+      ],
+      "id": "ee0b0760-835b-4dcd-adb0-1369444d6ef2",
+      "name": "OpenAI Chat Model3"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"available times\": \"California\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        4980,
+        1120
+      ],
+      "id": "7d9c9a68-7103-46e5-a9c1-0ad22dcecc0f",
+      "name": "Structured Output Parser5"
+    },
+    {
+      "parameters": {
+        "content": "# Requested Time is already booked\n",
+        "height": 440,
+        "width": 1740,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2860,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "62e96394-35c8-4970-b4fa-eb326dbd94ac",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "alabiayomide14@gmail.com",
+          "mode": "list",
+          "cachedResultName": "alabiayomide14@gmail.com"
+        },
+        "start": "={{ $json.output.rfc3339_time }}",
+        "end": "={{ $json.output.rfc3339_time.toDateTime().plus(30, mins) }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        3360,
+        800
+      ],
+      "id": "4dcca34e-75eb-4095-8a1c-194655f5e0d8",
+      "name": "Google Calendar2"
+    },
+    {
+      "parameters": {
+        "content": "# Time slot is available\n",
+        "height": 300,
+        "width": 680
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2860,
+        700
+      ],
+      "typeVersion": 1,
+      "id": "dde5ec77-f90d-4392-91f6-b770eaefd446",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "emailType": "text",
+        "message": "Hi,\n\nJust a quick note to confirm that your meeting has been rescheduled successfully.\n\nIf you have any questions or need to make further changes, feel free to reach out.\n\nLooking forward to speaking with you!",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3580,
+        800
+      ],
+      "id": "643a3737-d878-4250-abc6-e3d9ff4a6fd7",
+      "name": "Gmail7"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3800,
+        800
+      ],
+      "id": "12c0f2b1-9e10-4199-8918-6f891c40b857",
+      "name": "Gmail8"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appSEJ2oGuCwvkkPh",
+          "mode": "list",
+          "cachedResultName": "EVA's Email Base",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message ID": "={{ $json.id }}",
+            "Thread ID": "={{ $json.threadId }}",
+            "Message": "={{ $json.text }}",
+            "Direction": "Outgoing",
+            "Role": "Assistant",
+            "Sender": "Assistant"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        4020,
+        800
+      ],
+      "id": "5fdd2199-06d4-4dc5-9d9a-bf7515d09b58",
+      "name": "Airtable3"
+    },
+    {
+      "parameters": {
+        "content": "# Reply Client and Log  message",
+        "height": 300,
+        "width": 680,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3560,
+        700
+      ],
+      "typeVersion": 1,
+      "id": "4d941384-e55b-40fe-90b6-7cf3490000ea",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "# Event  Update with Specific time - Check Calendar Availability",
+        "height": 540,
+        "width": 1300
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1540,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "7a3fa155-925b-4ce7-a8ae-01f3a74ad51e",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "# Event Update without specific Time - Seek Executive Approval",
+        "height": 360,
+        "width": 620,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1640,
+        1040
+      ],
+      "typeVersion": 1,
+      "id": "7434b2d5-efa6-4d48-860d-11706136f100",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "# Create Calendly Link",
+        "height": 360,
+        "width": 580,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2280,
+        1040
+      ],
+      "typeVersion": 1,
+      "id": "12e3f667-ddf2-444e-9762-70e4eedc19aa",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "# Reply Email with Calendly Link",
+        "height": 520,
+        "width": 840
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2880,
+        1020
+      ],
+      "typeVersion": 1,
+      "id": "bb86ee49-43f8-4888-a1b4-fca23412aa89",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "# Existing Thread",
+        "height": 340,
+        "width": 900,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        20,
+        -440
+      ],
+      "typeVersion": 1,
+      "id": "00ab2397-a707-4a57-ad14-228261d7731e",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3280,
+        40
+      ],
+      "id": "52342d57-3c09-411f-ba2c-baf4f9c7f040",
+      "name": "OpenAI Chat Model4"
+    },
+    {
+      "parameters": {
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "alabiayomide14@gmail.com",
+          "mode": "list",
+          "cachedResultName": "alabiayomide14@gmail.com"
+        },
+        "timeMax": "={{ $now.plus(18, 'hour') }}",
+        "options": {
+          "outputFormat": "bookedSlots"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        2040,
+        -980
+      ],
+      "id": "58929464-ae43-41ae-b8e7-9a0423aa3afb",
+      "name": "Google Calendar3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Client request: {{ $('Watch for new emails').item.json.text }}\n\nBooked slots in calendar:\n\n{{ $json.readableSlots }}\n\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are helping to schedule a meeting between a client and an executive.\n\nYou will be given:\n- A `requested_time`: the date and time the client wants to book (ISO 8601 format, with timezone).\n- A list of `booked_slots`: an array of already booked time slots for the day, in ISO 8601 format.\n- The `current_time`: the current time (for reference, if needed).\n\nYour tasks are:\n1. Convert the `requested_time` into a readable format for the executive.\n2. Convert the `requested_time` into RFC3339 format.\n3. Check if the `requested_time` appears exactly in the `booked_slots`. If it does, set `booked` to `true`, else `false`.\n4. Write a short message to the executive summarizing the client's request and whether the time is free or booked. If booked, the message should suggest asking the client to pick another time. If not booked, the message should ask for approval to proceed.\n\nReturn the result in this JSON format:\n\n\n{\n  \"requested_time\": \"today August 4 at 2pm\",\n  \"rfc3339_time\": \"2025-07-30T15:00:00+01:00\",\n  \"booked\": \"true\",\n  \"message_for_executive\": \"...\"\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2680,
+        -1040
+      ],
+      "id": "13ca5d99-f993-4f87-a004-7a2b9b576645",
+      "name": "AI Agent6"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"requested_time\": \"\",\n  \"rfc3339_time\": \"\",\n  \"booked\": \"\",\n  \"message\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2880,
+        -840
+      ],
+      "id": "25af68e6-cd3d-44d6-8328-7def1fd2b69a",
+      "name": "Structured Output Parser6"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "start"
+            },
+            {
+              "fieldToAggregate": "end"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2260,
+        -980
+      ],
+      "id": "f336ce16-e1ff-421f-98c9-01548dd3c800",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = items[0].json;\nconst starts = inputData.start;\nconst ends = inputData.end;\n\nconst merged = [];\n\nfunction toNaturalLanguage(isoString) {\n  const date = new Date(isoString);\n  const options = {\n    weekday: 'long',\n    month: 'long',\n    day: 'numeric',\n    hour: 'numeric',\n    minute: '2-digit',\n    timeZoneName: 'short'\n  };\n  return date.toLocaleString('en-US', options);\n}\n\nfor (let i = 0; i < starts.length; i++) {\n  merged.push({\n    start: starts[i],\n    end: ends[i],\n    naturalStart: toNaturalLanguage(starts[i]),\n    naturalEnd: toNaturalLanguage(ends[i])\n  });\n}\n\nreturn [\n  {\n    json: {\n      readableSlots: JSON.stringify(merged)\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        -980
+      ],
+      "id": "2e23721b-64f5-4eb1-aa79-438e912726eb",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "797c6b3c-e811-48ed-a9dd-f3e8aae748f5",
+              "leftValue": "={{ $json.output.booked }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3040,
+        -1040
+      ],
+      "id": "dea8b10f-23e3-4435-ad25-b46c54e2faca",
+      "name": "If4",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Urgent! Approval Required",
+        "message": "=Hello,\n\nYou received a request from {{ $('Watch for new emails').item.json.from.value[0].name }} to reschedule your upcoming meeting to {{ $('AI Agent6').item.json.output.requested_time }}\n\nUnfortunately, this time slot is already booked. I would recommend asking the client to select a different time or you could just send a calendly link.\n\nHere's what the client sent:\n\n\"{{ $('Watch for new emails').item.json.text }}\"\n\nPlease review your calendar and confirm how you'd like to proceed:\n\nIf you’re okay with sending your Calendly link, please reply with a message like: “Go ahead and send the link.”\n\nIf you’d rather not send the Calendly link, feel free to respond with a short message you’d like us to send to the client - for example: “Please let me know what time works best for you.”\n\nOnce you reply, I’ll handle the rest automatically.\n\nThanks\n",
+        "responseType": "freeText",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3420,
+        -1060
+      ],
+      "id": "7987e25b-665c-4736-9541-dbb9b617c256",
+      "name": "Gmail10"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.calendly.com/scheduling_links",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "max_event_count",
+              "value": "1"
+            },
+            {
+              "name": "owner",
+              "value": "={{ $json.collection[0].uri }}"
+            },
+            {
+              "name": "owner_type",
+              "value": "EventType"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4080,
+        -1060
+      ],
+      "id": "a8b8d7c0-ba49-4d76-8ffa-52f80b05b018",
+      "name": "Create Calendly Scheduling link3"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/users/me",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3660,
+        -1060
+      ],
+      "id": "67994e07-ecf8-4331-a100-f4d4d6e33082",
+      "name": "Get Calendly user3"
+    },
+    {
+      "parameters": {
+        "url": "https://api.calendly.com/event_types",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "user",
+              "value": "={{ $json.resource.uri }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3880,
+        -1060
+      ],
+      "id": "abbd5089-cbb0-48ed-a7be-9d65903386eb",
+      "name": "List event types3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the executive's message:\n\n{{ $('Watch for new emails').item.json.text }}\n\nCalendly link: \n\n{{ $json.resource.booking_url }}\n\nClient name: {{ $('Watch for new emails').item.json.from.value[0].name }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an executive assistant helping to schedule a meeting with a client. The executive has given their input on whether or not to send the calendar booking link.\n\nYour job is to:\n1. Determine whether the executive has approved sending the calendar link.\n2. If they have NOT approved it, use their instructions to compose a clear, natural, and polite reply to the client.\n\nExample output:\n\n{\n  \"send_calendar_link\": true | false,\n  \"email_to_client\": \"Your email message here\"\n}\n\nHow it works:\n\nIf the executive says “Yes, go ahead and send the link”, output:\n\n{\n  \"send_calendar_link\": true,\n  \"email_to_client\": \"Thanks for your interest. Here's a link to book a time that works for you: [Insert Calendar Link]\"\n}\n\nIf the executive says “Ask the client what time works best for them”, output:\n\n{\n  \"send_calendar_link\": false,\n  \"email_to_client\": \"Thank you for reaching out. Could you please let us know a time that works best for you for the meeting?\"\n}\n\nIf the executive proposes a time, output:\n\n{\n  \"send_calendar_link\": false,\n  \"email_to_client\": \"Thanks for reaching out. Would 2 PM tomorrow work for you?\"\n}\n\nThe email must be properly formatted in html and a hyperlink used to embed the calendly link in cases where the calendly link is being sent.\n\nThe email is sent from the DivVerse team"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        4240,
+        -1060
+      ],
+      "id": "ebf29336-cb8b-4339-a220-4c9cc307a23f",
+      "name": "AI Agent7",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"send_calendar_link\": true,\n  \"email_to_client\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        4420,
+        -840
+      ],
+      "id": "2b45110d-38c1-4daa-8d6a-0793a74e7888",
+      "name": "Structured Output Parser7"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $('Watch for new emails').item.json.threadId }}",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "emailType": "html",
+        "message": "={{ $json.output.email_to_client }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        4600,
+        -1060
+      ],
+      "id": "7b0abea4-d952-46c6-8a90-87728c259917",
+      "name": "Gmail11"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appSEJ2oGuCwvkkPh",
+          "mode": "list",
+          "cachedResultName": "EVA's Email Base",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Thread ID": "={{ $json.threadId }}",
+            "Message ID": "={{ $json.id }}",
+            "Role": "Assistant",
+            "Sender": "Assistant",
+            "Message": "={{ $('AI Agent7').item.json.output.email_to_client }}",
+            "Timestamp": "={{ $now }}",
+            "Direction": "Outgoing"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        4820,
+        -1060
+      ],
+      "id": "28c9c7c3-39e1-42bb-9a35-2fc079bae250",
+      "name": "Airtable4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        4260,
+        -840
+      ],
+      "id": "aaacb566-7aef-4dc1-8beb-6448d8ffd6cc",
+      "name": "OpenAI Chat Model5"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Urgent! Approval Required",
+        "message": "=Hello,\n\nYou received a request from {{ $('Watch for new emails').item.json.from.value[0].name }} to reschedule your upcoming meeting to {{ $('AI Agent6').item.json.output.requested_time }}\n\nThis time slot is available\n\nHere's what the client sent:\n\n\"{{ $('Watch for new emails').item.json.text }}\"\n\nThis time slot is available, should I proceed to book it?\n\nThanks",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3320,
+        -620
+      ],
+      "id": "f3e03e1d-8588-47b1-bdd3-f2e2ee4e173a",
+      "name": "Gmail12"
+    },
+    {
+      "parameters": {
+        "content": "# Requested Time is already booked\n",
+        "height": 440,
+        "width": 1740,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3260,
+        -1140
+      ],
+      "typeVersion": 1,
+      "id": "1eeefdca-0392-4cad-b67b-5ec45baf8675",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "alabiayomide14@gmail.com",
+          "mode": "list",
+          "cachedResultName": "alabiayomide14@gmail.com"
+        },
+        "start": "={{ $('If4').item.json.output.rfc3339_time }}",
+        "end": "={{ $('If4').item.json.output.rfc3339_time.toDateTime().plus(30, mins) }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        3540,
+        -620
+      ],
+      "id": "4438516e-11fd-4ffb-b360-8d70863f40fc",
+      "name": "Google Calendar4"
+    },
+    {
+      "parameters": {
+        "content": "# Time slot is available\n",
+        "height": 300,
+        "width": 440
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3280,
+        -700
+      ],
+      "typeVersion": 1,
+      "id": "053cb00f-c731-4bb9-9330-b8ce5052f9a9",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Watch for new emails').item.json.id }}",
+        "emailType": "text",
+        "message": "Hi,\n\nJust a quick note to confirm that your meeting has been rescheduled successfully.\n\nIf you have any questions or need to make further changes, feel free to reach out.\n\nLooking forward to speaking with you!",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3800,
+        -620
+      ],
+      "id": "82474de5-fa58-48c7-900f-7b6358b613f8",
+      "name": "Gmail13"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        4020,
+        -620
+      ],
+      "id": "8aedb43f-606a-41e4-84b0-56fbf8a587ca",
+      "name": "Gmail14"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appSEJ2oGuCwvkkPh",
+          "mode": "list",
+          "cachedResultName": "EVA's Email Base",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appSEJ2oGuCwvkkPh/tblrzjvJ3tPqUl31I"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message ID": "={{ $json.id }}",
+            "Thread ID": "={{ $json.threadId }}",
+            "Message": "={{ $json.text }}",
+            "Direction": "Outgoing",
+            "Role": "Assistant",
+            "Sender": "Assistant"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread ID",
+              "displayName": "Thread ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Client",
+                  "value": "Client"
+                },
+                {
+                  "name": "Executive",
+                  "value": "Executive"
+                },
+                {
+                  "name": "Assistant",
+                  "value": "Assistant"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Direction",
+              "displayName": "Direction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Incoming",
+                  "value": "Incoming"
+                },
+                {
+                  "name": "Outgoing",
+                  "value": "Outgoing"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Thread",
+              "displayName": "Thread",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        4240,
+        -620
+      ],
+      "id": "62f064e8-fe50-4387-a06e-51f1df34a824",
+      "name": "Airtable5"
+    },
+    {
+      "parameters": {
+        "content": "# Reply Client and Log  message",
+        "height": 80,
+        "width": 680,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3740,
+        -700
+      ],
+      "typeVersion": 1,
+      "id": "c943245f-2dc8-43c6-bed8-7f23e7b7a0c2",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "# Event  Update with Specific time - Check Calendar Availability",
+        "height": 540,
+        "width": 1300
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1960,
+        -1160
+      ],
+      "typeVersion": 1,
+      "id": "f6c7544a-341b-43f3-942a-412c9e01b3e0",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "# Event Update without specific Time - Seek Executive Approval",
+        "height": 360,
+        "width": 620,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2000,
+        -280
+      ],
+      "typeVersion": 1,
+      "id": "4ef85b73-fa89-4ffe-bd23-cfc6bfddbd1a",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "# Create Calendly Link",
+        "height": 360,
+        "width": 580,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2640,
+        -280
+      ],
+      "typeVersion": 1,
+      "id": "33019f20-a0dc-4761-8f9b-a7415be8a84b",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "content": "# Reply Email with Calendly Link",
+        "height": 520,
+        "width": 780
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3240,
+        -300
+      ],
+      "typeVersion": 1,
+      "id": "f293e937-16de-40e4-a5a9-ae6ad1dd3c75",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2700,
+        -820
+      ],
+      "id": "057a5163-861e-4e43-93f9-87a806fe0102",
+      "name": "OpenAI Chat Model6"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Below is the entire conversation between a client and an executive.\n\n{{ $json.formattedThread }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a smart assistant managing rescheduling requests via email.\n\nBelow is the entire conversation between a client and an executive.\n\n{{ $json.formattedThread }}\n\nAnalyze the thread and return:\n1. A summary of what’s happening.\n2. What the client wants now (e.g. requesting reschedule, proposing a time, waiting for a response).\n3. What the assistant should do next: \n   - Ask the executive to approve sending a Calendly link\n   - Ask the client to suggest a specific time\n   - Send Calendly link to client\n   - Do nothing (e.g. already resolved)\n\nOutput:\n- summary: [brief summary]\n- intent: [what client is doing]\n- next_step: [what assistant should do next]\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1000,
+        -340
+      ],
+      "id": "74c9526d-5b4d-4214-b125-9257f66a5354",
+      "name": "Email Thread Analysis"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2380,
+        560
+      ],
+      "id": "e1c104c0-762f-437e-8b14-138eddbc7f31",
+      "name": "OpenAI Chat Model7"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2980,
+        1360
+      ],
+      "id": "77f0123f-b77c-405b-9183-195aba23a2e1",
+      "name": "OpenAI Chat Model8"
+    },
+    {
+      "parameters": {
+        "content": "# Thread Analysis",
+        "height": 460,
+        "width": 420,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        940,
+        -440
+      ],
+      "typeVersion": 1,
+      "id": "aa0623de-00ac-4e40-abd0-184c4a49c8f1",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {
+        "content": "# Is there a specific time?",
+        "height": 500,
+        "width": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1360,
+        -440
+      ],
+      "typeVersion": 1,
+      "id": "6d5e0e46-27f8-4347-ae59-2a17f38e32cd",
+      "name": "Sticky Note16"
+    },
+    {
+      "parameters": {
+        "content": "# Is there a specific time?",
+        "height": 500,
+        "width": 380,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1160,
+        420
+      ],
+      "typeVersion": 1,
+      "id": "d90927c2-62b1-423d-8c30-99a12db1350a",
+      "name": "Sticky Note17"
+    },
+    {
+      "parameters": {
+        "content": "## Is the email about scheduling meetings?",
+        "height": 480,
+        "width": 480,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        280,
+        420
+      ],
+      "typeVersion": 1,
+      "id": "af08b5e9-ffe8-478d-a6f0-bb338ac578eb",
+      "name": "Sticky Note18"
+    },
+    {
+      "parameters": {
+        "content": "# Create New Thread",
+        "height": 480,
+        "width": 360
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        780,
+        420
+      ],
+      "typeVersion": 1,
+      "id": "de056e8b-0d11-4df0-a013-e73fb74dcf0f",
+      "name": "Sticky Note19"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Email message:\n\"\"\"\n{{ $('Watch for new emails').item.json.text }}\n\"\"\"\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an intelligent email filter. Your job is to analyze incoming email messages and determine if they are related to scheduling a meeting or appointment.\n\nMeeting-related messages include:\n- Booking a meeting\n- Requesting to schedule a meeting\n- Rescheduling or canceling a meeting\n- Confirming a scheduled meeting\n- Asking for available time slots\n- Following up on a proposed meeting time\n\nAll other types of messages (e.g., general inquiries, support requests, personal notes, newsletters, updates, project discussions not about scheduling a meeting, etc.) should be rejected.\n\nOnly respond with one word:\n- \"Yes\" — if the message is about meeting scheduling\n- \"No\" — if the message is not about meeting scheduling\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        320,
+        540
+      ],
+      "id": "3c9ddd51-fb58-406a-87c4-f2367d0b85fd",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "92cbe7b3-2185-4d88-88c8-218fdc0262cc",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        620,
+        540
+      ],
+      "id": "a29502ae-50c7-4b54-b434-e1484e19a86c",
+      "name": "If5"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"output\": \"Yes\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        500,
+        760
+      ],
+      "id": "077782cf-90fc-4818-91b5-1fa23382bca8",
+      "name": "Structured Output Parser8"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Email message:\n{{ $('Watch for new emails').item.json.text }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a text classifier. Your job is to read an email and decide if it contains a request to reschedule a meeting with an exact, specific time mentioned.\n\n    If the email explicitly states a specific time for the rescheduled meeting (e.g., \"2 p.m. tomorrow\", \"4 pm today\", \"10:30 on Friday\"), output \"yes\".\n\n    If the email requests to reschedule but does not mention a specific time (e.g., \"another day\", \"later\", \"tomorrow\" without a time), output \"no\".\n\nOutput format:\n\n{ \"specific_time\": \"yes\" }\n\nor\n\n{ \"specific_time\": \"no\" }\n\nDo not add any explanations. Only output the JSON.\n\nEmail message:\n{{ $('Watch for new emails').item.json.text }}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1200,
+        540
+      ],
+      "id": "ec217196-09f2-43fc-b49a-2ef7a86e78fc",
+      "name": "AI Agent8"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"specific_time\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1380,
+        740
+      ],
+      "id": "1160e6df-c14b-4202-ac46-f6aac820c9d6",
+      "name": "Structured Output Parser9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f9212903-86b2-4c07-b02f-4fda4b9072a8",
+              "leftValue": "={{ $json.output.specific_time }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        540
+      ],
+      "id": "ec9f4b1b-048d-4d5c-8473-e7f06f3251fd",
+      "name": "If6"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Email message:\n{{ $('Watch for new emails').item.json.text }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a text classifier. Your job is to read an email and decide if it contains a request to reschedule a meeting with an exact, specific time mentioned.\n\n    If the email explicitly states a specific time for the rescheduled meeting (e.g., \"2 p.m. tomorrow\", \"4 pm today\", \"10:30 on Friday\"), output \"yes\".\n\n    If the email requests to reschedule but does not mention a specific time (e.g., \"another day\", \"later\", \"tomorrow\" without a time), output \"no\".\n\nOutput format:\n\n{ \"specific_time\": \"yes\" }\n\nor\n\n{ \"specific_time\": \"no\" }\n\nDo not add any explanations. Only output the JSON.\n\nEmail message:\n{{ $('Watch for new emails').item.json.text }}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1380,
+        -340
+      ],
+      "id": "34bc20bb-5b83-4941-8256-8727387e81cd",
+      "name": "AI Agent9"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"specific_time\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1560,
+        -140
+      ],
+      "id": "32f08b13-2b7c-4422-8332-d689723dc0b0",
+      "name": "Structured Output Parser10"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f9212903-86b2-4c07-b02f-4fda4b9072a8",
+              "leftValue": "={{ $json.output.specific_time }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1720,
+        -340
+      ],
+      "id": "a0821f3b-945e-4a2b-bb9f-bb9c2cb0cb05",
+      "name": "If7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "23479fb7-09c9-4692-954a-abcb4fe2a5bb",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3140,
+        800
+      ],
+      "id": "ac4a0fa4-e39d-4fed-8ddb-3f5eb0dcc534",
+      "name": "If8"
+    }
+  ],
+  "connections": {
+    "Watch for new emails": {
+      "main": [
+        [
+          {
+            "node": "Search for thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Calendly user": {
+      "main": [
+        [
+          {
+            "node": "List event types",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "List event types": {
+      "main": [
+        [
+          {
+            "node": "Create Calendly Scheduling link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calendly Scheduling link": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Thread Analysis",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent9",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get Calendly user",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search for thread": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Log Message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create new thread": {
+      "main": [
+        [
+          {
+            "node": "Log Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Message1": {
+      "main": [
+        [
+          {
+            "node": "Pull all thread messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull all thread messages": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Format Thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Thread": {
+      "main": [
+        [
+          {
+            "node": "Email Thread Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Email Thread Analysis",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Gmail2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail2": {
+      "main": [
+        [
+          {
+            "node": "Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable": {
+      "main": [
+        []
+      ]
+    },
+    "Create Calendly Scheduling link1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Calendly user1": {
+      "main": [
+        [
+          {
+            "node": "List event types1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List event types1": {
+      "main": [
+        [
+          {
+            "node": "Create Calendly Scheduling link1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Get Calendly user1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Gmail3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail3": {
+      "main": [
+        [
+          {
+            "node": "Airtable1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Message": {
+      "main": [
+        [
+          {
+            "node": "AI Agent8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent8",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Gmail4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calendly Scheduling link2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Calendly user2": {
+      "main": [
+        [
+          {
+            "node": "List event types2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List event types2": {
+      "main": [
+        [
+          {
+            "node": "Create Calendly Scheduling link2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent4": {
+      "main": [
+        [
+          {
+            "node": "Gmail5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail5": {
+      "main": [
+        [
+          {
+            "node": "Airtable2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail4": {
+      "main": [
+        [
+          {
+            "node": "Get Calendly user2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent5": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent5",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser5": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent5",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar2": {
+      "main": [
+        [
+          {
+            "node": "Gmail7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail6": {
+      "main": [
+        [
+          {
+            "node": "If8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail7": {
+      "main": [
+        [
+          {
+            "node": "Gmail8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail8": {
+      "main": [
+        [
+          {
+            "node": "Airtable3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar3": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent6": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser6": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent6",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Gmail10",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail10": {
+      "main": [
+        [
+          {
+            "node": "Get Calendly user3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calendly Scheduling link3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Calendly user3": {
+      "main": [
+        [
+          {
+            "node": "List event types3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List event types3": {
+      "main": [
+        [
+          {
+            "node": "Create Calendly Scheduling link3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent7": {
+      "main": [
+        [
+          {
+            "node": "Gmail11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser7": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent7",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail11": {
+      "main": [
+        [
+          {
+            "node": "Airtable4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent7",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail12": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar4": {
+      "main": [
+        [
+          {
+            "node": "Gmail13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail13": {
+      "main": [
+        [
+          {
+            "node": "Gmail14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail14": {
+      "main": [
+        [
+          {
+            "node": "Airtable5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent6",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Thread Analysis": {
+      "main": [
+        [
+          {
+            "node": "AI Agent9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model8": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
+            "node": "Create new thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser8": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser9": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent8",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent8": {
+      "main": [
+        [
+          {
+            "node": "If6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If6": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent9": {
+      "main": [
+        [
+          {
+            "node": "If7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser10": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent9",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If7": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If8": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "0a4b5814-2e41-47ef-9666-42875af57a7e",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "T8xpoUSKNl0QqH3C",
+  "tags": []
+}

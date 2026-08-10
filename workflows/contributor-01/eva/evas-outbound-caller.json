@@ -1,0 +1,131 @@
+{
+  "name": "EVA's Outbound Caller",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "REDACTED_WEBHOOK_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -260,
+        -40
+      ],
+      "id": "90616ae9-e89c-4052-ab56-6928be8b60f4",
+      "name": "Webhook",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "044d1ddc-41c7-46ee-94f4-5d5424f49802",
+              "name": "assistant_id",
+              "value": "4c8f28bc-6a7a-46ff-8ce9-b902e7477b72",
+              "type": "string"
+            },
+            {
+              "id": "0d044101-f857-4866-9719-f650e00b70a3",
+              "name": "vapi_api_key",
+              "value": "REDACTED",
+              "type": "string"
+            },
+            {
+              "id": "5a705023-50e1-47c1-8651-92ebb5d99c98",
+              "name": "phone_number_id",
+              "value": "483c4157-9062-420e-9818-ce059cbdd81c",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -40,
+        -40
+      ],
+      "id": "276eda1c-1c1b-4640-97f8-adfe7e026a73",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.vapi.ai/call",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"assistantId\": \"c0fe61ea-f9df-415d-b1d1-4f434ddd1ba5\",\n\"customer\":{\n \"number\": \"+2349060812409\"\n},\n\"phoneNumberId\": \"2417f966-ce99-4828-b2b7-a0d186a26bca\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        100,
+        140
+      ],
+      "id": "aa316363-f052-4218-9f43-a52d87800761",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -140,
+        140
+      ],
+      "id": "a66e2e36-ad85-411c-a76b-bf6b36100217",
+      "name": "When clicking ‘Test workflow’"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "78ee46a8-985a-4590-a9c4-7e22022feba0",
+  "meta": null,
+  "id": "xOhznwHJa86wxLMV",
+  "tags": []
+}

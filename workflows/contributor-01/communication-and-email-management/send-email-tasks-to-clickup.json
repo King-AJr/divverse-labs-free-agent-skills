@@ -1,0 +1,284 @@
+{
+  "name": "Send Email Tasks to ClickUp",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        80
+      ],
+      "id": "bb80c7a3-023c-49c9-8a96-21998f055cc9",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "simple": false,
+        "filters": {
+          "q": "-subject:\"Urgent! Approval Required\" -subject:\"SCHEDULE UPDATE\" -subject:\"New Offer Inquiry – Immediate Attention Required\"",
+          "receivedAfter": "={{ $now.toLocal().minus(1, 'hours') }}",
+          "receivedBefore": "={{ $now.toLocal() }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -816,
+        80
+      ],
+      "id": "be298842-b1c0-4795-a140-c53c0f99b66a",
+      "name": "Get many messages"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter emails where text content is 800 characters or less\nconst inputItems = $input.all();\nconst filteredItems = [];\n\nfor (const item of inputItems) {\n  // Check if text exists and is <= 800 characters\n  if (!item.json.text || item.json.text.length <= 800) {\n    filteredItems.push(item.json);\n  }\n}\n\nreturn filteredItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        80
+      ],
+      "id": "aef2643a-8612-47e7-8c13-3db6d4315adc",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The is the email received:\n\n{{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an assistant that analyzes email content to determine if it contains a task that should be added to ClickUp.\n\nInstructions:\n\nRead the email subject and body carefully.\n\nIdentify if the email contains a clear, actionable task (e.g., \"Prepare the report by Friday\", \"Follow up with client\", \"Book the meeting room\").\n\nIf a task is present, extract:\n\nTask title (short, descriptive)\n\nTask details/description (full instructions or context from the email)\n\nDue date (if mentioned; format as unix time in milliseconds; leave empty if none). The time now is {{ $now.toLocal().toMillis() }}\n\nPriority (Urgent, High, Normal, Low; leave empty if you can't decipher). Output 1 for low, 2 for normal, 3 for High and 4 for Urgent\n\n\nAssignee (the email of the person to which the task is assigned to. Default to \"executive@executive.com\" if it's not stated)\n\nIf no task is present, state: \"No task detected\".\n\nOutput format (JSON):\n\n{\n  \"contains_task\": true/false,\n  \"task_title\": \"\",\n  \"task_description\": \"\",\n  \"due_date\": ,\n  \"assignee\": \"email\"\n  \"priority\": \n}\n\nAlways remember that the time now is {{ $now.toLocal().toMillis() }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -384,
+        80
+      ],
+      "id": "050da6cb-f11e-4691-a752-301e9025b59d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -448,
+        352
+      ],
+      "id": "6547d02e-2f8a-4565-80be-c31a6f7548c7",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"contains_task\": true,\n  \"task_title\": \"\",\n  \"task_description\": \"\",\n  \"due_date\": 6355668200,\n  \"priority\": 2,\n  \"assignee\": \"email\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -112,
+        432
+      ],
+      "id": "1b3c2dc9-344f-42c6-99c6-d38ff0d8ad77",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        272
+      ],
+      "id": "084afa56-6ab0-4ec6-8250-722d6dfde414",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "72471df3-7ef6-47e2-8bb2-b6ac2028be29",
+              "leftValue": "={{ $json.output.contains_task }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -32,
+        80
+      ],
+      "id": "0df673cb-29a5-475e-a8b1-e469c24e0172",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.clickup.com/api/v2/list/901213289468/task",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "REDACTED"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $json.output.task_title }}\",\n  \"description\": \"{{ $json.output.task_description }}\",\n  \"assignees\": \"\",\n  \"status\": \"\",\n  \"priority\": {{ $json.output.priority }}, \n  \"due_date\": {{ $json.output.due_date }},\n  \"custom_fields\": [\n    {\n      \"id\": \"8cff7b9c-667c-4ec0-9f92-8b0d4236d73b\",\n      \"value\": \"{{ $json.output.assignee }}\"\n    }\n  ]\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        64
+      ],
+      "id": "09ddf915-d560-4f0c-83b0-770764ebf684",
+      "name": "Create ClickUp tasks"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create ClickUp tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "4b55758a-e636-4e5e-b1ab-fe2958ae15b0",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "XC0pBloo2IIjIk98",
+  "tags": []
+}

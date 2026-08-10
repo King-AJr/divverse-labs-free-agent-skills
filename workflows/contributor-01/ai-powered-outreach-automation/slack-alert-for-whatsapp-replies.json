@@ -1,0 +1,153 @@
+{
+  "name": "Slack Alert for WhatsApp Replies",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -48
+      ],
+      "id": "67209b75-17ed-4f6b-8b22-0b11f34f6a04",
+      "name": "WhatsApp Trigger"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C087L4932LA",
+          "mode": "list",
+          "cachedResultName": "social"
+        },
+        "text": "=Hello, you just received a message from {{ $json.firstname }} {{ $json.lastname }} with the number:  {{ $json.phone }}\n\nHere's the message:\n\n\"{{ $('WhatsApp Trigger').item.json.messages[0].text.body }}\"",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        -48
+      ],
+      "id": "587e0b79-7a02-4a7f-b3c0-ccd47890a63f",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e7de2de2-fd42-4051-842a-e75c87080fb8",
+              "leftValue": "={{ $json.phone.toString() }}",
+              "rightValue": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        336,
+        -48
+      ],
+      "id": "895c23c8-e540-4d4f-8c0d-7577039bd7e6",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1WehQ4maOeC85N5cpqhPtj5yNP732_2ASliceZTZ0bdk",
+          "mode": "list",
+          "cachedResultName": "Copy of linkedin leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WehQ4maOeC85N5cpqhPtj5yNP732_2ASliceZTZ0bdk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 335137603,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WehQ4maOeC85N5cpqhPtj5yNP732_2ASliceZTZ0bdk/edit#gid=335137603"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        160,
+        -48
+      ],
+      "id": "037848df-bdcb-4317-8131-49f74d462fa9",
+      "name": "Get row(s) in sheet"
+    }
+  ],
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "9482d339-a530-4214-877e-e55f310eb886",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "MHlXvOwCkqzhpNOm",
+  "tags": []
+}

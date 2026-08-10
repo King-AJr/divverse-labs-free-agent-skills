@@ -1,0 +1,798 @@
+{
+  "name": "Trigger upon New Connection and send 1st dm",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -544,
+        -320
+      ],
+      "id": "131e0f8a-6a28-4365-9feb-1e338c04713b",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code node (JavaScript)\n\nconst results = JSON.parse($('Webhook').first().json.body.resultObject); // parse the stringified array\n\n// For each connection request, create a separate output item\nreturn results.map(req => {\n  return {\n    json: {\n      fullName: req.fullName,\n      firstName: req.firstName,\n      lastName: req.lastName,\n      profileUrl: req.profileUrl,\n      title: req.title,\n      sentDate: req.sentDate,\n      message: req.message,\n      profilePictureUrl: req.profilePictureUrl,\n      timestamp: req.timestamp\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        -112
+      ],
+      "id": "03366c74-4daa-43bc-8c30-de7659719134",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "profileUrl"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        368,
+        -112
+      ],
+      "id": "49232660-7ab7-45bd-bc62-739885d7b646",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "539e08fd-e7bb-4986-bb89-d08180ee4d37",
+              "leftValue": "={{ $json.body.resultObject }}",
+              "rightValue": "\"error\":\"No new profile found",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -112,
+        -80
+      ],
+      "id": "1bf2994a-1c7b-41d9-a703-dcb8ab6d8642",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=first name:  {{ $json.fields.firstName }}\n\njob title: {{ $json.fields.jobTitle }}\n\nevent name: {{ $json.fields.eventName }}\nevent location: {{ $json.fields.eventLocation }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are helping me draft a casual LinkedIn DM.\nThe recipient has just accepted my connection request.\nThe goal is to build rapport before the event happens.\n\nWrite a short, natural message that feels like a real person wrote it:\n\nStart by thanking them for accepting.\n\nMention their job title in a subtle, relevant way.\n\nRefer to the upcoming event (include the location, or say \"online\" if it’s virtual).\n\nKeep it light, friendly, and 2–3 sentences max.\n\nDo not add greetings like \"Hi [Name]\" or closings like \"Best, [Your Name]\". Just write it like a normal LinkedIn DM."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        -144
+      ],
+      "id": "c5ac9c33-6b6a-4445-b517-5a5d0af30486",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        48
+      ],
+      "id": "aee7a16e-e257-47fd-b05b-e4cfb1b221b9",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"message\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1408,
+        192
+      ],
+      "id": "b3503496-71cb-4641-b329-7ce3f559ed14",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.phantombuster.com/api/v2/agents/launch",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "y1O4DJbbNJgdj1h1Vo1C7OqetXKwMEXoHg7B0j0SrPc"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n{\n\"id\": $json.id,\n\"arguments\": {\n\"spreadsheetUrl\": $('Update record').item.json.fields.profileUrl,\n\"sessionCookie\": \"AQEDATu_K5IA5Iv8AAABmVzrjaMAAAGZgPgRo04AeirKrf5t5jjGT5v_Cm9GvSB5617wdrPit-1DJFh9cqJqagVazQTm-WNbbLQZK2uQXFaZdgPJffsfkIycxbLt3Bg1SOmsmuoSgWgDxS9i8qMQviUc\",\n\"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36\",\n\"message\": $('Loop Over Items').item.json.output.message,\n\"emailChooser\": \"none\"\n}\n}\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2256,
+        -192
+      ],
+      "id": "e005dc7e-dc4a-4a2a-b43d-1d72ace9974e",
+      "name": "Send linkedin dm"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        1904,
+        320
+      ],
+      "id": "deb6ba14-05dc-4130-9e37-ac61103c2e41",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1632,
+        -256
+      ],
+      "id": "ed652a43-9011-4f57-9620-d01365ca45f4",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2048,
+        -192
+      ],
+      "id": "0d5ee05d-198f-444f-be84-2986043e29d8",
+      "name": "Wait"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code node (JavaScript)\nconst messages = [\n  \"How's the bootcamp going\",\n  \"wow that's great\",\n  \"I admire your work in Automation.\"\n];\n\n// Build output items\nreturn messages.map(msg => {\n  return {\n    json: {\n      invitationMessage: msg\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        480
+      ],
+      "id": "2983b96d-7932-4049-8ca2-ad74c13739f7",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.phantombuster.com/api/v2/agents/delete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "y1O4DJbbNJgdj1h1Vo1C7OqetXKwMEXoHg7B0j0SrPc"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "id",
+              "value": "={{ $('create agent').item.json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2704,
+        -192
+      ],
+      "id": "84523f4f-c381-470b-b984-d0fece7b491b",
+      "name": "Delete agent"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.phantombuster.com/api/v2/agents/save",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "y1O4DJbbNJgdj1h1Vo1C7OqetXKwMEXoHg7B0j0SrPc"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "script",
+              "value": "LinkedIn Message Sender.js"
+            },
+            {
+              "name": "org",
+              "value": "phantombuster"
+            },
+            {
+              "name": "branch",
+              "value": "master"
+            },
+            {
+              "name": "environment",
+              "value": "release"
+            },
+            {
+              "name": "name",
+              "value": "LinkedIn Message Sender"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1840,
+        -192
+      ],
+      "id": "9023ae06-f1f6-4966-bdb1-3b45515a66f7",
+      "name": "create agent"
+    },
+    {
+      "parameters": {
+        "amount": 120
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2464,
+        -192
+      ],
+      "id": "f2e5acce-be8a-4fb6-a885-54a06c55820c",
+      "name": "Wait2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app5MScJ8Cia7HggA",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Outreach Base",
+          "cachedResultUrl": "https://airtable.com/app5MScJ8Cia7HggA"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIWb1uwJnviTip",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/app5MScJ8Cia7HggA/tblYIWb1uwJnviTip"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Connection Accepted",
+            "profileUrl": "={{ $json.profileUrl }}"
+          },
+          "matchingColumns": [
+            "profileUrl"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "firstName",
+              "displayName": "firstName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastName",
+              "displayName": "lastName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "jobTitle",
+              "displayName": "jobTitle",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pending connection",
+                  "value": "Pending connection"
+                },
+                {
+                  "name": "Connection Accepted",
+                  "value": "Connection Accepted"
+                },
+                {
+                  "name": "Message Sent",
+                  "value": "Message Sent"
+                },
+                {
+                  "name": "Replied",
+                  "value": "Replied"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "profileUrl",
+              "displayName": "profileUrl",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "eventUrl",
+              "displayName": "eventUrl",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "eventName",
+              "displayName": "eventName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "eventLocation",
+              "displayName": "eventLocation",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "IceBreaker",
+              "displayName": "IceBreaker",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        -128
+      ],
+      "id": "a2a000e5-e96a-4df9-955c-025cd1396d86",
+      "name": "Update record"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app5MScJ8Cia7HggA",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Outreach Base",
+          "cachedResultUrl": "https://airtable.com/app5MScJ8Cia7HggA"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIWb1uwJnviTip",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/app5MScJ8Cia7HggA/tblYIWb1uwJnviTip"
+        },
+        "filterByFormula": "{Status} = 'Pending connection'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        160,
+        -112
+      ],
+      "id": "51b6b19e-9502-4ccb-9b9c-4ac171c2b14e",
+      "name": "Search records"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        16
+      ],
+      "id": "dd057569-599f-4b50-9cb7-f265ffac2c69",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "32bf843a-6b22-4a32-8269-051e5db33930",
+              "leftValue": "={{ JSON.stringify($('Aggregate').item.json.profileUrl) }}",
+              "rightValue": "={{ $json.profileUrl }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        -112
+      ],
+      "id": "e1bed91e-0b4e-409b-bcca-38a5f88d3b62",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -384,
+        -80
+      ],
+      "id": "af6d5f2d-f204-4ac8-aa0d-aa2dbb5f4d64",
+      "name": "Webhook1"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "create agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Send linkedin dm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send linkedin dm": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        []
+      ]
+    },
+    "Delete agent": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create agent": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Delete agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update record": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "b35a967f-e464-4102-b2ad-34c31fc91bb6",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "eLOQs8bf1baK6SiT",
+  "tags": []
+}

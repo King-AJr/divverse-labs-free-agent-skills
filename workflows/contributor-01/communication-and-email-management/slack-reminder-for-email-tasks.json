@@ -1,0 +1,197 @@
+{
+  "name": "Slack Reminder for Email tasks",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        16
+      ],
+      "id": "60c5ada0-dbff-4283-a6b7-22a859d30386",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "getAll",
+        "team": "9014758992",
+        "space": "90144245720",
+        "folder": "90146717045",
+        "list": "901412275010",
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "04f285b3-4c96-4f98-8e12-5e1da8339b7d",
+      "name": "Get many tasks"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: items coming from the previous HTTP Request node\n// Each item is expected to have a JSON structure like your ClickUp output\n\nreturn items.map(item => {\n    const task = item.json;\n\n    // Extract the 'Assigned to' custom field\n    const assignedField = task.custom_fields.find(f => f.name === \"Assigned to\");\n    const assignedTo = assignedField ? assignedField.value : \"\";\n\n    return {\n        json: {\n            name: task.name || \"\",\n            description: task.description || \"\",\n            assigned_to: assignedTo,\n            due_date: task.due_date ? new Date(Number(task.due_date)).toISOString() : null,\n            priority: task.priority ? task.priority.priority : \"\",\n            url: task.url || \"\"\n        }\n    };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        16
+      ],
+      "id": "21ad6529-aeec-4a09-bea3-dd8b64d3ec99",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        336,
+        16
+      ],
+      "id": "4544f409-fd87-47d6-a54b-acb48e610925",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "options": {
+          "systemMessage": "=You are a smart task assistant. You will receive a list of tasks in JSON format. Each task includes:\n\n- name: the task name\n- description: details about the task\n- assigned_to: email of the person responsible\n- due_date: task deadline in ISO format. The time now is {{ $now.toLocal() }}\n- priority: task priority (urgent, high, normal)\n- url: link to the task\n\nYour goal:\n\n1. Generate **Slack-ready reminders** for each task, with:\n   - Task name\n   - Assigned person (email)\n   - Due date & time (readable format)\n   - Priority\n   - Task link\n2. List urgent tasks first, then high, then normal.\n3. Keep each reminder concise—1 sentence per task.\n4. Use these emojis for priority:\n   - 🚨 for urgent\n   - ⚠️ for high\n   - 📝 for normal\n\nExample output:\n\n- 🚨 *Test endpoints* assigned to uche.iheanyi.madu@gmail.com is due on Aug 15, 2025, 03:00 AM. Link: https://app.clickup.com/t/86b69btcf\n- 📝 *Conduct demo* assigned to uche.iheanyi.madu@gmail.com is due on Aug 15, 2025, 03:00 AM. Link: https://app.clickup.com/t/86b69btch\n- ⚠️ *Complete workflow integration* assigned to ifejesugoodness97@gmail.com is due on Aug 16, 2025, 03:00 AM. Link: https://app.clickup.com/t/86b69btcg\n\nThe time now is {{ $now.toLocal() }}\n\nNow, analyze the following tasks and generate Slack reminders:\n{{ $json.data }}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        544,
+        16
+      ],
+      "id": "5c2147c1-d9c2-468d-86f2-9e5a8aa7c322",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        544,
+        176
+      ],
+      "id": "bde63dcd-29c5-42db-abcf-ed9709dd0fdf",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09AK5CK010",
+          "mode": "list",
+          "cachedResultName": "meeting-and-email-automation"
+        },
+        "text": "={{ $json.output }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        16
+      ],
+      "id": "ee30878c-e8ca-412f-97ee-afacf0dd38d7",
+      "name": "Send a message"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many tasks": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "49a69a06-19f2-4396-85b3-5a9339c7be6a",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "831eMJx7gFb5rRZs",
+  "tags": []
+}

@@ -1,0 +1,81 @@
+{
+  "name": "My workflow 62",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -32
+      ],
+      "id": "cc4aeaca-5bb9-4d8c-b93d-bc127a4a68f6",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "simple": false,
+        "filters": {
+          "receivedAfter": "={{ $now.toLocal().minus(1, 'hours') }}",
+          "receivedBefore": "={{ $now.toLocal() }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -144,
+        -32
+      ],
+      "id": "e73ffbd0-583c-45f8-86b8-55e19f1da35e",
+      "name": "Get many messages"
+    },
+    {
+      "parameters": {
+        "jsCode": "// This assumes the Gmail node outputs one item per email\n// The structure might vary depending on your Gmail node settings, \n// so adjust property paths accordingly.\n\nreturn items.map(item => {\n    const data = item.json;\n\n    return {\n        json: {\n            subject: data.subject || null,\n            body: data.text || data.textAsHtml || null,\n            senderName: data.from.value[0].name || null,\n            senderEmail: data.from.value[0].address || null,\n            date: data.date || null,\n            snippet: data.snippet || null,\n            threadId: data.threadId || null,\n            id: data.id || null\n        }\n    };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        -32
+      ],
+      "id": "3e2efbc1-9db0-4fda-8d92-0a8c5fc91dd9",
+      "name": "Extract Subject and Body"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "Extract Subject and Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "481aa0c9-cdb7-4af4-a60b-82cf009a506b",
+  "meta": null,
+  "id": "yaxYGkckRq4J6jsU",
+  "tags": []
+}

@@ -1,0 +1,295 @@
+{
+  "name": "Follow-Up Email",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        -32
+      ],
+      "id": "586c3af0-2c9e-432e-a23f-765b2bd65263",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appH9bLv7B9kaJHs4",
+          "mode": "list",
+          "cachedResultName": "Multichannel Outreach Campaigns Base",
+          "cachedResultUrl": "https://airtable.com/appH9bLv7B9kaJHs4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrzjvJ3tPqUl31I",
+          "mode": "list",
+          "cachedResultName": "Email Messages",
+          "cachedResultUrl": "https://airtable.com/appH9bLv7B9kaJHs4/tblrzjvJ3tPqUl31I"
+        },
+        "filterByFormula": "NOT({Status} = 'Client Replied')",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -32,
+        -32
+      ],
+      "id": "679034d4-e330-446d-bdf5-73cd366cfbf8",
+      "name": "Search records"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1fe57f74-23df-44a4-98e0-a5d3ef3a528f",
+              "leftValue": "={{ $json['Days Since Timestamp'] }}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        -32
+      ],
+      "id": "0f501fdf-4e23-4d70-beb6-b67bdd67f4b5",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6dd03cdf-1a70-4003-9e60-89dd2ddfeb93",
+              "leftValue": "={{ $json['Days Since Timestamp'].specialValue }}",
+              "rightValue": "NaN",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        176,
+        -32
+      ],
+      "id": "6cae0de8-bfea-4b5a-860d-16c004c6be37",
+      "name": "Filter1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -32
+      ],
+      "id": "42bc67fe-05e8-470e-9b92-89e99d9a1923",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name:  {{ $('Search records').item.json.Name }}\ntitle: {{ $('Search records').item.json.title }}\nabout: {{ $('Search records').item.json.about }}\n\nInitial email message: {{ $('Search records').item.json.generatedEmail }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an assistant that drafts professional follow-up emails for sales prospects.\n\nYou will be given:\n- Prospect’s name\n- Prospect’s title/role\n- Prospect’s \"about\" or background\n- The initial email previously sent\n\nYour task:\n1. Write a polite and concise follow-up email.\n2. Keep it natural, respectful, and not pushy.\n3. Personalize it using the prospect’s details.\n4. Reference the initial email lightly (don’t repeat it, just remind).\n5. Suggest a clear next step (e.g., short call, reply with interest).\n6. Keep it within 100–150 words.\n7. Maintain a professional but approachable tone.\n\nOutput format:\n{\n  \"followUpEmailSubject\": \"string\",\n  \"followUpEmailBody\": \"string\",\n  \"salutation\": \"string\"\n}\n\nExample input:\n{\n  \"name\": \"Sarah Johnson\",\n  \"title\": \"Head of Product at Acme Corp\",\n  \"about\": \"Sarah leads the product team focusing on automation and workflow improvements.\",\n  \"initialEmail\": \"Hi Sarah, I wanted to share how we help product teams automate manual workflows...\"\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -32
+      ],
+      "id": "6ea19b07-ac8d-4975-b077-a2396fe1a8f9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        176
+      ],
+      "id": "0fc23152-bf33-4e77-b692-298c8d7c0bfc",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"followUpEmailSubject\": \"string\",\n  \"followUpEmailBody\": \"string\",\n  \"salutation\": \"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        960,
+        176
+      ],
+      "id": "3659847a-a8e8-4e46-b01d-4686074190f7",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Search records').item.json.clientEmail }}",
+        "subject": "={{ $json.output.followUpEmailSubject }}",
+        "emailType": "text",
+        "message": "={{ $json.output.followUpEmailBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1136,
+        -32
+      ],
+      "id": "8bfde7cb-041a-4ac7-bdf2-3702fa7f5478",
+      "name": "Send a message"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Filter1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter1": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "205f21bd-08c5-409b-8b37-c676a3a809b6",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "NnzvxgU9Vxlo58ik",
+  "tags": []
+}

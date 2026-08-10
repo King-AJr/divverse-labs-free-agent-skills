@@ -1,0 +1,727 @@
+{
+  "name": "Create, update, and organize strategic documents",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -384,
+        816
+      ],
+      "id": "abc48a94-703d-45f2-a445-05871e7dd2d9",
+      "name": "OpenAI Chat Model5"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        832
+      ],
+      "id": "8811a875-1e12-4116-a3db-89b051d62329",
+      "name": "OpenAI Chat Model6"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "consulting-kb",
+          "mode": "list",
+          "cachedResultName": "consulting-kb"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        -656,
+        640
+      ],
+      "id": "6f57821e-630f-4a0b-a4bc-cf803013b56b",
+      "name": "Pinecone Vector Store1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -640,
+        800
+      ],
+      "id": "09a6c0b6-bc39-448b-840b-b4eb21fba658",
+      "name": "Embeddings OpenAI1"
+    },
+    {
+      "parameters": {
+        "formTitle": "Document Request Form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Enter your request",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -528,
+        144
+      ],
+      "id": "1e3967fa-dfd6-4ad9-8e0c-31b9ea4f3c83",
+      "name": "On form submission",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User request: {{ $json.chatInput }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are the Main Document Orchestrator Agent.\nYour responsibility is to receive a document request and intelligently coordinate all research, drafting, structuring, visualization, and formatting steps until a polished deliverable is produced.\n\nYou have access to the following resources, tools and sub-agents:\n\n## 🔎 Knowledge & Research\n\nKnowledge Base (Pinecone Vector Store)\n\nUse this for retrieving internal documents and institutional knowledge.\n\nBest suited for internal-only requests.\n\n## External Research Tool (SERP API)\n\nUse this to search the web for up-to-date information when internal knowledge is insufficient.\n\nBest suited for market research, industry trends, or external benchmarks.\n\nCombined Research\n\nFor broad or ambiguous requests, pull from both the Knowledge Base and SERP API.\n\nCross-check internal and external findings. Use internal knowledge as a priority baseline, and enrich with external data.\n\n## ✍️ Drafting & Structuring\n\nOutline & Drafting Sub-Agent\n\nInput: synthesized research (from KB, SERP, or both).\n\nTask: Create a logical outline + expanded draft content.\n\nEnsure structure aligns with the requested document type (report, whitepaper, guideline, etc.).\n\n\n# ⚙️ Your Workflow:\n\n## Classify Request\n\nDetermine if the request is:\n(a) Internal (Knowledge Base only)\n(b) External (SERP API only)\n(c) Mixed (both KB + SERP API)\n\n## Research Phase\n\nRetrieve the required data from the appropriate sources (knowledge base and or serp api tool)\n\nFor mixed requests: prioritize internal, then cross-check with external (knowledge base and or serp api tool)\n\n## Content Outline Phase\n\nPass research to the Outline and Drafting Sub-Agent\n\n\n## Assembly Phase\n\nReceive the structured outline and the research summary combining internal knowledge base findings (Pinecone) and any external research.\n\nDeliver the json containing both the structured outline and the research summary.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        256,
+        144
+      ],
+      "id": "6bec24be-302e-48d1-9bae-d0759faa6db2",
+      "name": "Main Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        288,
+        624
+      ],
+      "id": "7ed71723-b116-4299-9467-33a3fc616963",
+      "name": "SerpAPI"
+    },
+    {
+      "parameters": {
+        "name": "Knowledge_base_tool",
+        "description": "Use this toll to retrieve internal information from the knowledge base",
+        "topK": 5
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        464
+      ],
+      "id": "21ee2a68-993e-432a-8e74-0a32b7c6f752",
+      "name": "Knowledge Base Tool"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        848
+      ],
+      "id": "70cc82c8-772f-42ee-a075-6b82a06b8b9a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        144
+      ],
+      "id": "e9bc75f0-4947-4578-8c33-f4b50d960b41",
+      "name": "When chat message received"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdf.co/v1/pdf/convert/from/html",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "REDACTED"
+            },
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "name",
+              "value": "=sample report"
+            },
+            {
+              "name": "html",
+              "value": "={{ $json.output.document_draft }}"
+            },
+            {
+              "name": "async",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1280,
+        160
+      ],
+      "id": "4c51fccb-a515-4043-940e-a8fb91b24d97",
+      "name": "Generate Pdf (alternate)"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1504,
+        160
+      ],
+      "id": "c54843af-4d55-4bd4-941b-ca5c3725d291",
+      "name": "Download pdf"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"RESEARCH SUMMARY\": \"<combining internal knowledge base findings and any external research.>\",\n  \"structured OUTLINE\": \"<from the outline and drafting sub-agent>\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        848
+      ],
+      "id": "2234d63a-7221-4cde-8f5d-ab3cd21d67d1",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "toolDescription": "AI Agent that creates content outlines",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "You are the Outline Architect Agent. \nYou will receive a \"Research Summary\" as input.\n\nYour task is to:\n1. Analyze the research summary carefully.\n2. Identify key sections, subtopics, and logical flow needed for the document.\n3. Create a structured outline with numbered headings and subheadings.\n4. Indicate potential areas where visuals (charts, graphs, or images) could enhance understanding.\n\nOutput format:\n{\n   \"outline\": [\n      {\"section\": \"Introduction\", \"points\": [...]},\n      {\"section\": \"Main Analysis\", \"points\": [...]},\n      {\"section\": \"Visual Suggestions\": [...]},\n      {\"section\": \"Conclusion\", \"points\": [...]}\n   ],\n   \"recommended_next_step\": \"content_generation\"\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -64,
+        576
+      ],
+      "id": "315d9ff1-fee5-4766-816b-b31e8500be65",
+      "name": "Outline and Drafting Sub-Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=structured OUTLINE:\n\n{{ $json.output['structured OUTLINE'] }}\n\nRESEARCH SUMMARY:\n\n{{ $json.output['RESEARCH SUMMARY'] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are the Content Writer & Chart Generation Agent for executive-grade documents.\n\nINPUTS YOU WILL RECEIVE\n\nA structured OUTLINE.\n\nA RESEARCH SUMMARY combining internal knowledge base findings (Pinecone) and any external research.\n\nOptional DATA SNIPPETS for charts (arrays, key-value, or table-like JSON).\n\nYOUR GOALS\n\nExpand the outline into a comprehensive, well-structured document that is clear, accurate, and persuasive.\n\nDecide where data visuals materially improve understanding.\n\nGenerate charts via the chart sub-workflows (Bar, Line, Pie, Donut, Polar).\n\nYou must first produce a valid chart.js config JSON payload.\n\nSend that payload to the correct chart-generation sub-workflow.\n\nThe sub-workflow will:\n\nCall QuickChart API.\n\nGet a binary image.\n\nUpload to storage (returns a public URL).\n\nPass that URL back to you.\n\nYou then embed the returned chart image URL in the HTML.\n\nProduce a single, professional, PDF-ready HTML document.\n\nTOOLS & SUB-WORKFLOWS YOU CAN CALL\n\nYou do not directly return base64 or binaries.\nInstead, when a chart is required:\n\nGenerate a chart.js config JSON.\n\nCall the correct sub-workflow (BarChart, LineChart, PieChart, DonutChart, PolarChart).\n\nSub-workflow returns a public image URL.\n\nYou embed that URL inside the final HTML.\n\nChart Decision Guide\n\nBar: comparing categories (pricing tiers, KPIs by region, feature counts).\n\nLine: time-series (growth trends, month-over-month changes).\n\nPie: simple composition (market share when <6 categories).\n\nDonut: composition with emphasis on inner label or clarity over pie.\n\nPolar: radial comparison of multi-criteria scores or cyclic patterns.\n\nIf two visuals clarify the story, use both.\n\nCRITICAL RULES FOR CHART EMBEDDING\n\nWhen you receive a chart URL from a sub-workflow, embed it like this:\n\n<figure class=\"figure\">\n  <img src=\"PUBLIC_URL_HERE\" alt=\"CHART_TITLE\">\n  <figcaption>CHART_TITLE</figcaption>\n</figure>\n\n\nDo not output placeholders, <svg>, or [Call: ...] markers in the final HTML.\n\nIf a chart fails or no data is sufficient, use a table instead.\n\nDOCUMENT STRUCTURE & HTML QUALITY REQUIREMENTS\n\nProduce a single, professional HTML5 document that is PDF-ready.\nUse the scaffold, CSS, and rules from the existing prompt (already included above).\n\nCITATIONS & SOURCING\n\nIntegrate knowledge base and external insights smoothly in prose. Where appropriate, mention the source in a sentence (e.g., “Internal KB (FY2024 Ops Review)” or “External: industry reports, 2024”).\n\nOUTPUT CONTRACT (MANDATORY)\n\nReturn exactly this JSON shape:\n\n{\n  \"document_draft\": \"<FULL PROFESSIONAL HTML WITH EMBEDDED <img> CHARTS>\",\n  \"recommended_next_step\": \"pdf_generation\"\n}\n\n\nDo NOT include tool-call transcripts or placeholders in the HTML.\n\nEnsure every chart is embedded via <img src=...> with either a public URL or inline base64.\n\nThe HTML must be fully self-contained and PDF-ready.\n\nThis is an example chart.js for a bar chart:\n\n{\n    \"type\": \"bar\",\n    \"data\": {\n      \"labels\": [\"North\",\"South\",\"East\",\"West\"],\n      \"datasets\": [{\"label\": \"Units\", \"data\": [120,90,140,70]}]\n    }\n  }\n\nLine chart:\n\n{\n    \"type\": \"line\",\n    \"data\": {\n      \"labels\": [\"2021\",\"2022\",\"2023\",\"2024\"],\n      \"datasets\": [\n        {\"label\": \"Tesla\", \"data\": [50,80,120,200]},\n        {\"label\": \"Rivian\",\"data\": [10,30,70,110]}\n      ]\n    }\n  }\n\nPie chart:\n\n{ \"type\": \"pie\",\n  \"data\": { \"labels\": [\"Tesla\",\"Rivian\",\"Others\"],\n            \"datasets\": [{ \"data\": [55,30,15] }] } }\n\nDoughnut chart:\n\n{ \"type\": \"doughnut\",\n  \"data\": { \"labels\": [\"Cloud\",\"On-prem\"],\n            \"datasets\": [{ \"data\": [72,28] }] } }\n\nPolar chart:\n\n{ \"type\": \"polarArea\",\n  \"data\": { \"labels\": [\"Perf\",\"Price\",\"Range\",\"UX\",\"Service\"],\n            \"datasets\": [{ \"data\": [4.6,3.8,4.2,4.7,3.9] }] } }\n\n\n## DOCUMENT STRUCTURE & HTML QUALITY REQUIREMENTS Produce a single, professional **HTML5** document that is PDF-ready:\n\n- Use this scaffold:\n\n<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>\n  <title>DOCUMENT_TITLE</title>\n  <style>\n    :root { --primary:#0f172a; --muted:#475569; --border:#e2e8f0; }\n    body { font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Inter,\"Helvetica Neue\",Arial,sans-serif; color:#0b0f16; line-height:1.6; margin:0; background:#fff; }\n    header { padding:32px 40px; border-bottom:1px solid var(--border); }\n    .title { font-size:28px; font-weight:700; color:var(--primary); margin:0 0 6px 0; }\n    .meta { color:var(--muted); font-size:14px; margin:0; }\n    main { padding:32px 40px; }\n    h1,h2,h3,h4 { color:var(--primary); margin:24px 0 12px; line-height:1.3; }\n    h1 { font-size:26px; } \n    h2 { font-size:22px; border-bottom:1px solid var(--border); padding-bottom:4px; }\n    h3 { font-size:18px; } \n    h4 { font-size:16px; font-weight:600; }\n    p { margin:12px 0; }\n    ul,ol { margin:8px 0 16px 24px; }\n    table { width:100%; border-collapse:collapse; margin:16px 0 22px; font-size:14px; }\n    th,td { border:1px solid var(--border); padding:8px 10px; text-align:left; }\n    th { background:#f8fafc; font-weight:600; }\n    .figure { margin:20px 0 28px; }\n    .figure img { max-width:100%; height:auto; border:1px solid var(--border); border-radius:8px; display:block; }\n    .figure figcaption { font-size:13px; color:var(--muted); margin-top:6px; text-align:center; }\n    .kpi { display:flex; gap:16px; flex-wrap:wrap; margin:20px 0; }\n    .kpi .card { border:1px solid var(--border); border-radius:10px; padding:12px 16px; min-width:160px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04); }\n    .kpi .label { font-size:12px; color:var(--muted); margin-bottom:4px; }\n    .kpi .value { font-size:18px; font-weight:700; color:var(--primary); }\n    hr { border:0; border-top:1px solid var(--border); margin:32px 0; }\n    footer { padding:24px 40px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; background:#fafafa; }\n    /* Print helpers */\n    @page { margin:24mm 18mm; }\n    .page-break { page-break-after:always; }\n  </style>\n</head>\n<body>\n  <header>\n    <h1 class=\"title\">DOCUMENT_TITLE</h1>\n    <p class=\"meta\">Prepared for AUDIENCE • DATE</p>\n  </header>\n  <main>\n    <!-- Executive summary -->\n    <!-- Analysis sections with headings, paragraphs, tables, and figures -->\n    <!-- Recommendations -->\n    <!-- Use <figure> with <img> for charts -->\n  </main>\n  <footer>Confidential — For internal use only.</footer>\n</body>\n</html>\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        848,
+        144
+      ],
+      "id": "c79706be-3bf7-4b0b-934d-3f22a05ae1b5",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        448,
+        624
+      ],
+      "id": "172a43c8-8b55-455c-8897-71974fe2de81",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"document_draft\": \"<FULL PROFESSIONAL HTML WITH EMBEDDED <img> CHARTS>\",\n  \"recommended_next_step\": \"pdf_generation\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1584,
+        512
+      ],
+      "id": "fdbf2ba1-1a5a-4a90-92fe-34daa8ee904f",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to generate Pie Chart → for simple % distribution. The input should be a json of this format:\n\n{ \"type\": \"pie\",\n  \"data\": { \"labels\": [\"Tesla\",\"Rivian\",\"Others\"],\n            \"datasets\": [{ \"data\": [55,30,15] }] } }\n\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "lHnS4heSDVLvhM7b",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/lHnS4heSDVLvhM7b",
+          "cachedResultName": "Divverse P2 — Pie chart gen sub-workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        816,
+        528
+      ],
+      "id": "54b54bdd-6c05-4c54-95ae-7a0b72540fbb",
+      "name": "Call Pie chart gen sub-workflow1"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to generate a Donut Chart → for proportional breakdowns with categories. The input should be a json of similar format:\n\n{ \"type\": \"doughnut\",\n  \"data\": { \"labels\": [\"Cloud\",\"On-prem\"],\n            \"datasets\": [{ \"data\": [72,28] }] } }",
+        "workflowId": {
+          "__rl": true,
+          "value": "zUpE70aBrEXxnJj8",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/zUpE70aBrEXxnJj8",
+          "cachedResultName": "Divverse P2 — Doughnut chart gen sub-workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        592
+      ],
+      "id": "7d18a058-18f5-4041-9cde-10ee566d68bb",
+      "name": "Call donut chart gen sub-workflow1"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to generate a Bar Chart → for categorical comparisons. The input should be a json of similar format:\n\n{\n    \"type\": \"bar\",\n    \"data\": {\n      \"labels\": [\"North\",\"South\",\"East\",\"West\"],\n      \"datasets\": [{\"label\": \"Units\", \"data\": [120,90,140,70]}]\n    }\n  }",
+        "workflowId": {
+          "__rl": true,
+          "value": "p3ib5oAUZmFC5N8k",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/p3ib5oAUZmFC5N8k",
+          "cachedResultName": "Divverse P2 — Bar Chart gen sub-workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1264,
+        592
+      ],
+      "id": "29e2dbd1-cf6e-4f18-83da-896491a258c8",
+      "name": "Call bar chart gen sub-workflow1"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to generate a Line Chart → for trends over time. The input should be a json of similar format:\n\n{\n    \"type\": \"line\",\n    \"data\": {\n      \"labels\": [\"2021\",\"2022\",\"2023\",\"2024\"],\n      \"datasets\": [\n        {\"label\": \"Tesla\", \"data\": [50,80,120,200]},\n        {\"label\": \"Rivian\",\"data\": [10,30,70,110]}\n      ]\n    }\n  }",
+        "workflowId": {
+          "__rl": true,
+          "value": "4HFWR6i5UZSIgijT",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4HFWR6i5UZSIgijT",
+          "cachedResultName": "Divverse P2 — Line chart gen sub-workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        624
+      ],
+      "id": "d1fb7bd9-49e7-4988-8dc5-73a62738063d",
+      "name": "Call line chart gen sub-workflow1"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to generate a Polar Chart → for cyclic or angular data (e.g., seasonality, survey responses). The input should be a json of similar format:\n\n{ \"type\": \"polarArea\",\n  \"data\": { \"labels\": [\"Perf\",\"Price\",\"Range\",\"UX\",\"Service\"],\n            \"datasets\": [{ \"data\": [4.6,3.8,4.2,4.7,3.9] }] } }",
+        "workflowId": {
+          "__rl": true,
+          "value": "X2zhmnH4EafJGAjx",
+          "mode": "list",
+          "cachedResultName": "Divverse P2 — Polar Chart gen sub-workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        560
+      ],
+      "id": "8e06131c-2229-427a-8d74-c81b34aebba2",
+      "name": "Call polar chart gen sub-workflow1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        736,
+        416
+      ],
+      "id": "d927ad6b-aa42-41f5-838d-a8ee417f1046",
+      "name": "OpenAI Chat Model"
+    }
+  ],
+  "connections": {
+    "OpenAI Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Main Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Knowledge Base Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Outline and Drafting Sub-Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Knowledge Base Tool",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        []
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "Main Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knowledge Base Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Main Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Main Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Outline and Drafting Sub-Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Main Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Pdf (alternate)": {
+      "main": [
+        [
+          {
+            "node": "Download pdf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Main Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outline and Drafting Sub-Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Main Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Main Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Pie chart gen sub-workflow1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call donut chart gen sub-workflow1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call line chart gen sub-workflow1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call bar chart gen sub-workflow1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call polar chart gen sub-workflow1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Generate Pdf (alternate)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "c3244151-2f2b-43a2-8d85-e4621b7065b0",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "NSKmsf0N6wPC23Nq",
+  "tags": []
+}

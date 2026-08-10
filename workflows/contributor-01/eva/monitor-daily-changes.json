@@ -1,0 +1,265 @@
+{
+  "name": "Monitor Daily changes",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "calendarId": {
+          "__rl": true,
+          "value": "alabiayomide14@gmail.com",
+          "mode": "list",
+          "cachedResultName": "alabiayomide14@gmail.com"
+        },
+        "triggerOn": "eventUpdated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTrigger",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        -96
+      ],
+      "id": "4dbb304c-9478-4ee5-aa6b-636006e6fc4a",
+      "name": "Google Calendar Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "filters": {
+          "q": "=subject:Daily Schedule - {{ $today.setZone('Africa/Lagos').toFormat('yyyy-MM-dd') }}\n",
+          "receivedAfter": ""
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -400,
+        -96
+      ],
+      "id": "a468b52d-bd6a-4537-bb92-d5eee76cc88f",
+      "name": "Gmail"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        -96
+      ],
+      "id": "9804fddf-76f7-4177-8f59-6728b44b31b9",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7b538137-8759-426b-bb6f-a38f23cff288",
+              "name": "originalSchedule ",
+              "value": "={{ $json.snippet }}",
+              "type": "string"
+            },
+            {
+              "id": "63168280-c942-4a69-986e-d6f26379d710",
+              "name": "updatedEvent",
+              "value": "={{ $('Google Calendar Trigger').item.json.summary }} - {{ $('Google Calendar Trigger').item.json.updated }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        -96
+      ],
+      "id": "0210fdb7-b26e-4d3f-962d-19b8132c3942",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The original schedule is:\n\n{{ $json['originalSchedule '] }}\n\nAn updated event has been received:\n\n{{ $json.updatedEvent }}",
+        "options": {
+          "systemMessage": "=You are a calendar update assistant.\n\nYour task is to compare an original schedule (written as plain text) with a newly updated version of a specific event. \n\nSteps to follow:\n1. Identify the matching event in the original schedule based on the event title or summary.\n2. Compare the time and location (if available) of the event in the original schedule with the updated event.\n3. Detect any changes in the time and/or location.\n4. Return a clear update summary describing exactly what changed.\n\nUse this format:\n📌 \"[Event title]\" was moved from [original time] to [updated time].\n\nIf only the time or only the location changed, mention just that.\n\n---\n\nOriginal Schedule:\n{{ $json['originalSchedule '] }}\n\nUpdated Event:\n{{ $json.updatedEvent }}\n\nExample Output: 📌 \"Marketing Review\" was moved from 2:00 PM to 3:00 PM.\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        272,
+        -96
+      ],
+      "id": "6b46413d-5672-4f85-b9c4-4b2717ecebc1",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        272,
+        112
+      ],
+      "id": "2c658187-ddc6-475d-99b9-b75928cf0cab",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "=SCHEDULE UPDATE -  {{ $json.output }}",
+        "emailType": "text",
+        "message": "=Hi\n\nThere’s been a change in your schedule for today.  \n\n{{ $json.output }}\n\nBest Regards,\nEVA",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "807f9ede-725d-4ae7-9cd7-91d873e8fc1e",
+      "name": "Gmail1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "daily_schedule",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "event_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "summary",
+              "fieldValue": "={{ $json.summary }}"
+            },
+            {
+              "fieldId": "start",
+              "fieldValue": "={{ $json.start.dateTime }} "
+            },
+            {
+              "fieldId": "end",
+              "fieldValue": "={{ $json.end.dateTime }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        48
+      ],
+      "id": "417477ca-5896-49a1-9732-847d4b225dd3",
+      "name": "Update a row"
+    }
+  ],
+  "connections": {
+    "Google Calendar Trigger": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Gmail1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "a57ca457-f788-4f8d-a8be-64ea33c03705",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "8MeaVWrHcobiuwQM",
+  "tags": []
+}

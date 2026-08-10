@@ -1,0 +1,214 @@
+{
+  "name": "Line chart gen sub-workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -192
+      ],
+      "id": "9f0287f0-a3d0-4a3c-b96f-297efe70ff5f",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -528,
+        48
+      ],
+      "id": "86a4e701-811e-43e2-8f78-16d9bdb6f7cc",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "url": "https://quickchart.io/chart",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "c",
+              "value": "={{ $('When Executed by Another Workflow').item.json.query }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -176,
+        -112
+      ],
+      "id": "a29e9c54-c6d8-483a-a611-4b5514e30231",
+      "name": "Generate Line Chart"
+    },
+    {
+      "parameters": {
+        "jsCode": "const randomNum = Math.floor(Math.random() * 1000000);\nconst timestamp = Date.now();\nconst randomStr = Math.floor().toString(36).substring(2, 8);\n\nreturn {\n  uniqueId: `${randomNum}-${timestamp}-${randomStr}`\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        48
+      ],
+      "id": "2885d72c-f218-4bcb-94c1-6860ba4429a7",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://xotluybvqxcwykhexuby.supabase.co/storage/v1/object/n8n_image_bucket/chart-{{ $('Code').item.json.uniqueId }}.png\n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "REDACTED_JWT"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            },
+            {
+              "name": "Content-Type",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        32,
+        -128
+      ],
+      "id": "01b220eb-43d6-40c0-9fe8-90d4c06c8e38",
+      "name": "Upload to Supabase"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6387f820-5bee-4172-a5b9-57f50a6f4bd8",
+              "name": "publicUrl",
+              "value": "=https://xotluybvqxcwykhexuby.supabase.co/storage/v1/object/public/n8n_image_bucket/{{ $json.filename }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        -128
+      ],
+      "id": "79ec51f0-98a9-476e-8d11-157657f6787c",
+      "name": "Construct public url"
+    },
+    {
+      "parameters": {
+        "jsCode": "// In the n8n Function node:\n\n// Example input\nconst fullPath = $input.first().json.Key; // e.g., \"n8n image buckets/chart-20250825194719.png\"\n\n// Option 1: Using `split()` and `pop()`\nconst filename = fullPath.split(\"/\").pop();\n\n// Option 2: Using `lastIndexOf()` and `substring()`\nconst lastSlash = fullPath.lastIndexOf(\"/\");\nconst filenameAlt = lastSlash !== -1\n  ? fullPath.substring(lastSlash + 1)\n  : fullPath;\n\n// Return in correct n8n structure\nreturn [\n  {\n    json: {\n      filename: filename  // or filenameAlt, same result\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -128
+      ],
+      "id": "f2a6cee8-9476-45a5-ae2f-cc35d789af1b",
+      "name": "Extract image path"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Generate Line Chart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Line Chart": {
+      "main": [
+        [
+          {
+            "node": "Upload to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Generate Line Chart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Extract image path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract image path": {
+      "main": [
+        [
+          {
+            "node": "Construct public url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "a37fde12-491b-40c5-95c8-025c734785d4",
+  "meta": null,
+  "id": "4HFWR6i5UZSIgijT",
+  "tags": []
+}

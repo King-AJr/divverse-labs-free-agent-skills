@@ -1,0 +1,553 @@
+{
+  "name": "Austin Regulation",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://api.worldnewsapi.com/search-news",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "Austin short term rentals"
+            },
+            {
+              "name": "location-filter",
+              "value": "30.2672,-97.7431,25"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "source-country",
+              "value": "us"
+            },
+            {
+              "name": "earliest-publish-date",
+              "value": "={{ $now.minus({days: 30}).toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "sort",
+              "value": "publish-time"
+            },
+            {
+              "name": "sort-direction",
+              "value": "DESC"
+            },
+            {
+              "name": "categories",
+              "value": "politics,business"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -656,
+        32
+      ],
+      "id": "f4017682-a221-490d-b3b8-b2e5f60abaae",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// In n8n Code Node - \"Mock Austin Data\"\nconst mockAustinData = {\n  city: \"Austin\",\n  state: \"Texas\",\n  dataDate: \"2025-11-11\",\n  statistics: {\n    totalActive: 2347,\n    type1: 1200,\n    type2: 800,\n    type3: 347,\n    recentlyIssued: 42,\n    topNeighborhoods: [\n      { name: \"Downtown\", count: 456 },\n      { name: \"East Austin\", count: 312 },\n      { name: \"South Congress\", count: 289 }\n    ]\n  },\n  recentChanges: [\n    \"License display requirement effective January 1, 2026\",\n    \"1,000 feet distance rule for multiple properties\",\n    \"Automatic tax collection by platforms starting April 2025\"\n  ],\n  contextForAI: `\n    Austin, Texas currently has 2,347 active short-term rental licenses.\n    The breakdown is:\n    - Type 1 (owner-occupied): 1,200 licenses\n    - Type 2 (non-owner-occupied): 800 licenses\n    - Type 3 (multi-family): 347 licenses\n    \n    In the past 30 days, 42 new licenses were issued.\n    \n    Recent regulatory changes include mandatory license display on all \n    online listings (effective Jan 1, 2026) and a 1,000-foot distance \n    restriction for operators with multiple properties.\n    \n    Top neighborhoods by STR concentration: Downtown (456), East Austin (312), \n    and South Congress (289).\n  `\n};\n\nreturn { json: mockAustinData };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        -112
+      ],
+      "id": "5112b7d2-b33e-4555-b8a2-becbb1019d1e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "results",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -16
+      ],
+      "id": "7eb7e59e-f061-4ad8-9027-787834366d77",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        208
+      ],
+      "id": "58e06b5c-2de6-4182-82c4-9d687eefdaf3",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        736,
+        160
+      ],
+      "id": "8b12367d-fae3-4a95-adeb-2c25049dcdf3",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"Script\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        832,
+        320
+      ],
+      "id": "7bdb04ad-ca69-4865-be99-15069fcf124f",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "content"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        448,
+        -16
+      ],
+      "id": "3573bf82-7415-49f9-a479-fbbbcb0af8c5",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=CONTEXT INFORMATION: {{ $('Fetch Data').item.json.answer }}\n\nRECENT ARTICLES:\n{{ JSON.stringify($json.content) }}\n\n\nIMPORTANT FILTERING INSTRUCTIONS:\nThe articles provided may contain information about other cities, unrelated topics, or general news that is NOT about Austin short-term rental regulations. You MUST:\n\n1. ONLY use information that is specifically about:\n   - Austin, Texas short-term rental regulations\n   - STR licensing, permits, or compliance in Austin\n   - Austin City Council decisions about STRs\n   - Enforcement, fines, or penalties in Austin\n   - Tax requirements for Austin STRs\n\n2. IGNORE and do NOT include:\n   - Information about other cities (Denver, Miami, Seattle, etc.)\n   - General travel or tourism content\n   - Real estate investing advice not related to regulations\n   - Long-term rental information\n   - Unrelated local Austin news\n\n3. If an article mentions Austin but the content is not about STR regulations, skip it.\n\n4. If you don't find enough relevant information in the articles, acknowledge what's missing and direct viewers to AustinTexas.gov/STR for complete details.\n\nFocus ONLY on Austin STR regulation information. Discard everything else.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a professional scriptwriter for 60-second regulation update videos. You write clear, engaging scripts that explain complex rules in simple language.\n\nSCRIPT REQUIREMENTS:\n\n1. LENGTH: 150-180 words total (for 60 seconds of speech)\n\n2. TONE:\n   - Professional but conversational\n   - Clear and direct\n   - Action-oriented\n\n3. STRUCTURE (but don't label these in the output):\n   - Opening hook (5-10 sec): Grab attention with what's changing\n   - Key points (40 sec): 2-3 most important regulation updates with specific facts\n   - Action items (10 sec): What hosts need to do and when\n   - Closing (5 sec): Where to get more information\n\n4. CONTENT RULES:\n   - Use specific numbers, dates, and facts from the sources\n   - Mention \"Austin, Texas\" at least once\n   - Include at least one deadline or important date\n   - State consequences of non-compliance (fines, penalties)\n   - Keep sentences short and clear\n   - Use active voice\n   - End with a specific URL or action\n\n5. FORMAT: \n   - Output ONLY the script text\n   - No scene markers, no labels, no formatting\n   - Just the words to be spoken, as one continuous script\n   - Use natural pauses (periods and commas only)\n\nWrite the script now. Remember: plain text only, no special formatting\n\n\n## **📋 EXAMPLE OUTPUT **\n\nAttention Austin Airbnb hosts. Major changes are coming to short-term rental regulations that affect all 2,347 licensed properties in the city. Starting January 1st, 2026, you must display your city-issued license number on all online listings including Airbnb and VRBO. This is now required by city ordinance. Additionally, new distance rules prohibit operating multiple properties within 1,000 feet of each other. If you manage multiple STRs, check your addresses now as approximately 150 operators are affected by this change. Here's what you need to do. License renewals are due December 15th with a $285 fee. You'll need proof of insurance and current tax compliance. Don't risk the $500 per day fine for operating without proper licensing. Get the complete requirements at AustinTexas.gov slash STR. Stay compliant and stay in business."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        656,
+        -16
+      ],
+      "id": "96babc68-b865-45ad-a57e-9940daac4d2a",
+      "name": "Script Writer"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1808,
+        80
+      ],
+      "id": "a5d8ca92-f603-4f11-a9e4-b338126f3590",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2016,
+        176
+      ],
+      "id": "b189a0b4-9f4a-4563-badf-5dc3c9759c5f",
+      "name": "Wait"
+    },
+    {
+      "parameters": {
+        "url": "https://api.heygen.com/v1/video_status.get",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "video_id",
+              "value": "={{ $json.data.video_id }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1424,
+        -16
+      ],
+      "id": "41bdb62c-5082-456e-b515-9a685b1c977b",
+      "name": "Check Status"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8fdd286b-6076-4250-85d3-17fb72a0c501",
+              "leftValue": "={{ $json.data.status }}",
+              "rightValue": "processing",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1632,
+        -16
+      ],
+      "id": "eca58dc3-8864-4255-8b40-d769c38b8bc5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.data.video_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1840,
+        -112
+      ],
+      "id": "a4b57a83-aba7-4036-9e8c-9576949c0f2c",
+      "name": "Download Video"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heygen.com/v2/video/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "x-api-key",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"caption\": \"false\",\n  \"video_inputs\": [\n    {\n      \"character\": {\n        \"type\": \"avatar\",\n        \"scale\": 1,\n        \"avatar_style\": \"normal\",\n        \"avatar_id\": \"Abigail_expressive_2024112501\",\n        \"talking_style\": \"stable\"\n      },\n      \"voice\": {\n        \"type\": \"text\",\n        \"voice_id\": \"e0cc82c22f414c95b1f25696c732f058\",\n        \"input_text\": \"{{ $json.output.Script }}\"\n      },\n      \"background\": {\n        \"type\": \"color\",\n        \"value\": \"#FFFFFF\",\n        \"play_style\": \"freeze\",\n        \"fit\": \"cover\"\n      }\n    }\n  ],\n  \"dimension\": {\n    \"width\": 1280,\n    \"height\": 720\n  }\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        -16
+      ],
+      "id": "2f5fea21-20fc-4d2e-92a0-1d962ad14c6c",
+      "name": "Generate Video"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"api_key\": \"REDACTED\",\n  \"query\": \"Recent changes in Austin's short term rental regulations\",\n  \"topic\": \"general\",\n  \"search_depth\": \"advanced\",\n  \"max_results\": 10,\n  \"time_range\": \"month\",\n  \"include_answer\": \"advanced\",\n  \"include_raw_content\": false,\n  \"include_domains\": [\"data.austintexas.gov\", \"statesman.com\", \"kxan.com\"]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        32,
+        -16
+      ],
+      "id": "ce5c6558-a870-471b-8e0f-535764ae5546",
+      "name": "Fetch Data"
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1232,
+        -16
+      ],
+      "id": "4012b417-1231-4ff5-9177-b97499aa1579",
+      "name": "Wait1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -176,
+        -16
+      ],
+      "id": "8f1050c5-6031-44fa-a3e2-8e0127b01b95",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "connections": {
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Script Writer",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Script Writer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Script Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Script Writer": {
+      "main": [
+        [
+          {
+            "node": "Generate Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Video": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Data": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "252694ee-667e-4037-bee1-be8eef6111dc",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "aiMVFyniZxjKC74Q",
+  "tags": []
+}

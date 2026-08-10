@@ -1,0 +1,532 @@
+{
+  "name": "Automated Newsletter Research team",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Newsletter Submission Form",
+        "formDescription": "Provides a structured newsletter based on the following fields",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Topic",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Tone",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Professional"
+                  },
+                  {
+                    "option": "Funny"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Target Audience",
+              "placeholder": "Business Owners",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "f0474583-5a6e-4ba5-a514-5eb39cf6b3f1",
+      "name": "On form submission"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        160
+      ],
+      "id": "c9e56169-5f61-45a2-9e9e-51fa17140840",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Topic:  {{ $json.Topic }}\n\nTone: {{ $json.Tone }}\n\nAudience: {{ $json['Target Audience'] }}",
+        "options": {
+          "systemMessage": "You are an AI agent responsible for planning the sections of a newsletter by creating a high-level, engaging table of contents.\n\nInputs you will always receive:\n\nNewsletter Topic\n\nNewsletter Tone (e.g., professional, casual, witty, educational, inspiring, etc.)\n\nNewsletter Target Audience (who the newsletter is for)\n\nYour role:\n\nCarefully analyze the provided topic, tone, and target audience.\n\nUse the Tavily tool to perform real-time web searches and identify relevant, trending, and valuable subtopics connected to the main newsletter topic.\n\nBased on your findings, create a table of contents that feels tailored to the audience, resonates with their interests, and encourages them to read the full newsletter.\n\nMake sure the section titles are clear, catchy, and aligned with the newsletter tone.\n\nIf explicitly requested, include a brief description (1–2 sentences) under each section explaining what the reader will find there.\n\nOutput format:\n\nProvide a table of contents with numbered or bulleted sections.\n\nEach section should be engaging, audience-focused, and connected to the main newsletter topic.\n\nEnsure the tone and style match the specified newsletter tone.\n\nRules:\n\nAlways ground your sections in relevant and timely information by leveraging Tavily’s search results.\n\nAvoid generic or repetitive headings. Each section should add unique value.\n\nKeep it high-level (not full articles, just planned sections)."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -80,
+        -48
+      ],
+      "id": "edcebd51-815e-4679-bcb2-b23fec049958",
+      "name": "Newsletter Expert"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        576,
+        -48
+      ],
+      "id": "6befe752-ad0f-494c-85ff-273a4855e980",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        288,
+        128
+      ],
+      "id": "0766f024-2bba-40b6-a0a7-586c0342d5ad",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"title\": \"AI in Marketing\",\n    \"description\": \"How businesses use AI to personalize campaigns.\"\n  },\n  {\n    \"title\": \"Remote Work Trends\",\n    \"description\": \"Latest shifts in hybrid and remote work models.\"\n  },\n  {\n    \"title\": \"Sustainable Tech\",\n    \"description\": \"Green innovations shaping the future of technology.\"\n  },\n  {\n    \"title\": \"Startup Funding\",\n    \"description\": \"What founders need to know about raising capital today.\"\n  },\n  {\n    \"title\": \"Cybersecurity Basics\",\n    \"description\": \"Simple steps to protect your business online.\"\n  }\n]\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        336,
+        272
+      ],
+      "id": "95eda9b6-c9eb-4e93-b8ec-982ab9a6a27a",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Your job is to split out the table of contents into an individual item for each section. Output each section separately in a field called 'newsletterSections'. When doing so, keep in mind that the newsletter target audience is {{ $('On form submission').item.json['Target Audience'] }} and the tone of the newsletter should be {{ $('On form submission').item.json.Tone }}\n\nHere's the table of contents: {{ $json.output }}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        224,
+        -48
+      ],
+      "id": "6335c766-e981-485e-8481-c1a75ffa6c21",
+      "name": "Project Planner"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        -112
+      ],
+      "id": "1c7d5e8c-fec3-4318-844b-0859bc63bd5c",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Section description:  {{ $json.description }}\n\nNewsletter Target Audience: {{ $('On form submission').item.json['Target Audience'] }}\n\nNewsletter Tone: {{ $('On form submission').item.json.Tone }}",
+        "options": {
+          "systemMessage": "=You are responsible for writing the final content for one specific section of a newsletter.\nYou will always receive the section title, a short description, the target audience, and the desired tone.\n\n## Your role:\n\nDeliver only the final content for that newsletter section.\n\nConduct real-time research using the Tavily tool to ensure the information is accurate, relevant, and up-to-date.\n\nWrite concisely, clearly, and in a way that aligns with the target audience and the newsletter’s objectives.\n\nDo not include any prefacing statements, explanations, or notes about your process—only the content itself.\n\nSupport your points with research, and always cite sources naturally within the text using hyperlinks to the original sources.\n\nMake the section engaging, tailored to the audience, and consistent with the specified tone.\n\nYour only output: the polished, audience-tailored content for the provided newsletter section.\n\n## Tools\n- tavily (for research and citations)\n\n## Citation Guidelines\n- Use the tavily tool to gather information and cite sources\n- For each major claim or piece of information, include a hyperlinked inline citation\n- Format citations as HTML links with descriptive text:\n  <a href=\"[URL]\">[Source: Publication Name]</a>\n- When directly quoting from a source, use quotation marks and include the citation\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -288
+      ],
+      "id": "3551bd2f-1d55-4f80-b70f-4bebb72fda90",
+      "name": "Research Team"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Researches the web for real time information",
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "topic",
+              "value": "general"
+            },
+            {
+              "name": "query",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', ``, 'string') }}"
+            },
+            {
+              "name": "search_depth",
+              "value": "advanced"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        352
+      ],
+      "id": "b9520c26-edd1-4b23-82fe-463d9b29f41e",
+      "name": "Tavily"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1072,
+        -48
+      ],
+      "id": "cc9803ee-c6fc-4636-93c9-3de844325895",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "title"
+            },
+            {
+              "fieldToAggregate": "output"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        -48
+      ],
+      "id": "ffe2f0f0-5388-4f9c-9aab-e5c4b1ec0bf9",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=List of titles:  {{ JSON.stringify($json.title) }}\n\nList of article content: {{ JSON.stringify($json.output) }}",
+        "options": {
+          "systemMessage": "=You are an expert editor specializing in creating and refining content to output a high-quality formatted newsletter article.\n\nYour inputs:\n\nA list of titles and draft content sections.\n\nA defined target audience.\n\nYour task:\n\nCreate one newsletter article section for each title using the provided content.\n\nPreserve all inline citations. Ensure each section has at least one hyperlinked citation to its source.\n\nImprove flow, readability, and overall structure of the newsletter.\n\nFormat each section with clear HTML headings (<h2> for titles, <p> for paragraphs).\n\nCitation management:\n\nStandardize inline citation formatting.\n\nEnsure citations are seamlessly integrated into the text and do not disrupt the flow of reading.\n\nAt the end of the newsletter, create a “Sources” section:\n\nFormat sources in an ordered list (<ol><li>...</li></ol>).\n\nEach entry must include a complete URL as a working hyperlink.\n\nOrganize sources alphabetically by the site name or source title.\n\nVerify that all hyperlinks are functional.\n\nOutput format requirements:\n\nOutput the newsletter as clean HTML, suitable for sending via email.\n\nDo not include any introductory text, explanations, or process notes.\n\nBegin directly with the first article heading (<h2>).\n\nInclude all sections in order, followed by the “Sources” section.\n\nOutput length must not exceed 1000 words.\n\nYour only output:\nThe final HTML-formatted newsletter, structured as described above.\n\nToday's date is {{ $now.toLocal() }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1520,
+        -80
+      ],
+      "id": "1e265e48-2b67-4a4e-b831-6daa2f054715",
+      "name": "Editor"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1456,
+        112
+      ],
+      "id": "a2cf342e-d09c-441b-a944-b99deaba8773",
+      "name": "OpenAI Chat Model2"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "GPT-4"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Create a title for the incoming newsletter. The tone of the newsletter is {{ $('On form submission').item.json.Tone }} and the target audience is {{ $('On form submission').item.json['Target Audience'] }}\n\nHere's the newsletter:\n{{ $json.output }}\n\n# Output format\nOutput the tile in plain text, no quotation marks, and capitalize the first letter of each word.\nExample: Is Artificial Intelligence A Friend Or Foe?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1872,
+        -80
+      ],
+      "id": "e4226c06-c2bc-434f-8b78-ddf4325215a3",
+      "name": "Create Title"
+    },
+    {
+      "parameters": {
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "={{ $json.message.content }}",
+        "message": "={{ $('Editor').item.json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2224,
+        -80
+      ],
+      "id": "f735f7ac-7141-4d69-8836-f94eb6bb5bec",
+      "name": "Send a message"
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Newsletter Expert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Newsletter Expert",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Project Planner",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Newsletter Expert": {
+      "main": [
+        [
+          {
+            "node": "Project Planner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Project Planner",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Project Planner": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Research Team",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Research Team",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Team",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Newsletter Expert",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Team": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Editor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Editor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Editor": {
+      "main": [
+        [
+          {
+            "node": "Create Title",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Title": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "7972c0b2-8f66-4fe7-bf62-2dc89e5f4aa0",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "sISl7g7i3eYYWtRc",
+  "tags": []
+}

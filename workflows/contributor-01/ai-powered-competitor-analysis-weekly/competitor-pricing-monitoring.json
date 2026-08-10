@@ -1,0 +1,395 @@
+{
+  "name": "Competitor Pricing Monitoring",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -160
+      ],
+      "id": "97df9161-daf4-48f5-b0ca-8d05bc6b4497",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw",
+          "mode": "list",
+          "cachedResultName": "Price Monitoring",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        192,
+        -160
+      ],
+      "id": "fdf8f71b-76f9-4ff7-b926-7dba58224c39",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n    \"api_key\": \"REDACTED\",\n    \"query\": \"Find the pricing page url for: {{ $json.Competitor }}. Also get the latest pricing plan for {{ $json.Competitor }}\",\n    \"search_depth\": \"advanced\",\n    \"include_answer\": true,\n    \"include_images\": false,\n    \"include_image_descriptions\": false,\n    \"include_raw_content\": false,\n    \"max_results\": 5,\n    \"topic\": \"general\"\n}",
+        "options": {}
+      },
+      "id": "8883e9fe-23c7-4625-8801-830795e93b76",
+      "name": "Tavily Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        592,
+        128
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        416,
+        -160
+      ],
+      "id": "3ae250f5-c619-46a1-ad53-9ad016b59493",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        128
+      ],
+      "id": "ff0348a7-bb66-4d3e-b910-12373b566870",
+      "name": "Wait"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Tavily sources: \n\n{{ JSON.stringify($('Loop Over Items').item.json.results) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an AI assistant that extracts competitor pricing intelligence. \nYou will receive raw text from Tavilu that may include multiple sources with different formats. \nYour job is to carefully read through the content and produce a structured, clear summary of the competitor’s pricing and any important updates.\n\nInstructions:\n1. Extract the competitor’s pricing information in a clean, standardized format (plans, features, monthly/annual costs).\n2. Highlight any recent changes (discounts, promotions, new tiers, removed plans, etc.).\n3. Identify key things our team should know about their pricing strategy (e.g., freemium model, enterprise focus, aggressive discounting).\n4. If there are multiple conflicting sources, note the differences briefly.\n5. Keep the output concise, business-friendly, and easy to read for sales/marketing teams.\n\nOutput Format:\n- **Competitor Name**: [if provided or can be inferred]\n- **Current Pricing Plans**:\n   - Plan Name → Price → Key Features\n- **Recent Changes/Updates**:\n   - [List changes or say “No recent updates found.”]\n- **Insights for Us**:\n   - [1–3 bullet points highlighting strategic takeaways]\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1056,
+        -192
+      ],
+      "id": "56d50d82-899a-4cc2-9b02-b58aa1d27be5",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        -16
+      ],
+      "id": "1146f311-b760-4147-9d35-5469de96d24a",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1024,
+        16
+      ],
+      "id": "4461653f-d2ba-4a2b-9c6c-edec412a6546",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"🏷️ Competitor Name\": \"\",\n\t\"💰 Current Pricing Plans\": \"\",\n    \"📢 Recent Changes/Updates\": \"\",\n    \"💡 Insights for Us\" : \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1392,
+        128
+      ],
+      "id": "a6e70232-20ee-46be-a61c-aa445bdcee0e",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        816,
+        -288
+      ],
+      "id": "679f579b-00e5-41b5-a2be-fdf64b2d0783",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        -432
+      ],
+      "id": "2d6edd17-94df-4e4d-a61a-77c811c70feb",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Competitor Pricing Update",
+        "message": "={{ $json.formattedEmail }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1344,
+        -752
+      ],
+      "id": "58572385-f3dc-46b5-8a30-594083dad232",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get input from previous node\nconst input = items[0].json.data;\n\n// Helper to escape HTML if needed (optional)\nfunction escapeHtml(str) {\n  return str\n    .replace(/&/g, \"&amp;\")\n    .replace(/</g, \"&lt;\")\n    .replace(/>/g, \"&gt;\")\n    .replace(/\"/g, \"&quot;\")\n    .replace(/'/g, \"&#039;\");\n}\n\nlet emailBody = `<div style=\"font-family: Arial, sans-serif; line-height:1.6;\">`;\n\ninput.forEach((entry, index) => {\n  const output = entry.output;\n\n  const competitorName = output[\"🏷️ Competitor Name\"] || \"Unknown Competitor\";\n  const pricingPlans = output[\"💰 Current Pricing Plans\"] || \"No pricing details.\";\n  const recentChanges = output[\"📢 Recent Changes/Updates\"] || \"No updates available.\";\n  const insights = output[\"💡 Insights for Us\"] || \"No insights.\";\n\n  emailBody += `\n    <div style=\"margin-bottom:25px; padding:15px; border:1px solid #ddd; border-radius:8px;\">\n      <h2 style=\"margin-top:0; color:#333;\">🏷️ ${competitorName}</h2>\n      <h3 style=\"color:#555;\">💰 Current Pricing Plans</h3>\n      <pre style=\"background:#f9f9f9; padding:10px; border-radius:6px; white-space:pre-wrap;\">${escapeHtml(pricingPlans)}</pre>\n      \n      <h3 style=\"color:#555;\">📢 Recent Changes/Updates</h3>\n      <p>${escapeHtml(recentChanges)}</p>\n      \n      <h3 style=\"color:#555;\">💡 Insights for Us</h3>\n      <pre style=\"background:#f0faff; padding:10px; border-radius:6px; white-space:pre-wrap;\">${escapeHtml(insights)}</pre>\n    </div>\n  `;\n});\n\nemailBody += `</div>`;\n\n// Return nicely formatted HTML as the output for email\nreturn [{\n  json: {\n    formattedEmail: emailBody\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        -752
+      ],
+      "id": "b118032b-c9fd-43d4-8727-fd307f8e323c",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "tableId": "Insights Table",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "insight_type",
+              "fieldValue": "price monitoring"
+            },
+            {
+              "fieldId": "content",
+              "fieldValue": "={{ JSON.stringify($json.data) }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        -432
+      ],
+      "id": "9d78aa99-6829-419f-9525-d5372b9456f5",
+      "name": "Create a row"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tavily Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily Search": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "3ef12767-b678-46f6-8973-b944dc17edbe",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "e4T4qZQR1kZEM0vX",
+  "tags": []
+}

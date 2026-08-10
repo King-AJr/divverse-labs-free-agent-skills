@@ -1,0 +1,260 @@
+{
+  "name": "Send Linkedin Connection and message",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        128
+      ],
+      "id": "57a5a149-fb0b-4f64-8486-71d0c1cf5b9a",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.phantombuster.com/api/v2/agents/launch",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "jMyBjQ0IGNnRnHNdHnSWowcmRnjjXvACbLbaonOIGfo"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "id",
+              "value": "6992466145271443"
+            },
+            {
+              "name": "argument",
+              "value": "={\n\t\"numberOfAddsPerLaunch\": 10,\n\t\"onlySecondCircle\": false,\n\t\"dwellTime\": true,\n\t\"inputType\": \"profileUrl\",\n\t\"spreadsheetUrlExclusionList\": [],\n\t\"spreadsheetUrl\": \"\",\n\t\"inputColumnsToKeepInTheResult\": [\n\t\t\"fullName\",\n\t\t\"firstName\",\n\t\t\"eventName\",\n\t\t\"eventUrl\",\n\t\t\"eventLocation\",\n\t\t\"Icebreaker\"\n\t],\n\t\"identityId\": \"4564396580523891\",\n\t\"sessionCookie\": \"AQEDATu_K5IDvpqDAAABmTjs2U8AAAGZlN99AU0AnjJBjXgLjEBU598A8Iib74m4iL0WQ2enyfUniRBP_VJkslQthH3ORLvNSRFG8_ht8YWwbnSXgRi1IK40G0Sxl7ajQP13vGcoW2udAjBiJbDmKIOh\",\n\t\"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36\",\n\t\"message\": \"{{ $json.message }}\",\n\t\"profileUrl\": \"{{ $('Webhook').item.json.body.data[4] }}\"\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        128
+      ],
+      "id": "11b2350f-afdf-448c-b0ce-4b9dcc7070e2",
+      "name": "Send Personalized Connection Requests"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0da85df5-f1a1-472a-920c-051796c082a2",
+              "name": "message",
+              "value": "=Hi {{ $json.body.data[1] }}, great automation! We'd love to feature it on Autonoms AI Store. Use code FK3_KNS for free access to upload and sell your automation.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        128
+      ],
+      "id": "f0521bf5-6347-445d-9377-b44eec12194f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1BmbI2cifZmNhPfoA5mJwXkjEGxZ--dgfNM6PFnCXLnI",
+          "mode": "list",
+          "cachedResultName": "Loubby's Linkedin Post Extract",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BmbI2cifZmNhPfoA5mJwXkjEGxZ--dgfNM6PFnCXLnI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "LinkedInPosts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BmbI2cifZmNhPfoA5mJwXkjEGxZ--dgfNM6PFnCXLnI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('Webhook').item.json.body.rowNumber }}",
+            "Progress": "connection & message sent"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "postUrl",
+              "displayName": "postUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "firstName",
+              "displayName": "firstName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lastName",
+              "displayName": "lastName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "profileUrl",
+              "displayName": "profileUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "postContent",
+              "displayName": "postContent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "actionButton",
+              "displayName": "actionButton",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Progress",
+              "displayName": "Progress",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        544,
+        128
+      ],
+      "id": "bd1cc689-2a82-4122-be9d-2eb8ad18879f",
+      "name": "Update row in sheet"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send Personalized Connection Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Personalized Connection Requests": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "4efc3ecf-265f-41c5-9b7d-747b78479b28",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "NFVIki0qNpXrKc6z",
+  "tags": []
+}

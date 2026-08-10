@@ -1,0 +1,180 @@
+{
+  "name": "Looping and Batching demo",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        -16
+      ],
+      "id": "72bd33eb-9498-4e45-bfb6-dc2f0a5f3b32",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1sr7yz7HpS28jNMY92YViWfyphb-TpojGoTLLmRjTTwM",
+          "mode": "list",
+          "cachedResultName": "Attendees spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sr7yz7HpS28jNMY92YViWfyphb-TpojGoTLLmRjTTwM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sr7yz7HpS28jNMY92YViWfyphb-TpojGoTLLmRjTTwM/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -16,
+        -16
+      ],
+      "id": "726017c6-3db7-4395-9fc9-c8b556f7d6f8",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "f1d71a8d-d3de-4e89-9a0e-ad5207fb7adf",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        608,
+        80
+      ],
+      "id": "2d848d7b-4882-4219-9183-5fef1a53170b",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8a1f3947-cd3f-4f7d-bfbb-f355e58d954e",
+              "name": "data",
+              "value": "={{ $json.data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        -80
+      ],
+      "id": "a87edd12-fa2a-4d2e-815f-d8889016cc67",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        432,
+        -64
+      ],
+      "id": "4a202e87-3686-465f-85a9-912b074b17fc",
+      "name": "Limit"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "5cf9de52-174e-441d-8954-04835da59f14",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "WNFkBnU17ZZJNB5P",
+  "tags": []
+}

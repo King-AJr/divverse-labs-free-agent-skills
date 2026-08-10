@@ -1,0 +1,92 @@
+{
+  "name": "Phantom",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://api.phantombuster.com/api/v2/agents/fetch-output?id=8472959770623466",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "yyvN0TBzeRX6WRnlC1vJd32TUD7iJpfeYT4JjVm7R6c"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        992,
+        32
+      ],
+      "id": "f0a070d1-78ef-4b6c-9c93-3cb37f57089c",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.phantombuster.com/api/v1/agent/2276998880612335/launch",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "kZoowBe9jGso38s7URWJpUPrDNtlMlKutvbswYFLOTY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        336,
+        -16
+      ],
+      "id": "73d578d0-919c-48ad-abfa-46f2f38f48b1",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        784,
+        32
+      ],
+      "id": "19898849-5f91-4d8d-b51c-71a0b6e45a8a",
+      "name": "Wait"
+    }
+  ],
+  "connections": {
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "35de21d0-5def-43e6-b703-ef9d4078aea7",
+  "meta": null,
+  "id": "ypmt3F0UjNimYiZ3",
+  "tags": []
+}

@@ -1,0 +1,629 @@
+{
+  "name": "Monitor competitor product updates and feature releases",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        -64
+      ],
+      "id": "f5ab7cf9-5779-4676-a4ee-797f30f83427",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw",
+          "mode": "list",
+          "cachedResultName": "Price Monitoring",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -400,
+        -80
+      ],
+      "id": "d1984fce-e0db-445d-9d2d-66792fa6a392",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/mrThmKLmkxJPehxCg/run-sync-get-dataset-items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"company_name\": \"{{ $json['LinkedIn URL'] }}\",\n    \"limit\": 7,\n    \"sort\": \"recent\"\n} ",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        32,
+        -64
+      ],
+      "id": "77fba20c-97b7-46b3-8863-56147ca88dff",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2ccb110c-c555-46bd-93de-9e03c4d516b6",
+              "leftValue": "={{ $json.posted_at.relative.replace(/[a-z]/gi,\"\").toNumber() }}",
+              "rightValue": 21,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            },
+            {
+              "id": "a36983e5-4c59-4dd2-966d-a3c8385daf8a",
+              "leftValue": "={{ $json.posted_at.relative }}",
+              "rightValue": "d",
+              "operator": {
+                "type": "string",
+                "operation": "endsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        -144
+      ],
+      "id": "3a2a2821-92e6-4ef0-9d13-4e0735faedb8",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Groups LinkedIn posts by company and keeps only text.\n\nconst grouped = {};\n\nfor (const { json } of items) {\n  // A stable grouping key. Source_company is present\n  // on every item scraped from Apify's LinkedIn actor\n  const key = json.source_company\n             || json.author?.company_url // fallback\n             || 'unknown';\n\n  if (!grouped[key]) {\n    grouped[key] = {\n      company: key,    // you can also store author.name here\n      posts: [],\n    };\n  }\n\n  // Keep only the text\n  grouped[key].posts.push(json.text);\n}\n\n// Return one item per company\nreturn Object.values(grouped).map(data => ({ json: data }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        -64
+      ],
+      "id": "113df49d-75e6-4092-a2a1-d7e8b1a49526",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "content": "## Scrape LinkedIn\n",
+        "height": 336,
+        "width": 1392,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -496,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "f548d8d5-c380-4dd4-817c-30b08c141c31",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -256,
+        416
+      ],
+      "id": "dfee563f-99fc-4a40-ba11-6a1a82e34d46",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Remove ```json fences, parse, and keep the array as `announcements`\nconst cleaned = $json.output\n  .replace(/```json|```/g, '') // strip fences\n  .trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  // fallback if the string itself is the announcements array\n  parsed = { announcements: JSON.parse($json.text) };\n}\n\nreturn {\n  json: {\n    company: $itemIndex,     // or pass down original company key\n    announcements: parsed.announcements || [],\n  },\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        224
+      ],
+      "id": "f1b2cbc1-41e1-416c-99aa-e120f60d656c",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "content": "## Identify Announcements\n",
+        "height": 368,
+        "width": 1024,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -496,
+        176
+      ],
+      "typeVersion": 1,
+      "id": "adea9663-a69f-45e5-a778-4a007adab8d8",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -336,
+        784
+      ],
+      "id": "fb1cff03-e856-4ec8-8063-cbbc1ffbb70c",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "content": "## Analyze Announcements",
+        "height": 368,
+        "width": 1024,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -496,
+        560
+      ],
+      "typeVersion": 1,
+      "id": "75956137-93df-45e5-9cfe-41e4ea9ab251",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = []\n\nitems.forEach((itm, i) => {\n  const sheetsRow = $items(\"Get row(s) in sheet\")[i].json;\n\n  out.push({\n    json: {\n      company: sheetsRow[\"Competitor\"],  // Column A for this row\n      source: \"linkedin\",\n      analysis_linkedin: itm.json.output   // the LLM text for this company\n    }\n  });\n});\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        608
+      ],
+      "id": "a50512d9-5ff2-414b-b435-6b389398bd93",
+      "name": "Tag Company"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        272,
+        608
+      ],
+      "id": "0c5d133e-cc18-4808-a007-f96243a29e65",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        1216
+      ],
+      "id": "8514413e-3eb1-4337-bb63-c4465926aa08",
+      "name": "OpenAI Chat Model2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analysis: {{ JSON.stringify($json.data) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You will receive ONE bundle that contains an array called **analysis**.\nEach element has:\n- company = domain or name\n- analysis_linkedin = a ```json``` string that, once un-escaped, becomes\n  valid JSON with the keys\n  - current_positioning_and_message\n  - recent_launches\n  - recent_major_product_releases\n  - recent_funding_or_customer_announcements\n\nTASK\nProduce a single Gmail-ready Markdown document titled:\n\n# Weekly Competitive Digest\n\nFor every object in **analysis** (in the order provided) output:\n\n**Company Name**\n🪄 Positioning\n- current_positioning_and_message\n\n🚀 Recent Launches\n- each item in recent_launches\n- each item in recent_major_product_releases\n  (merge lists; omit this whole section if nothing to show)\n\n💰 Recent Fund-raising or Customer Announcements\n- each item in recent_funding_or_customer_announcements\n  (omit this section if the list is empty or reads\n  \"No public information found\")\n\nFORMATTING RULES\n1. Produce ONE Markdown document—no arrays, no extra prose.\n2. Use “. ” (bullet + space) for every list item.\n3. Remove any header whose list would be empty.\n4. Preserve dates / figures exactly as in the source.\n5. Do **not** add commentary, summaries, or extra sections.\n\nOUTPUT FORMAT\nReturn exactly one JSON object with a single key\n- email_markdown, whose value is the full Markdown string.\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -192,
+        1024
+      ],
+      "id": "d90cdc3b-c3d6-47a4-8ad5-0f10e3fb610e",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Competitor Analysis",
+        "emailType": "text",
+        "message": "={{ $json.output.email_markdown }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        848
+      ],
+      "id": "c2f3414a-5e15-4b2a-98fc-6cb962c77673",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"email_markdown\": \"# Weekly Competitive Digest\\n\\n**ExampleCo**\\n🪄 Messaging and Positioning\\n- Example positioning blurb...\\n\\n🚀 Recent Launches\\n- Example launch 1\\n\\n💰 Recent Fund-raising or Customer Announcements\\n- Example funding 1\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        1232
+      ],
+      "id": "a7a44bb4-1b76-403e-848d-ed8300b49f0d",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Company:  {{ $json.company }}\n\nAnnouncements: {{ JSON.stringify($json.announcements) }}",
+        "options": {
+          "systemMessage": "=You are a senior market-analyst preparing a weekly competitive-research brief.\n\n**INPUT**\nA JSON array named \"announcements\" that contains recent LinkedIn posts from the company.\n\n**TASK**\nExtract only the information requested below, using the input content.\n\n**RETURN** *exactly and only* the following four data fields in a single JSON object (no extra keys, no narrative prose):\n\n```json\n{\n  \"current_positioning_and_message\": \"string\",\n  \"recent_launches\": [\n    \"bullet 1\",\n    \"bullet 2\"\n  ],\n  \"recent_major_product_releases\": [\n    \"bullet 1\",\n    \"bullet 2\"\n  ],\n  \"recent_funding_or_customer_announcements\": [\n    \"bullet 1\",\n    \"bullet 2\"\n  ]\n}\n```\n\n**Formatting notes**\n\n* Use concise sentences; include dates / figures when available.\n* Keep bullet arrays empty (`[]`) if no items exist, or include the \"No public information found\" note.\n* Do not add any other section, commentary, or formatting outside the JSON object."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -336,
+        608
+      ],
+      "id": "e4c6e7f3-7325-4c49-b079-fe04fed38ff5",
+      "name": "Analysis"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Company:  {{ $json.company }}\n\n{{ $json.posts.join('\\n\\n') }}",
+        "options": {
+          "systemMessage": "=You will receive one variable named **posts**.\nIt is a JSON array of recent LinkedIn post objects from a single company.\nEach post object contains at least these keys:\n\n. id          - string\n. content     - full post text (may include emojis, hashtags, links)\n. created_at  - ISO date-time string\n. permalink   - URL of the post\n\nTASK\nFrom that list, identify every post that CLEARLY does one of the following:\n\n1. Announces a new product or major feature launch / release\n2. Announces a pricing change or new pricing tier\n3. Announces an acquisition, merger, or large strategic partnership\n4. Announces a major hiring initiative or expansion (e.g. \"we’re hiring 100…\")\n5. Announces a funding / investment round, customer win, or large contract\n\nIgnore general thought-leadership, memes, minor bug fixes, or vague \"big things coming\" teasers unless they include a concrete launch date or feature name.\n\nOUTPUT\nReturn **exactly one** JSON object with a single key **\"announcements\"**.\nThat key’s value must be an array (which may be empty).\nEach element MUST follow this schema exactly:\n\n{\n  \"type\": \"Product Launch | Feature Launch | Pricing | Hiring | Acquisition | Merger | Partnership | Funding | Customer Win\",\n  \"title\": \"Short headline (≤ 12 words, no emojis)\",\n  \"description\": \"One clear sentence that summarises WHAT happened and, if available, WHEN and HOW MUCH (dates, $ figures, etc.)\"\n}\n\nRules\n• Do NOT wrap the output in triple back-ticks or any other markup.\n• Keep the array empty (\"announcements\": []) if no qualifying posts exist.\n• Do not invent or infer information that is not explicitly in the post.\n• If content is duplicated across several posts, keep only one entry for it.\n• Preserve numerals, currency symbols, and dates exactly as written.\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        224
+      ],
+      "id": "8174e46c-157b-4432-b7f0-8792c5bb82e0",
+      "name": "Identify Announcements"
+    },
+    {
+      "parameters": {
+        "content": "## Format Email",
+        "height": 448,
+        "width": 1024
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -496,
+        944
+      ],
+      "typeVersion": 1,
+      "id": "4b839a7f-d2ae-4008-b6bd-663bb03627d1",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -176,
+        -144
+      ],
+      "id": "5068dae1-07b1-4ca0-9e10-ea3d42ac3714",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        -64
+      ],
+      "id": "a849b3ff-f31a-4e5a-ae3f-fad5831ba7b4",
+      "name": "Wait"
+    },
+    {
+      "parameters": {
+        "tableId": "Insights Table",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "insight_type",
+              "fieldValue": "product/features monitoring"
+            },
+            {
+              "fieldId": "content",
+              "fieldValue": "={{ $json.output.email_markdown }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        160,
+        1024
+      ],
+      "id": "880969c4-c0ec-4c00-a8fd-fb7b258d180a",
+      "name": "Create a row"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Identify Announcements",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Identify Announcements",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analysis",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag Company": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analysis": {
+      "main": [
+        [
+          {
+            "node": "Tag Company",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Identify Announcements": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "3dc16b1c-514a-461a-adac-ebe3bc348a4a",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "ZJ5iSej6OWxqDupF",
+  "tags": []
+}

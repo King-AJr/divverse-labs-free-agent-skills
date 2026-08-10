@@ -1,0 +1,87 @@
+{
+  "name": "Phantombuster",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        0
+      ],
+      "id": "04799416-07d2-4388-8489-5065db9990bc",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.phantombuster.com/api/v2/agents/fetch-output?id=8472959770623466",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "yyvN0TBzeRX6WRnlC1vJd32TUD7iJpfeYT4JjVm7R6c"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -320,
+        0
+      ],
+      "id": "4c7c22f8-38ed-4fec-a35e-896deff3f7a1",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log the incoming data to debug\nconsole.log($input.all());\n\n// Access the first item in the input array\nconst inputData = $input.all()[0].json;\n\n// Check if output exists in the input data\nconst logText = inputData[\"output\"];\n\nif (logText) {\n    // Use a regular expression to match the JSON URL\n    const jsonLink = logText.match(/https:\\/\\/phantombuster\\.s3\\.amazonaws\\.com[^\\s]+\\.json/);\n\n    if (jsonLink) {\n        return [{ json: { jsonLink: jsonLink[0] } }];\n    } else {\n        return [{ json: { error: \"No JSON link found\" } }];\n    }\n} else {\n    return [{ json: { error: \"No log text found in 'output' field\" } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        0
+      ],
+      "id": "9da9d0d3-a90a-4729-b95f-6a225ee5cdcc",
+      "name": "Code"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "deae4fb2-2ea1-4814-a5e9-a3e7efdc1720",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "bp5dvQQ2AS5zEgBj",
+  "tags": []
+}

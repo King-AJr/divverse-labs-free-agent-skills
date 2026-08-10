@@ -1,0 +1,141 @@
+{
+  "name": "Generate Email",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        -64
+      ],
+      "id": "a7834fb8-0378-4cec-9b31-e26c321b300b",
+      "name": "Webhook1"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        -64
+      ],
+      "id": "2ddc23f6-31c9-4c3b-bbf8-afdacbbf921a",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Using the following lead details, write a first cold email introducing our product/service in a way that is personal, engaging, and relevant to the lead. Keep the tone as specified below, and ensure the email sounds human, not robotic.\n\nRequirements:\n\nLength: 100–150 words (this can vary incase the tone is \"concise\" or \"elaborate\")\n\nSubject line: compelling but not clickbait.\n\nOpening: mention something relevant about the lead (role, company, snippet).\n\nClearly articulate the value proposition in 1–2 sentences.\n\nAdd a soft CTA encouraging a reply or interest in a quick call.\n\nKeep language clear, warm, and professional (or adapt based on the provided tone).\n\nAvoid hard selling or sounding spammy.\n\nTone: {{ $json.body.tone }}\nLead Details:\n\nName: {{ $json.body.lead_data.name }}\n\nTitle: {{ $json.body.lead_data.title }}\n\nCompany: {{ $json.body.lead_data.company }}\n\nLocation: {{ $json.body.lead_data.location }}\n\nEmail: {{ $json.body.lead_data.email }}\n\nLinkedIn: {{ $json.body.lead_data.linkedin }}\n\nSnippet: {{ $json.body.lead_data.snippet }}\n\nCompany Domain: {{ $json.body.lead_data.domain }}\n\nIf any of the above parameters are missing, proceed to generate the email regardless. Just work with what you're giving. Do not hallucinate or assume.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert cold outreach email copywriter who specializes in writing concise, clear, personalized cold emails that get high reply rates.\n\nYou work for DivVerse Labs. We specialize in building custom automation and AI solutions.\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -208,
+        -64
+      ],
+      "id": "fb363adc-cc1a-42e5-add0-0e6977bfdf70",
+      "name": "AI Agent1",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -176,
+        144
+      ],
+      "id": "a1aee325-7915-4644-895e-f4f0111884cf",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"Subject Line\": \"\",\n\t\"Email Body\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        144
+      ],
+      "id": "8a0fca25-8034-4325-afdf-05cd5afdae1b",
+      "name": "Structured Output Parser1"
+    }
+  ],
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "91fcfde7-c9e8-428f-b485-3c4a658682ed",
+  "meta": null,
+  "id": "fmn6wyKCLnZmsBBT",
+  "tags": []
+}

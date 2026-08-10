@@ -1,0 +1,188 @@
+{
+  "name": "Send Email Update",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -32
+      ],
+      "id": "05ea4e93-84bb-430f-a203-18156a69f249",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "Insights Table"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -32
+      ],
+      "id": "a460f15b-4943-465b-88e4-cc4e0ac1fa83",
+      "name": "Get many rows"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        192,
+        -32
+      ],
+      "id": "d7e76130-668d-42d5-bdb2-25217265eeab",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($json.data) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an AI assistant that generates a daily **Competitive Intelligence Digest** email for executives.  \nYou will receive structured JSON data containing competitor insights from different categories (customer sentiment, job listings, pricing updates, product/features updates, etc.).  \n\nYour task:\n1. Analyze the JSON and identify the competitors mentioned.  \n2. Organize the insights into neat, clearly separated sections for each competitor.  \n3. For each competitor, include subsections for:\n   - Customer Sentiments\n   - Job Listings / Hiring Focus\n   - Pricing Updates\n   - Product/Features Updates\n   - Other Strategic Insights\n4. If a section has no data, write **“No new updates”**.\n5. Ensure the output is a **single, professional HTML email**, suitable for sending directly via Gmail/SMTP.\n6. Use a consistent visual style:  \n   - Competitor names as **big section headers** (with logo emoji 🏢).  \n   - Each subsection as a bolded header with clear spacing.  \n   - Use `<ul><li>` bullet lists where applicable.  \n   - Keep formatting minimal but executive-friendly.  \n\n---\n\n### Example Output Format (Boilerplate)\n\n```html\n<html>\n  <body style=\"font-family: Arial, sans-serif; color: #333;\">\n    <h1 style=\"text-align:center; color:#2c3e50;\">📊 Daily Competitive Intelligence Digest</h1>\n    <p style=\"text-align:center; font-size:14px; color:#888;\">Generated on {{ $now.tolocal }}</p>\n\n    <h2>🏢 vapi.ai</h2>\n    <h3>💬 Customer Sentiments</h3>\n    <ul>\n      <li><b>Overall Sentiment:</b> Mixed</li>\n      <li><b>Pain Points:</b> Lower verification accuracy (~72%), Higher escalation latency</li>\n      <li><b>Requested Features:</b> None</li>\n      <li><b>Strengths:</b> Voice AI capabilities</li>\n      <li><b>Other Insights:</b> Users switching to Retell AI due to better accuracy/latency</li>\n    </ul>\n\n    <h3>📌 Job Listings</h3>\n    <ul>\n      <li>Customer Support Engineer, Technical Account Manager, Integration Engineer</li>\n      <li><b>Hiring Focus:</b> Customer support + Solutions/Integration roles</li>\n      <li><b>Strategic Insight:</b> vapi is building a technically skilled GTM team</li>\n    </ul>\n\n    <h3>💰 Pricing Updates</h3>\n    <ul>\n      <li>Usage-based layered pricing ($0.05–$0.25 per min)</li>\n      <li>No startup discounts or bundles</li>\n      <li>Enterprise pricing available</li>\n    </ul>\n\n    <h3>⚙️ Product/Features Updates</h3>\n    <ul>\n      <li>No new public updates</li>\n    </ul>\n\n    <hr style=\"margin:30px 0;\">\n\n    <h2>🏢 n8n.io</h2>\n    <!-- same structure repeated -->\n    \n    <h2>🏢 zapier.com</h2>\n    <!-- same structure repeated -->\n\n    <p style=\"font-size:12px; color:#888; text-align:center;\">\n      End of report — generated automatically by the Competitive Intelligence System\n    </p>\n  </body>\n</html>\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        -32
+      ],
+      "id": "0050a608-02f8-4439-b3ec-6a116706066f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        160
+      ],
+      "id": "8eabf3f8-1563-4c6d-a0bc-3cf0514e0181",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "=📊 Daily Competitive Intelligence Digest - {{ $now.toLocal().format('yyyy-MM-dd') }}",
+        "message": "={{ $json.output.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        752,
+        -32
+      ],
+      "id": "da2370fe-aeec-4da3-b1f6-7f7a5811dcf1",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"subject\": \"\",\n\t\"body\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        176
+      ],
+      "id": "76d47b2c-5f2a-4c42-9c7f-1c0feab7452b",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "d2fd8e5d-7c1a-4f3d-a6c9-f8b9d826b19d",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "uUS5XEYuIHoJK07R",
+  "tags": []
+}

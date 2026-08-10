@@ -1,0 +1,77 @@
+{
+  "name": "seven sms test",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# 🟩 STEP 3 — Send SMS Reminder Before Appointment\n\n",
+        "height": 280,
+        "width": 1620,
+        "color": 4
+      },
+      "id": "d315f40e-8f42-4a64-9394-25a36fb7ddf6",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        240,
+        1100
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "from": "+1234",
+        "to": "=+2349060812409",
+        "message": "=Hello this is a test sms ",
+        "options": {}
+      },
+      "id": "7980df4f-3f9e-4cd7-a7eb-a68328db3dba",
+      "name": "Send SMS Reminder",
+      "type": "n8n-nodes-base.sms77",
+      "position": [
+        980,
+        1200
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        680,
+        1180
+      ],
+      "id": "5138ea70-a690-4f39-b574-c36410108588",
+      "name": "When clicking ‘Test workflow’"
+    }
+  ],
+  "connections": {
+    "Send SMS Reminder": {
+      "main": [
+        []
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Send SMS Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "63afb0ff-8b3c-40cc-81f0-d9cb1b462df6",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "ANl2QvG0yocMHpJL",
+  "tags": []
+}

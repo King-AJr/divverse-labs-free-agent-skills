@@ -1,0 +1,31 @@
+{
+  "name": "Phantom Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        -16
+      ],
+      "id": "48418c73-21fb-436d-ae20-ec513bc214e6",
+      "name": "Webhook"
+    }
+  ],
+  "connections": {},
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "versionId": "8f1c081c-274e-4f0d-9990-05cd7586a6c0",
+  "meta": null,
+  "id": "C7SfI2u8Sgo7Achg",
+  "tags": []
+}

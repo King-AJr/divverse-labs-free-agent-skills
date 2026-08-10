@@ -1,0 +1,2627 @@
+{
+  "name": "WhatsApp ChatBot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1648,
+        -512
+      ],
+      "id": "c80ee854-ad0a-4e6e-a0da-25c365cd1072",
+      "name": "WhatsApp Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "What's in this image?\n\nExtract all key details from this image",
+        "inputType": "base64",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -128,
+        -512
+      ],
+      "id": "9186e3c9-1476-459e-9c21-a851f1da2944",
+      "name": "Analyze image"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        -288
+      ],
+      "id": "cdd69237-a6db-4e35-8aa9-d8d8d0cfac08",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.messages[0].id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        -800
+      ],
+      "id": "e2108cfb-b62b-425f-88e1-34c9c0be1136",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('id__using_to_match_', ``, 'string') }}",
+            "vendor_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('vendor_name', ``, 'string') }}",
+            "plan_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('plan_name', ``, 'string') }}",
+            "amount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('amount', ``, 'number') }}",
+            "currency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('currency', ``, 'string') }}",
+            "frequency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('frequency', ``, 'string') }}",
+            "transaction_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('transaction_date', ``, 'string') }}",
+            "start_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start_date', ``, 'string') }}",
+            "next_renewal_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('next_renewal_date', ``, 'string') }}",
+            "end_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('end_date', ``, 'string') }}",
+            "payment_method": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('payment_method', ``, 'string') }}",
+            "customer_email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('customer_email', ``, 'string') }}",
+            "invoice_number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('invoice_number', ``, 'string') }}",
+            "support_contact": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('support_contact', ``, 'string') }}",
+            "cancel_link": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('cancel_link', ``, 'string') }}",
+            "days_b4_renewal": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('days_b4_renewal', ``, 'number') }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "vendor_name",
+              "displayName": "vendor_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "plan_name",
+              "displayName": "plan_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Active",
+                  "value": "Active"
+                },
+                {
+                  "name": "Canceled",
+                  "value": "Canceled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "frequency",
+              "displayName": "frequency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "transaction_date",
+              "displayName": "transaction_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "next_renewal_date",
+              "displayName": "next_renewal_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payment_method",
+              "displayName": "payment_method",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "customer_email",
+              "displayName": "customer_email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "invoice_number",
+              "displayName": "invoice_number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cancel_link",
+              "displayName": "cancel_link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "support_contact",
+              "displayName": "support_contact",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "days_b4_renewal",
+              "displayName": "days_b4_renewal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 1-day",
+              "displayName": "Reminder 1-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 3-day",
+              "displayName": "Reminder 3-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 7-day",
+              "displayName": "Reminder 7-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        288,
+        -288
+      ],
+      "id": "b19289e7-11c7-474b-a98e-fc403e9fdb3d",
+      "name": "UpdateRecordInDatabase"
+    },
+    {
+      "parameters": {
+        "operation": "deleteRecord",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Record_ID', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        -288
+      ],
+      "id": "a9609197-3b59-41d5-a1d4-650519f52d53",
+      "name": "DeleteRecordFromDatabase"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        544,
+        -288
+      ],
+      "id": "86a78b72-bdc4-422f-937c-99bd52bb99f2",
+      "name": "QueryDatabase"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "vendor_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('vendor_name', ``, 'string') }}",
+            "plan_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('plan_name', ``, 'string') }}",
+            "amount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('amount', ``, 'number') }}",
+            "currency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('currency', ``, 'string') }}",
+            "frequency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('frequency', `this could be weekly, mnthly, bi-monthly, annually, etc`, 'string') }}",
+            "transaction_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('transaction_date', ``, 'string') }}",
+            "start_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start_date', ``, 'string') }}",
+            "next_renewal_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('next_renewal_date', ``, 'string') }}",
+            "end_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('end_date', ``, 'string') }}",
+            "payment_method": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('payment_method', ``, 'string') }}",
+            "customer_email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('customer_email', ``, 'string') }}",
+            "invoice_number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('invoice_number', ``, 'string') }}",
+            "support_contact": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('support_contact', ``, 'string') }}",
+            "days_b4_renewal": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('days_b4_renewal', ``, 'number') }}",
+            "Status": "Active"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "vendor_name",
+              "displayName": "vendor_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "plan_name",
+              "displayName": "plan_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Active",
+                  "value": "Active"
+                },
+                {
+                  "name": "Canceled",
+                  "value": "Canceled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "frequency",
+              "displayName": "frequency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "transaction_date",
+              "displayName": "transaction_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "next_renewal_date",
+              "displayName": "next_renewal_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payment_method",
+              "displayName": "payment_method",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "customer_email",
+              "displayName": "customer_email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "invoice_number",
+              "displayName": "invoice_number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cancel_link",
+              "displayName": "cancel_link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "support_contact",
+              "displayName": "support_contact",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "days_b4_renewal",
+              "displayName": "days_b4_renewal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 1-day",
+              "displayName": "Reminder 1-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 3-day",
+              "displayName": "Reminder 3-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 7-day",
+              "displayName": "Reminder 7-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        -288
+      ],
+      "id": "f55e8c28-5610-4719-83b7-89740cb0a87a",
+      "name": "AddRecordToDatabase"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        800,
+        -288
+      ],
+      "id": "156df2e4-3a6a-40f4-aac9-0e307520d59b",
+      "name": "WebSearch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Invoice/receipt extract: {{ $json.content }}\n\nuser request: {{ $('WhatsApp Trigger').item.json.messages[0].image.caption }}",
+        "options": {
+          "systemMessage": "=You are a conversational subscription assistant. \nYour job is to maintain a natural conversation with the user while managing their subscriptions. \nYou will always receive:\n- The user’s message (query or request).\n- Optionally, extracted details from a receipt or invoice (if a file was uploaded and processed by another AI node).\n\nYou have access to the following tools:\n1. AddRecordToDatabase – add a new subscription entry.\n2. DeleteRecordFromDatabase – remove a subscription entry.\n3. QueryDatabase – fetch subscription details such as cost, status, expiry, billing cycle.\n4. UpdateRecordInDatabase – update an existing subscription entry (e.g., change billing amount).\n5. WebSearch / SerpAPI – get external information (e.g., “How to cancel Spotify Premium?”).\n\nYour tasks:\n- If the user request involves uploading a file (with extracted data provided), use the extract to add or update the subscription in the database.\n- If the user is asking about subscription details (e.g., cost, expiry, active plans), query the database and answer clearly.\n- If the user asks about external actions (e.g., “How do I cancel X?”), use WebSearch/SEPA API to find the answer.\n- Always respond to the user in a natural, conversational style, summarizing the result of the tool action (e.g., “I’ve added your Spotify Premium subscription to the database” or “Your Netflix subscription renews in 12 days.”).\n- If information is unavailable, respond politely and suggest the next step (e.g., “I couldn’t find that subscription in your records. Would you like to add it?”).\n\nWhen performing an update or delete action on the database:\n1. Always call QueryDatabase first to retrieve all relevant records. \n2. From the query results, identify the exact record the user is referring to.\n   - Match by vendor name, plan, or other unique fields.\n   - Select the correct record_id from the results.\n3. Use the record_id from the QueryDatabase response as the required input for UpdateRecordInDatabase or DeleteRecordFromDatabase.\n4. Never attempt to update or delete without first confirming the record_id through QueryDatabase.\n5. If multiple possible matches exist, ask the user to clarify which one they mean before proceeding.\n\n\nRules:\n- Never expose raw JSON or database queries to the user.\n- Always make the conversation clear, concise, and helpful.\n- Use tools only when needed based on the user query.\n- If both user input and extracted data are present, merge them logically before acting.\n\nExample flows:\n- User: “Here’s my Adobe invoice, add it.” + [Extracted details]\n  → Use AddRecordToDatabase with extracted details.\n  → Reply: “I’ve added your Adobe Creative Cloud subscription at $29.99/month to your database.”\n\n- User: “How much am I paying for Spotify?”\n  → Use QueryDatabase for Spotify.\n  → Reply: “You’re paying $9.99 per month for Spotify Premium.”\n\n- User: “How do I cancel my Netflix subscription?”\n  → Use SerpAPI tool to fetch cancellation steps.\n  → Reply: “You can cancel Netflix by going to your Account settings > Membership > Cancel. Would you like me to remind you before the next billing date?”\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        -512
+      ],
+      "id": "428b3a17-3169-4652-8ef8-d5700dc6128b",
+      "name": "Chat Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1200,
+        0
+      ],
+      "id": "76e8852e-4529-40d9-aee1-983ff54d6ec8",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('id__using_to_match_', ``, 'string') }}",
+            "vendor_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('vendor_name', ``, 'string') }}",
+            "plan_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('plan_name', ``, 'string') }}",
+            "amount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('amount', ``, 'number') }}",
+            "currency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('currency', ``, 'string') }}",
+            "frequency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('frequency', ``, 'string') }}",
+            "transaction_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('transaction_date', ``, 'string') }}",
+            "start_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start_date', ``, 'string') }}",
+            "next_renewal_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('next_renewal_date', ``, 'string') }}",
+            "end_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('end_date', ``, 'string') }}",
+            "payment_method": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('payment_method', ``, 'string') }}",
+            "customer_email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('customer_email', ``, 'string') }}",
+            "invoice_number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('invoice_number', ``, 'string') }}",
+            "support_contact": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('support_contact', ``, 'string') }}",
+            "cancel_link": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('cancel_link', ``, 'string') }}",
+            "days_b4_renewal": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('days_b4_renewal', ``, 'number') }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "vendor_name",
+              "displayName": "vendor_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "plan_name",
+              "displayName": "plan_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Active",
+                  "value": "Active"
+                },
+                {
+                  "name": "Canceled",
+                  "value": "Canceled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "frequency",
+              "displayName": "frequency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "transaction_date",
+              "displayName": "transaction_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "next_renewal_date",
+              "displayName": "next_renewal_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payment_method",
+              "displayName": "payment_method",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "customer_email",
+              "displayName": "customer_email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "invoice_number",
+              "displayName": "invoice_number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cancel_link",
+              "displayName": "cancel_link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "support_contact",
+              "displayName": "support_contact",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "days_b4_renewal",
+              "displayName": "days_b4_renewal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 1-day",
+              "displayName": "Reminder 1-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 3-day",
+              "displayName": "Reminder 3-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 7-day",
+              "displayName": "Reminder 7-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        -1072,
+        0
+      ],
+      "id": "eab2ff14-536b-4384-85b0-3f4245d39aaa",
+      "name": "UpdateRecordInDatabase1"
+    },
+    {
+      "parameters": {
+        "operation": "deleteRecord",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Record_ID', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        -944,
+        0
+      ],
+      "id": "c1f88599-0ab4-4c54-b225-f34609fb8e02",
+      "name": "DeleteRecordFromDatabase1"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        -816,
+        0
+      ],
+      "id": "2a0adadb-9374-4428-9c9d-08ef412ca34b",
+      "name": "QueryDatabase1"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "vendor_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('vendor_name', ``, 'string') }}",
+            "plan_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('plan_name', ``, 'string') }}",
+            "amount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('amount', ``, 'number') }}",
+            "currency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('currency', ``, 'string') }}",
+            "frequency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('frequency', `this could be weekly, mnthly, bi-monthly, annually, etc`, 'string') }}",
+            "transaction_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('transaction_date', ``, 'string') }}",
+            "start_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start_date', ``, 'string') }}",
+            "next_renewal_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('next_renewal_date', ``, 'string') }}",
+            "end_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('end_date', ``, 'string') }}",
+            "payment_method": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('payment_method', ``, 'string') }}",
+            "customer_email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('customer_email', ``, 'string') }}",
+            "invoice_number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('invoice_number', ``, 'string') }}",
+            "support_contact": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('support_contact', ``, 'string') }}",
+            "days_b4_renewal": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('days_b4_renewal', ``, 'number') }}",
+            "Status": "Active"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "vendor_name",
+              "displayName": "vendor_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "plan_name",
+              "displayName": "plan_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Active",
+                  "value": "Active"
+                },
+                {
+                  "name": "Canceled",
+                  "value": "Canceled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "frequency",
+              "displayName": "frequency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "transaction_date",
+              "displayName": "transaction_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "next_renewal_date",
+              "displayName": "next_renewal_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payment_method",
+              "displayName": "payment_method",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "customer_email",
+              "displayName": "customer_email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "invoice_number",
+              "displayName": "invoice_number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cancel_link",
+              "displayName": "cancel_link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "support_contact",
+              "displayName": "support_contact",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "days_b4_renewal",
+              "displayName": "days_b4_renewal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 1-day",
+              "displayName": "Reminder 1-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 3-day",
+              "displayName": "Reminder 3-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 7-day",
+              "displayName": "Reminder 7-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        -688,
+        0
+      ],
+      "id": "161473e8-a91d-4ecd-8bbe-a7224e5f7bea",
+      "name": "AddRecordToDatabase1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        0
+      ],
+      "id": "fcab4024-4f13-4052-8a91-f617b8b20613",
+      "name": "WebSearch1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=user request: {{ $json.messages[0].text.body }}",
+        "options": {
+          "systemMessage": "=You are a conversational subscription assistant. \nYour job is to maintain a natural conversation with the user while managing their subscriptions. \nYou will always receive:\n- The user’s message (query or request).\n- Optionally, extracted details from a receipt or invoice (if a file was uploaded and processed by another AI node).\n\nYou have access to the following tools:\n1. AddRecordToDatabase – add a new subscription entry.\n2. DeleteRecordFromDatabase – remove a subscription entry.\n3. QueryDatabase – fetch subscription details such as cost, status, expiry, billing cycle.\n4. UpdateRecordInDatabase – update an existing subscription entry (e.g., change billing amount).\n5. WebSearch / SerpAPI – get external information (e.g., “How to cancel Spotify Premium?”).\n\nYour tasks:\n- If the user request involves uploading a file (with extracted data provided), use the extract to add or update the subscription in the database.\n- If the user is asking about subscription details (e.g., cost, expiry, active plans), query the database and answer clearly.\n- If the user asks about external actions (e.g., “How do I cancel X?”), use WebSearch/SEPA API to find the answer.\n- Always respond to the user in a natural, conversational style, summarizing the result of the tool action (e.g., “I’ve added your Spotify Premium subscription to the database” or “Your Netflix subscription renews in 12 days.”).\n- If information is unavailable, respond politely and suggest the next step (e.g., “I couldn’t find that subscription in your records. Would you like to add it?”).\n\nWhen performing an update or delete action on the database:\n1. Always call QueryDatabase first to retrieve all relevant records. \n2. From the query results, identify the exact record the user is referring to.\n   - Match by vendor name, plan, or other unique fields.\n   - Select the correct record_id from the results.\n3. Use the record_id from the QueryDatabase response as the required input for UpdateRecordInDatabase or DeleteRecordFromDatabase.\n4. Never attempt to update or delete without first confirming the record_id through QueryDatabase.\n5. If multiple possible matches exist, ask the user to clarify which one they mean before proceeding.\n\n\nRules:\n- Never expose raw JSON or database queries to the user.\n- Always make the conversation clear, concise, and helpful.\n- Use tools only when needed based on the user query.\n- If both user input and extracted data are present, merge them logically before acting.\n\nExample flows:\n- User: “Here’s my Adobe invoice, add it.” + [Extracted details]\n  → Use AddRecordToDatabase with extracted details.\n  → Reply: “I’ve added your Adobe Creative Cloud subscription at $29.99/month to your database.”\n\n- User: “How much am I paying for Spotify?”\n  → Use QueryDatabase for Spotify.\n  → Reply: “You’re paying $9.99 per month for Spotify Premium.”\n\n- User: “How do I cancel my Netflix subscription?”\n  → Use SerpAPI tool to fetch cancellation steps.\n  → Reply: “You can cancel Netflix by going to your Account settings > Membership > Cancel. Would you like me to remind you before the next billing date?”\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -944,
+        -224
+      ],
+      "id": "cdfe7ce0-5da5-4e9a-ac65-0823ab0887be",
+      "name": "Chat Agent1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.messages[0].type }}",
+                    "rightValue": "document",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d2f6bca4-ca89-4046-979e-de880475a43b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "document-route"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8248bb65-339e-4f5d-aa1e-0b57d26dd613",
+                    "leftValue": "={{ $json.messages[0].type }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "image-route"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6c7c2220-5079-4626-84ca-534a3b412f6f",
+                    "leftValue": "={{ $json.messages[0].type }}",
+                    "rightValue": "=text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text-route"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1424,
+        -528
+      ],
+      "id": "91e56100-6d9c-4fef-afb9-872f723ec687",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "=data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -912
+      ],
+      "id": "1118216d-f6b6-4136-87f3-33dd1c7c1741",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        96,
+        -800
+      ],
+      "id": "543ecd04-15a4-4778-92db-8a1bb3bb4abd",
+      "name": "OpenAI Chat Model2"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('id__using_to_match_', ``, 'string') }}",
+            "vendor_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('vendor_name', ``, 'string') }}",
+            "plan_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('plan_name', ``, 'string') }}",
+            "amount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('amount', ``, 'number') }}",
+            "currency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('currency', ``, 'string') }}",
+            "frequency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('frequency', ``, 'string') }}",
+            "transaction_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('transaction_date', ``, 'string') }}",
+            "start_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start_date', ``, 'string') }}",
+            "next_renewal_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('next_renewal_date', ``, 'string') }}",
+            "end_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('end_date', ``, 'string') }}",
+            "payment_method": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('payment_method', ``, 'string') }}",
+            "customer_email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('customer_email', ``, 'string') }}",
+            "invoice_number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('invoice_number', ``, 'string') }}",
+            "support_contact": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('support_contact', ``, 'string') }}",
+            "cancel_link": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('cancel_link', ``, 'string') }}",
+            "days_b4_renewal": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('days_b4_renewal', ``, 'number') }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "vendor_name",
+              "displayName": "vendor_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "plan_name",
+              "displayName": "plan_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Active",
+                  "value": "Active"
+                },
+                {
+                  "name": "Canceled",
+                  "value": "Canceled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "frequency",
+              "displayName": "frequency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "transaction_date",
+              "displayName": "transaction_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "next_renewal_date",
+              "displayName": "next_renewal_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payment_method",
+              "displayName": "payment_method",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "customer_email",
+              "displayName": "customer_email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "invoice_number",
+              "displayName": "invoice_number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cancel_link",
+              "displayName": "cancel_link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "support_contact",
+              "displayName": "support_contact",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "days_b4_renewal",
+              "displayName": "days_b4_renewal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 1-day",
+              "displayName": "Reminder 1-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 3-day",
+              "displayName": "Reminder 3-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 7-day",
+              "displayName": "Reminder 7-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        352,
+        -800
+      ],
+      "id": "e85d8305-888f-44bf-a95f-ce7cbe639638",
+      "name": "UpdateRecordInDatabase2"
+    },
+    {
+      "parameters": {
+        "operation": "deleteRecord",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Record_ID', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        480,
+        -800
+      ],
+      "id": "574bb4c6-7dff-453a-84db-13a8a6424554",
+      "name": "DeleteRecordFromDatabase2"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        608,
+        -800
+      ],
+      "id": "9da72528-d46a-4260-a3ec-439e6df0bbd9",
+      "name": "QueryDatabase2"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appo7RL5kCEqQRBRK",
+          "mode": "list",
+          "cachedResultName": "Subcriptions Base",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblulkSXrZvXoVILM",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appo7RL5kCEqQRBRK/tblulkSXrZvXoVILM"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "vendor_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('vendor_name', ``, 'string') }}",
+            "plan_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('plan_name', ``, 'string') }}",
+            "amount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('amount', ``, 'number') }}",
+            "currency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('currency', ``, 'string') }}",
+            "frequency": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('frequency', `this could be weekly, mnthly, bi-monthly, annually, etc`, 'string') }}",
+            "transaction_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('transaction_date', ``, 'string') }}",
+            "start_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('start_date', ``, 'string') }}",
+            "next_renewal_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('next_renewal_date', ``, 'string') }}",
+            "end_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('end_date', ``, 'string') }}",
+            "payment_method": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('payment_method', ``, 'string') }}",
+            "customer_email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('customer_email', ``, 'string') }}",
+            "invoice_number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('invoice_number', ``, 'string') }}",
+            "support_contact": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('support_contact', ``, 'string') }}",
+            "days_b4_renewal": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('days_b4_renewal', ``, 'number') }}",
+            "Status": "Active"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "vendor_name",
+              "displayName": "vendor_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "plan_name",
+              "displayName": "plan_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Active",
+                  "value": "Active"
+                },
+                {
+                  "name": "Canceled",
+                  "value": "Canceled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "frequency",
+              "displayName": "frequency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "transaction_date",
+              "displayName": "transaction_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "next_renewal_date",
+              "displayName": "next_renewal_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payment_method",
+              "displayName": "payment_method",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "customer_email",
+              "displayName": "customer_email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "invoice_number",
+              "displayName": "invoice_number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cancel_link",
+              "displayName": "cancel_link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "support_contact",
+              "displayName": "support_contact",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "days_b4_renewal",
+              "displayName": "days_b4_renewal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 1-day",
+              "displayName": "Reminder 1-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 3-day",
+              "displayName": "Reminder 3-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reminder 7-day",
+              "displayName": "Reminder 7-day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        736,
+        -800
+      ],
+      "id": "106ba192-e700-4812-896a-d75965851f6e",
+      "name": "AddRecordToDatabase2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        864,
+        -800
+      ],
+      "id": "9ff189ca-70d8-46a7-b5cc-44cf3dbf8e67",
+      "name": "WebSearch2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=user request: {{ $('WhatsApp Trigger').item.json.messages[0].document.caption }}\n\ninvoice/receipt extract: {{ $json.text }}",
+        "options": {
+          "systemMessage": "=You are a conversational subscription assistant. \nYour job is to maintain a natural conversation with the user while managing their subscriptions. \nYou will always receive:\n- The user’s message (query or request).\n- Optionally, extracted details from a receipt or invoice (if a file was uploaded and processed by another AI node).\n\nYou have access to the following tools:\n1. AddRecordToDatabase – add a new subscription entry.\n2. DeleteRecordFromDatabase – remove a subscription entry.\n3. QueryDatabase – fetch subscription details such as cost, status, expiry, billing cycle.\n4. UpdateRecordInDatabase – update an existing subscription entry (e.g., change billing amount).\n5. WebSearch / SerpAPI – get external information (e.g., “How to cancel Spotify Premium?”).\n\nYour tasks:\n- If the user request involves uploading a file (with extracted data provided), use the extract to add or update the subscription in the database.\n- If the user is asking about subscription details (e.g., cost, expiry, active plans), query the database and answer clearly.\n- If the user asks about external actions (e.g., “How do I cancel X?”), use WebSearch/SEPA API to find the answer.\n- Always respond to the user in a natural, conversational style, summarizing the result of the tool action (e.g., “I’ve added your Spotify Premium subscription to the database” or “Your Netflix subscription renews in 12 days.”).\n- If information is unavailable, respond politely and suggest the next step (e.g., “I couldn’t find that subscription in your records. Would you like to add it?”).\n\nWhen performing an update or delete action on the database:\n1. Always call QueryDatabase first to retrieve all relevant records. \n2. From the query results, identify the exact record the user is referring to.\n   - Match by vendor name, plan, or other unique fields.\n   - Select the correct record_id from the results.\n3. Use the record_id from the QueryDatabase response as the required input for UpdateRecordInDatabase or DeleteRecordFromDatabase.\n4. Never attempt to update or delete without first confirming the record_id through QueryDatabase.\n5. If multiple possible matches exist, ask the user to clarify which one they mean before proceeding.\n\n\nRules:\n- Never expose raw JSON or database queries to the user.\n- Always make the conversation clear, concise, and helpful.\n- Use tools only when needed based on the user query.\n- If both user input and extracted data are present, merge them logically before acting.\n\nExample flows:\n- User: “Here’s my Adobe invoice, add it.” + [Extracted details]\n  → Use AddRecordToDatabase with extracted details.\n  → Reply: “I’ve added your Adobe Creative Cloud subscription at $29.99/month to your database.”\n\n- User: “How much am I paying for Spotify?”\n  → Use QueryDatabase for Spotify.\n  → Reply: “You’re paying $9.99 per month for Spotify Premium.”\n\n- User: “How do I cancel my Netflix subscription?”\n  → Use SerpAPI tool to fetch cancellation steps.\n  → Reply: “You can cancel Netflix by going to your Account settings > Membership > Cancel. Would you like me to remind you before the next billing date?”\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        -1024
+      ],
+      "id": "d9afd16a-9168-4fd1-a327-44d5e2ddfec1",
+      "name": "Chat Agent2"
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.messages[0].document.id }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        -912
+      ],
+      "id": "575bf4c4-69b6-4e35-be7c-00a8d6c60fc6",
+      "name": "Get WhatsApp Source Document Url1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -352,
+        -912
+      ],
+      "id": "0e9c43aa-21e2-4fb0-92ff-e55b89ce2887",
+      "name": "Download Document1"
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.messages[0].image.id }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        -512
+      ],
+      "id": "9abb7023-d6f2-4956-9655-158910981a0b",
+      "name": "Get WhatsApp Source Document Url"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -352,
+        -512
+      ],
+      "id": "0193d6e3-2db9-4d37-b544-34320c66e9d6",
+      "name": "Download Document"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "=806494502537468",
+        "recipientPhoneNumber": "15551420693",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        -912
+      ],
+      "id": "33daf5a6-ff61-40f7-bd74-bed2bac79a66",
+      "name": "Send Response"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "=806494502537468",
+        "recipientPhoneNumber": "15551420693",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        -512
+      ],
+      "id": "479defa1-3587-44a7-b75e-7a50a15d99b6",
+      "name": "Send Response1"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "=806494502537468",
+        "recipientPhoneNumber": "15551420693",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -224
+      ],
+      "id": "0b0edb1f-c672-42bf-b8c5-ece45cd9c854",
+      "name": "Send Response2"
+    }
+  ],
+  "connections": {
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Chat Agent1",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Chat Agent2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UpdateRecordInDatabase": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeleteRecordFromDatabase": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QueryDatabase": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AddRecordToDatabase": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WebSearch": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Chat Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UpdateRecordInDatabase1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeleteRecordFromDatabase1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QueryDatabase1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AddRecordToDatabase1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WebSearch1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Agent1": {
+      "main": [
+        [
+          {
+            "node": "Send Response2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get WhatsApp Source Document Url1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get WhatsApp Source Document Url",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chat Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Chat Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Chat Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UpdateRecordInDatabase2": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeleteRecordFromDatabase2": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QueryDatabase2": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AddRecordToDatabase2": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WebSearch2": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Agent2": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get WhatsApp Source Document Url1": {
+      "main": [
+        [
+          {
+            "node": "Download Document1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Document1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get WhatsApp Source Document Url": {
+      "main": [
+        [
+          {
+            "node": "Download Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Document": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "d3784323-5e72-4283-a50d-bf34982c8879",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "8TCXFfsdsindPrVR",
+  "tags": []
+}

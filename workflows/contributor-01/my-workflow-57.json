@@ -1,0 +1,1054 @@
+{
+  "name": "My workflow 57",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-image-1"
+            },
+            {
+              "name": "prompt",
+              "value": "=Generate 3 High Quality Images with this prompts, the Humans should be like real Hunmans {{ $json.output.scenes[0].prompt }}{{ $json.output.scenes[1].prompt }}{{ $json.output.scenes[2].prompt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2500,
+        800
+      ],
+      "id": "afa2dec5-a117-4ccf-979d-2c44f3568378",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -2260,
+        800
+      ],
+      "id": "4e9900c8-6b6a-4f99-9b08-25fe45d14547",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "name": "New image generated ",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Ka3lk403Dz_lilRAqRx-d2as7Lar58gP",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2020,
+        800
+      ],
+      "id": "194daab2-c726-4d91-a852-0afa683a8c52",
+      "name": "Upload file"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 224,
+        "width": 800
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2480,
+        880
+      ],
+      "typeVersion": 1,
+      "id": "c1aa1c52-c18e-4853-95a5-4e0d1c7028c6",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.blotato.com/v2/media",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "=blt_7YJG8a8HNW/TGQijEmbMPQpTaEM6kkitEGFa/Gp7MsA="
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "url",
+              "value": "=https://drive.google.com/uc?export=download&id={{ $('Upload file').item.json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2920,
+        2680
+      ],
+      "id": "a21000d5-208b-4cd9-b60c-a2d6e1753166",
+      "name": "Upload to Blotato"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"blotato_api_key\": \"REDACTED\",\n  \"instagram_id\": \"5828\",\n  \"youtube_id\": \"4871\",\n  \"tiktok_id\": \"6030\",\n  \"facebook_id\": \"\",\n  \"facebook_page_id\": \"\",\n  \"threads_id\": \"1518\",\n  \"twitter_id\": \"2821\",\n  \"linkedin_id\": \"\",\n  \"pinterest_id\": \"\",\n  \"pinterest_board_id\": \"\",\n  \"bluesky_id\": \"\",\n  \"Drivelink\":\"{{ $json.webContentLink }}\",\n  \"caption\":\"\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1340,
+        1120
+      ],
+      "id": "becdd4f5-ebce-456f-8d83-4008f53b1ad8",
+      "name": "Setup Social Accounts"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.blotato.com/v2/posts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "={{ $('SETUP').item.json.blotato_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post\": {\n    \"target\": {\n      \"targetType\": \"instagram\"\n    },\n    \"content\": {\n      \"text\": \"{{ $('SETUP').item.json.caption }}\",\n      \"platform\": \"instagram\",\n      \"mediaUrls\": {{ $json.item.imageUrls.toJsonString() }}\n    },\n    \"accountId\": \"{{ $('SETUP').item.json.instagram_id }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        240
+      ],
+      "id": "46e07bad-b2f3-4bef-8d64-20e9317080ca",
+      "name": "[Instagram] Publish via Blotato"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.blotato.com/v2/posts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "={{ $('SETUP').item.json.blotato_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post\": {\n    \"target\": {\n      \"targetType\": \"facebook\",\n      \"pageId\": \"{{ $('SETUP').item.json.facebook_page_id }}\"\n    },\n    \"content\": {\n      \"text\": \"{{ $('SETUP').item.json.caption }}\",\n      \"platform\": \"facebook\",\n      \"mediaUrls\": {{ $json.item.imageUrls.toJsonString() }}\n    },\n    \"accountId\": \"{{ $('SETUP').item.json.facebook_id }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        280
+      ],
+      "id": "094ad7b1-b0cf-462d-9475-fe4f9d2a7455",
+      "name": "[Facebook] Publish via Blotato",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.blotato.com/v2/posts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "={{ $('SETUP').item.json.blotato_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post\": {\n    \"target\": {\n      \"targetType\": \"linkedin\"\n    },\n    \"content\": {\n      \"text\": \"{{ $('SETUP').item.json.caption }}\",\n      \"platform\": \"linkedin\",\n      \"mediaUrls\": {{ $json.item.imageUrls.toJsonString() }}\n    },\n    \"accountId\": \"{{ $('SETUP').item.json.linkedin_id }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        1920
+      ],
+      "id": "575ba101-8cbd-4b3b-bca8-86e54bf4e29e",
+      "name": "[Linkedin] Publish via Blotato",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.blotato.com/v2/posts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "={{ $('SETUP').item.json.blotato_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post\": {\n    \"target\": {\n      \"targetType\": \"tiktok\",\n      \"isYourBrand\": false,\n      \"disabledDuet\": false,\n      \"privacyLevel\": \"PUBLIC_TO_EVERYONE\",\n      \"isAiGenerated\": false,\n      \"disabledStitch\": false,\n      \"disabledComments\": false,\n      \"isBrandedContent\": false\n    },\n    \"content\": {\n      \"text\": \"{{ $('SETUP').item.json.caption }}\",\n      \"platform\": \"tiktok\",\n      \"mediaUrls\": {{ $json.item.imageUrls.toJsonString() }}\n    },\n    \"accountId\": \"{{ $('SETUP').item.json.tiktok_id }}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        520
+      ],
+      "id": "f4fb5588-49de-491e-9a59-9b079d2c860d",
+      "name": "[Tiktok] Publish via Blotato",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.blotato.com/v2/posts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "={{ $('SETUP').item.json.blotato_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post\": {\n    \"target\": {\n      \"targetType\": \"threads\"\n    },\n    \"content\": {\n      \"text\": \"{{ $('SETUP').item.json.caption }}\",\n      \"platform\": \"threads\",\n      \"mediaUrls\": {{ $json.item.imageUrls.slice(0, 1).toJsonString() }},\n      \"additionalPosts\": {{ $json.item.imageUrls.slice(1).map((url, i) => ({ text: \"\", mediaUrls: [url] })).toJsonString() }}\n    },\n    \"accountId\": \"{{ $('SETUP').item.json.threads_id }}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        1140
+      ],
+      "id": "3774b0f2-9395-42d7-8f67-c49eba24992b",
+      "name": "[Threads] Publish via Blotato",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.blotato.com/v2/posts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "={{ $('SETUP').item.json.blotato_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post\": {\n    \"target\": {\n      \"targetType\": \"twitter\"\n    },\n    \"content\": {\n      \"text\": \"{{ $('SETUP').item.json.caption }}\",\n      \"platform\": \"twitter\",\n      \"mediaUrls\": {{ $json.item.imageUrls.slice(0, 1).toJsonString() }},\n      \"additionalPosts\": {{ $json.item.imageUrls.slice(1).map((url, i) => ({ text: \"\", mediaUrls: [url] })).toJsonString() }}\n    },\n    \"accountId\": \"{{ $('SETUP').item.json.twitter_id }}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        1540
+      ],
+      "id": "27b1088f-8c6b-4537-993c-f289eb8a38c1",
+      "name": "[Twitter] Publish via Blotato",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -3480,
+        780
+      ],
+      "id": "278eb156-85e3-4dc5-bae1-52bd564e6a14",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -2420,
+        2680
+      ],
+      "id": "ba5d186b-d9db-4f1f-8fe5-10c4ea20621e",
+      "name": "Wait",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -3220,
+        1020
+      ],
+      "id": "2af2c313-e09c-4241-91ca-afd99c3fa7bb",
+      "name": "Brainstorm Idea"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.blotato.com/v2/videos/creations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "={{ $json.blotato_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"template\": {\n    \"id\": \"{{ $json.template }}\",\n    \"scenes\": {{ $json.scenes.toJsonString() }},\n    \"captionPosition\": \"{{ $json.captionPosition }}\"\n  },\n  \"script\": \"{{ $json.script }}\",\n  \"style\": \"{{ $json.style }}\",\n  \"animateAll\": {{ $json.animate_all }},\n  \"textToImageModel\": \"{{ $json.text_to_image_model }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2600,
+        2680
+      ],
+      "id": "30e731fe-f636-4fde-8895-bdd53c347408",
+      "name": "Create Carousel"
+    },
+    {
+      "parameters": {
+        "url": "=https://backend.blotato.com/v2/videos/creations/{{ $json.item.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "={{ $('Setup Social Accounts').item.json.blotato_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -840,
+        1120
+      ],
+      "id": "95bb75cf-481c-40d3-86d5-dc73dfa73435",
+      "name": "Get Carousel"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"blotato_api_key\": \"\",\n  \"template\": \"base/slides/quotecard\",\n  \"script\": \"Video title, visible only in your Blotato video dashboard. Feel free to change this.\",\n  \"caption\": \"{{ $json.output.caption }}\",\n  \"scenes\": {{ $json.output.scenes }},\n  \"captionPosition\": \"middle\",\n  \"style\": \"realistic\",\n  \"animate_all\": false,\n  \"text_to_image_model\": \"replicate/black-forest-labs/flux-1.1-pro\",\n  \"instagram_id\": \"\",\n  \"youtube_id\": \"\",\n  \"tiktok_id\": \"\",\n  \"facebook_id\": \"\",\n  \"facebook_page_id\": \"\",\n  \"threads_id\": \"\",\n  \"twitter_id\": \"\",\n  \"linkedin_id\": \"\",\n  \"pinterest_id\": \"\",\n  \"pinterest_board_id\": \"\",\n  \"bluesky_id\": \"\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2760,
+        2680
+      ],
+      "id": "20973722-6a1e-4600-bd84-eba61f8cefd3",
+      "name": "SETUP"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.blotato.com/v2/posts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "={{ $('SETUP').item.json.blotato_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post\": {\n    \"target\": {\n      \"targetType\": \"bluesky\"\n    },\n    \"content\": {\n      \"text\": \"{{ $('SETUP').item.json.caption }}\",\n      \"platform\": \"bluesky\",\n      \"mediaUrls\": {{ $json.item.imageUrls.slice(0, 1).toJsonString() }},\n      \"additionalPosts\": {{ $json.item.imageUrls.slice(1).map((url, i) => ({ text: \"\", mediaUrls: [url] })).toJsonString() }}\n    },\n    \"accountId\": \"{{ $('SETUP').item.json.bluesky_id }}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        2040
+      ],
+      "id": "8edcb831-710b-4ce9-b88a-eaa0abfb80d9",
+      "name": "[Bluesky] Publish via Blotato",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.blotato.com/v2/posts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "={{ $('SETUP').item.json.blotato_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post\": {\n    \"target\": {\n      \"targetType\": \"pinterest\",\n      \"boardId\": \"{{ $('SETUP').item.json.pinterest_board_id }}\"\n    },\n    \"content\": {\n      \"text\": \"{{ $('SETUP').item.json.caption }}\",\n      \"platform\": \"pinterest\",\n      \"mediaUrls\": {{ $json.item.imageUrls.toJsonString() }}\n    },\n    \"accountId\": \"{{ $('SETUP').item.json.pinterest_id }}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        2020
+      ],
+      "id": "446de070-4f6c-4eeb-9b25-41b1817cc89e",
+      "name": "[Pinterest] Publish via Blotato",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"caption\": \"your carousel caption\",\n  \"scenes\": [\n    { \"prompt\": \"slide prompt 1\" },\n    { \"prompt\": \"slide prompt 2\" },\n    { \"prompt\": \"slide prompt 3\" }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -2800,
+        1020
+      ],
+      "id": "0b559abc-0363-4a3c-b1d0-b6823e2ba574",
+      "name": "Structured Output Parser 1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "# INSTRUCTIONS\n\n1. Brainstorm 50 different Instagram carousel ideas related to the theme \"AI and Tech Founder Quotes\".\n2. Randomly select 1 of the ideas.\n3. Output a JSON containing an Instagram caption and array of 3 Instagram scenes.\n   - Each scene must include a high-quality AI image prompt featuring a human (preferably a tech founder) and a robot.\n   - The quote should be a real or paraphrased recent AI-related thought from Elon Musk or other leading founders.\n   - Overlay the quote directly in the image, using bold, readable font.\n   - Scenes should look cinematic, clean, and ultrarealistic.\n\n# OUTPUT FORMAT\n\n{\n  \"caption\": \"Latest AI thoughts from top tech minds like Elon Musk and others.\",\n  \"scenes\": [\n    {\n      \"prompt\": \"A hyper-realistic portrait of Elon Musk standing beside a humanoid robot, set in a high-tech lab environment, with soft neon lighting. Overlay a recent AI quote from Elon Musk in bold, clean font at the bottom of the image.\"\n    },\n    {\n      \"prompt\": \"An ultra-detailed image of a futuristic boardroom with diverse tech founders (like Sundar Pichai and Sam Altman) discussing AI ethics with robots. Overlay a short quote about the future of AI.\"\n    },\n    {\n      \"prompt\": \"A cinematic shot of a young Black founder shaking hands with an android, standing in front of a glowing city skyline. Add an inspiring AI quote overlay in the center, in elegant white type.\"\n    }\n  ]\n}\n",
+        "hasOutputParser": true,
+        "options": {
+          "returnIntermediateSteps": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -3140,
+        760
+      ],
+      "id": "d1cfe0be-7f95-4d46-a119-15a9365bece8",
+      "name": "AI Agent - AI Writes Quote and Prompt"
+    },
+    {
+      "parameters": {
+        "content": "# Publish to Social Media\n",
+        "height": 2036,
+        "width": 1500,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        180
+      ],
+      "id": "a5eecfcd-4a84-4e4f-9867-1c82075a8a94",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-image-1"
+            },
+            {
+              "name": "prompt",
+              "value": "=Generate 3 High Quality Images with this prompts, the Humans should be like real Hunmans {{ $('AI Agent - AI Writes Quote and Prompt').item.json.output.scenes[1].prompt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2480,
+        1120
+      ],
+      "id": "273c4dc9-49d1-4cc5-8892-7bb1c4d505b3",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -2260,
+        1120
+      ],
+      "id": "d82a0762-01fc-4a31-8e0d-ad9f2dfa74b6",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {
+        "name": "New image generated ",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Ka3lk403Dz_lilRAqRx-d2as7Lar58gP",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2000,
+        1120
+      ],
+      "id": "16a5c6fb-049c-44f7-a38e-0469ab1d5eb1",
+      "name": "Upload file1"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 224,
+        "width": 800,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2580,
+        1060
+      ],
+      "typeVersion": 1,
+      "id": "2f2f6bc7-6a71-4d04-9a36-246e08538b4f",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-image-1"
+            },
+            {
+              "name": "prompt",
+              "value": "=Generate 3 High Quality Images with this prompts, the Humans should be like real Hunmans {{ $('AI Agent - AI Writes Quote and Prompt').item.json.output.scenes[2].prompt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2480,
+        1420
+      ],
+      "id": "2541a4a0-699e-4aee-8475-2bc7cd006114",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -2240,
+        1420
+      ],
+      "id": "29f2b9f0-17b5-4c75-b9cc-359f3d3c12ae",
+      "name": "Convert to File2"
+    },
+    {
+      "parameters": {
+        "name": "New image generated ",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Ka3lk403Dz_lilRAqRx-d2as7Lar58gP",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2000,
+        1420
+      ],
+      "id": "1246b14e-799a-4fce-9d56-c7059ce57edd",
+      "name": "Upload file2"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 224,
+        "width": 800,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2460,
+        1500
+      ],
+      "typeVersion": 1,
+      "id": "d828a92d-05c0-4ee2-97d8-b76e252b1fec",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2c7e29a6-df65-4af9-b3bb-6b4730682a13",
+              "name": "Link 1",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            },
+            {
+              "id": "b5fd64e9-0c34-4a31-94f0-be92ecfeeda3",
+              "name": "Link 2",
+              "value": "={{ $json.webContentLink }}",
+              "type": "string"
+            },
+            {
+              "id": "22710593-c610-4d8e-ad97-13661117e8cf",
+              "name": "Link 3",
+              "value": "={{ $json.webContentLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1560,
+        1120
+      ],
+      "id": "fc7595f8-264d-4674-a7c7-172666a1e567",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://backend.blotato.com/v2/videos/creations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "blotato-api-key",
+              "value": "={{ $json.blotato_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"script\": \"1\",\n  \"style\": \"cinematic\",\n  \"template\": {\n    \"id\": \"base/slides/quotecard\",\n    \"captionPosition\": \"middle\",\n    \"scenes\": [\n      {\n        \"text\": \"Curiosity is your superpower\",\n        \"textToImagePrompt\": \"{{ $('Upload file').item.json.webContentLink }}\"\n      },\n      {\n        \"text\": \"Adventure begins where plans end\",\n        \"textToImagePrompt\": \"{{ $('Upload file1').item.json.webContentLink }}\"\n      },\n      {\n        \"text\": \"Imagination builds futures\",\n        \"textToImagePrompt\": \"{{ $('Upload file2').item.json.webContentLink }}\"\n      }\n    ]\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1140,
+        1120
+      ],
+      "id": "0dca1ed3-8ba0-4e3c-a30d-41f4f448156b",
+      "name": "Create Carousel1"
+    }
+  ],
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Blotato": {
+      "main": [
+        [
+          {
+            "node": "SETUP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup Social Accounts": {
+      "main": [
+        [
+          {
+            "node": "Create Carousel1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - AI Writes Quote and Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brainstorm Idea": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - AI Writes Quote and Prompt",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Carousel": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Carousel": {
+      "main": [
+        [
+          {
+            "node": "[Instagram] Publish via Blotato",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "[Facebook] Publish via Blotato",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "[Linkedin] Publish via Blotato",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "[Tiktok] Publish via Blotato",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "[Threads] Publish via Blotato",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "[Twitter] Publish via Blotato",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "[Bluesky] Publish via Blotato",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "[Pinterest] Publish via Blotato",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SETUP": {
+      "main": [
+        [
+          {
+            "node": "Create Carousel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser 1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - AI Writes Quote and Prompt",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - AI Writes Quote and Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "Upload file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Convert to File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File2": {
+      "main": [
+        [
+          {
+            "node": "Upload file2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Setup Social Accounts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Carousel1": {
+      "main": [
+        [
+          {
+            "node": "Get Carousel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "ad18e388-392d-4055-9363-745b5d8e93ea",
+  "meta": null,
+  "id": "3j47Nz8LwdeKNsm1",
+  "tags": []
+}

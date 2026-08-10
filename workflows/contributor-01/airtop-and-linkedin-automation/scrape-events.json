@@ -1,0 +1,1415 @@
+{
+  "name": "Scrape Events",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        -160
+      ],
+      "id": "b33384a8-d6cd-4626-b47b-c8c1f5e31cd7",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "profileName": "my-linkedin-profile",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -832,
+        -160
+      ],
+      "id": "11e906ff-7c3e-4cea-9e84-b1868bd9d3f4",
+      "name": "Create a session"
+    },
+    {
+      "parameters": {
+        "resource": "window",
+        "url": "https://linkedin.com",
+        "getLiveView": true,
+        "includeNavigationBar": true,
+        "screenResolution": "1280x720",
+        "additionalFields": {
+          "waitUntil": "load"
+        }
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        -160
+      ],
+      "id": "3d7af1ca-dfc9-4840-887d-49484c8e9bde",
+      "name": "Create a window"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the white \"sign in with email\" button",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -32
+      ],
+      "id": "2c7282eb-fb99-4c1e-a0f6-31469530434c",
+      "name": "Click an element",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "operation": "fill",
+        "formData": "\"Email or Phone: alabiayomide14@gmail.com, Password: REDACTED\""
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -160
+      ],
+      "id": "01760fa7-a4bb-48e9-be07-8d6e3a57f6d0",
+      "name": "Fill form"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the blue \"sign in\" button at the buttom of the page",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        16,
+        -160
+      ],
+      "id": "7df6bea7-f38b-49ce-b790-12a561fcdcef",
+      "name": "Click Sign in"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "operation": "type",
+        "text": "digital marketing events",
+        "pressEnterKey": true,
+        "elementDescription": "the \"search\" bar at the top left of the page beside the linkedin icon",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        432,
+        -32
+      ],
+      "id": "5d99c01d-af48-41f7-a42c-73b094e9cb03",
+      "name": "Enter a search query and search for events"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the \"search\" bar at the top left of the page beside the linkedin icon",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -32
+      ],
+      "id": "959464a4-4126-49b2-b95c-2df82863b5fd",
+      "name": "Click an element1",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "sessionId": "={{ $('Extract Events').item.json.sessionId }}",
+        "windowId": "={{ $('Extract Events').item.json.windowId }}",
+        "elementDescription": "the black coloured hyperlink event name",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        3584,
+        64
+      ],
+      "id": "cf80c68b-5235-4b29-b364-2a5274a544d3",
+      "name": "Click an element2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the blue \"attend\" button below the event details",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        3792,
+        64
+      ],
+      "id": "f5f84271-3645-453a-8e30-23e536405e4c",
+      "name": "Click Attend Event",
+      "retryOnFail": false,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the \"attendees\" icon immediately above the blue \"share\" button",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        4304,
+        0
+      ],
+      "id": "c1193f9f-3c4d-4686-ba46-268bc7980ecd",
+      "name": "Click Attendees",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the blue \"register\" button below the event details",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        3552,
+        240
+      ],
+      "id": "b094aa0a-1bf6-4e3c-a2c9-6a2d7cfc9e4e",
+      "name": "Click Attend Event1",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the blue button at the bottom of the registration form",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        3744,
+        240
+      ],
+      "id": "a1cb2866-7a91-4e3a-8ec9-190d77f80db1",
+      "name": "Click Attend Event2",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract scraped LinkedIn text from n8n input\nconst text = items[0].json.data.modelResponse.scrapedContent.text;\n\n// Regex pattern:\n// 1 = profile URL\n// 2 = name\n// 3 = headline/title\n// 4 = location\nconst regex = /\\[\\]\\((https:\\/\\/www\\.linkedin\\.com\\/in\\/[^\\)]+)\\)\\[([^\\]]+)\\]\\([^\\)]+\\)[^\\n]*\\n\\n([^\\n]+)\\n\\n([^\\n]+)/g;\n\nlet results = [];\nlet match;\n\nwhile ((match = regex.exec(text)) !== null) {\n  const profileUrl = match[1].trim();\n  const name = match[2].trim();\n  const headline = match[3].trim();\n  const location = match[4].trim();\n\n  results.push({\n    name,\n    profileUrl,\n    headline,\n    location,\n  });\n}\n\nreturn results.map(r => ({ json: r }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4704,
+        0
+      ],
+      "id": "49c0fe0b-d669-402d-ba88-594539698690",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1sr7yz7HpS28jNMY92YViWfyphb-TpojGoTLLmRjTTwM",
+          "mode": "list",
+          "cachedResultName": "Attendees spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sr7yz7HpS28jNMY92YViWfyphb-TpojGoTLLmRjTTwM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sr7yz7HpS28jNMY92YViWfyphb-TpojGoTLLmRjTTwM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Code').item.json.name }}",
+            "Title": "={{ $('Code').item.json.headline }}",
+            "Location": "={{ $('Code').item.json.location }}",
+            "Profile URL": "={{ $('Code').item.json.profileUrl }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Profile URL",
+              "displayName": "Profile URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        5616,
+        -32
+      ],
+      "id": "c2577a96-7959-4f90-9301-ebf04588cb2a",
+      "name": "Append row in sheet"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw string from the previous node\nconst raw = $input.first().json.data.modelResponse.scrapedContent.text;\n\n// Regex to match blocks for each event, now capturing attendees too\nconst eventRegex = /\\[([^\\]]+)\\]\\((https:\\/\\/www\\.linkedin\\.com\\/events\\/[^\\)]+)\\)[\\s\\S]*?(?:\\n\\s*)([\\w, ]+\\d{1,2}, .*?(?:AM|PM) [A-Z]+)(?:\\n\\s*)(.*?)(?:\\n\\s*)([\\s\\S]*?)(?:\\n\\s*(\\d+ attendees))?/g;\n\nlet matches;\nconst results = [];\n\nwhile ((matches = eventRegex.exec(raw)) !== null) {\n  const name = matches[1].trim();\n  const eventUrl = matches[2].trim();\n  const date = matches[3].trim();\n  const locationAndBy = matches[4].trim();\n  let description = matches[5] ? matches[5].trim() : \"\";\n  let attendees = matches[6] ? matches[6].trim() : \"\";\n\n  // Split location vs organizer\n  let location = \"\";\n  if (locationAndBy.includes(\"• By\")) {\n    const [loc, ...rest] = locationAndBy.split(\"• By\");\n    location = loc.trim();\n    description = rest.join(\"• By\").trim() + (description ? \" \" + description : \"\");\n  } else {\n    location = locationAndBy;\n  }\n\n  results.push({\n    json: {\n      name,\n      eventUrl,\n      date,\n      location,\n      description,\n      attendees\n    }\n  });\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1984,
+        592
+      ],
+      "id": "ac24deb8-6ae3-4e80-9a15-daa19b41d776",
+      "name": "Code1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "extraction",
+        "operation": "scrape"
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        592
+      ],
+      "id": "db53cde1-782b-4401-8b39-b4fa2e42d4fa",
+      "name": "Extract Events",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name: {{ $json.name }}\nTitle: {{ $json.headline }}\nLocation: {{ $json.location }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are given a person’s professional details: full name, title/headline, and location. \n\nYour tasks:\n1. Analyze the title/headline to decide if this person is in a leadership or authority role. \n   - Leadership roles include: C-suite (CEO, CFO, COO, CTO, CIO, CMO, CHRO, CSO, etc.), founders, co-founders, presidents, vice presidents, partners, managing directors, directors, heads of departments, senior managers, and any other leadership role.\n   - Non-leadership roles (e.g., analyst, assistant, associate, coordinator, officer, teacher, student, intern, support, junior, entry-level) should be excluded.\n\n2. If the person is **not leadership**, return:\n{\n  \"keep\": false\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        4944,
+        0
+      ],
+      "id": "218dae9e-c02a-41bb-93f7-24f86f5365f9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        4880,
+        208
+      ],
+      "id": "aaba36bb-9414-4ce0-965e-8cf51ea7ceff",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        5088,
+        192
+      ],
+      "id": "5707368a-1181-4b47-be8a-ff567fe85231",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"keep\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        5344,
+        368
+      ],
+      "id": "5cce0894-3501-4026-85b4-53770b05a030",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "terminate",
+        "sessionId": "={{ $json.sessionId }}"
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        96
+      ],
+      "id": "f9d04bae-c97e-47ef-a963-37fbaac22d1a",
+      "name": "Terminate a session"
+    },
+    {
+      "parameters": {
+        "resource": "extraction",
+        "operation": "scrape"
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        4496,
+        0
+      ],
+      "id": "9e935aff-8942-42c0-874e-cbbb1103b79d",
+      "name": "Smart scrape page"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "abd1f52d-1dd3-4fbb-848e-c1f166fefbae",
+              "leftValue": "={{ $json.output.keep }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5296,
+        0
+      ],
+      "id": "16d17d38-e86e-4db9-96d9-0aa53fe39c69",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the \"Events\" option among the filter options above",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -32
+      ],
+      "id": "263a0f2f-a32c-41c1-a0b3-668196fd0186",
+      "name": "Click \"Events\""
+    },
+    {
+      "parameters": {
+        "resource": "extraction",
+        "operation": "query",
+        "prompt": "How many results are present. You will find this figure dislayed below the green \"events\" filter",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        848,
+        -32
+      ],
+      "id": "9b06fb42-bd15-4130-8a17-64638ab13607",
+      "name": "How many events?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get totalEvents (e.g., 47)\nconst totalEvents = $input.first().json.data.modelResponse || 0;\n\n// Events per page (LinkedIn = 10)\nconst perPage = 10;\n\n// Calculate total pages\nconst totalPages = Math.ceil(totalEvents / perPage);\n\n// Build an array of pages [1, 2, ..., totalPages]\nconst pages = Array.from({ length: totalPages }, (_, i) => i + 1);\n\n// Return each page number as a separate item\nreturn pages.map(page => ({ json: { page } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1056,
+        -32
+      ],
+      "id": "9cc9c4b2-cbea-462e-b330-ef14674252e8",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1264,
+        -32
+      ],
+      "id": "3cd2922f-df02-4b8a-8faf-c81194baa0dc",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "70df6608-d4f0-43e0-8dfe-593e0590dec2",
+              "leftValue": "={{ $json.page }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        464
+      ],
+      "id": "69ccae06-fb6b-4b1d-acae-05fa59d3372b",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw string from the previous node\nconst raw = $input.first().json.data.modelResponse.scrapedContent.text;\n\n// Regex to match blocks for each event, now capturing attendees too\nconst eventRegex = /\\[([^\\]]+)\\]\\((https:\\/\\/www\\.linkedin\\.com\\/events\\/[^\\)]+)\\)[\\s\\S]*?(?:\\n\\s*)([\\w, ]+\\d{1,2}, .*?(?:AM|PM) [A-Z]+)(?:\\n\\s*)(.*?)(?:\\n\\s*)([\\s\\S]*?)(?:\\n\\s*(\\d+ attendees))?/g;\n\nlet matches;\nconst results = [];\n\nwhile ((matches = eventRegex.exec(raw)) !== null) {\n  const name = matches[1].trim();\n  const eventUrl = matches[2].trim();\n  const date = matches[3].trim();\n  const locationAndBy = matches[4].trim();\n  let description = matches[5] ? matches[5].trim() : \"\";\n  let attendees = matches[6] ? matches[6].trim() : \"\";\n\n  // Split location vs organizer\n  let location = \"\";\n  if (locationAndBy.includes(\"• By\")) {\n    const [loc, ...rest] = locationAndBy.split(\"• By\");\n    location = loc.trim();\n    description = rest.join(\"• By\").trim() + (description ? \" \" + description : \"\");\n  } else {\n    location = locationAndBy;\n  }\n\n  results.push({\n    json: {\n      name,\n      eventUrl,\n      date,\n      location,\n      description,\n      attendees\n    }\n  });\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1776,
+        368
+      ],
+      "id": "bf016d96-c16e-4e66-9cf8-a8bb6e2e29d7",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "resource": "extraction",
+        "operation": "scrape",
+        "sessionId": "={{ $('How many events?').item.json.sessionId }}",
+        "windowId": "={{ $('How many events?').item.json.windowId }}"
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        368
+      ],
+      "id": "013f1edf-f04e-46f7-9830-8ba41ebcf1b4",
+      "name": "Extract Events1",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SxLskNxGXDN4XkVp8-sBOPq-moulH1zDImgW1YOYqQU",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Events",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SxLskNxGXDN4XkVp8-sBOPq-moulH1zDImgW1YOYqQU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SxLskNxGXDN4XkVp8-sBOPq-moulH1zDImgW1YOYqQU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Event Name": "={{ $('Code3').item.json.name }}",
+            "event_url": "={{ $('Code3').item.json.eventUrl }}",
+            "Description": "={{ $('Code3').item.json.description }}",
+            "location": "={{ $('Code3').item.json.location }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Event Name",
+              "displayName": "Event Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_url",
+              "displayName": "event_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1968,
+        368
+      ],
+      "id": "d6d80d63-abe9-40bd-bc7a-6b3b849d2028",
+      "name": "Log Events in sheet1"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "sessionId": "={{ $('How many events?').item.json.sessionId }}",
+        "windowId": "={{ $('How many events?').item.json.windowId }}",
+        "elementDescription": "the \"Next\" button located on the far right of the pagination controls.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        1568,
+        576
+      ],
+      "id": "25fe41ca-6bbf-4345-b251-3978bd510ee8",
+      "name": "Click \"Next\" to paginate"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "function convertLinkedInEventUrl(eventUrl) {\n  const match = eventUrl.match(/events\\/(\\d+)/);\n  if (!match) {\n    throw new Error(\"Invalid LinkedIn event URL\");\n  }\n  const eventId = match[1];\n  return  {\"url\": `https://www.linkedin.com/search/results/people/?eventAttending=%22${eventId}%22&origin=EVENT_PAGE_CANNED_SEARCH`}\n}\nreturn convertLinkedInEventUrl($json.eventUrl)\n//console.log(convertLinkedInEventUrl($json.eventUrl))\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2192,
+        592
+      ],
+      "id": "632ecaff-fda2-461c-9d4d-0c922517baf3",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SxLskNxGXDN4XkVp8-sBOPq-moulH1zDImgW1YOYqQU",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Events",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SxLskNxGXDN4XkVp8-sBOPq-moulH1zDImgW1YOYqQU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18I_YmeIUB5eaHhvNdqop9lJsUzjOl9l_ULdUvKGQi_w/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Event Name": "={{ $('Code3').item.json.name }}",
+            "Date": "={{ $('Code3').item.json.date }}",
+            "Description": "={{ $('Code3').item.json.description }}",
+            "event_url": "={{ $('Code3').item.json.eventUrl }}",
+            "attendees": "={{ $('Code3').item.json.attendees }}",
+            "Venue": "={{ $('Code3').item.json.location }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Event Name",
+              "displayName": "Event Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Venue",
+              "displayName": "Venue",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_url",
+              "displayName": "event_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "attendees",
+              "displayName": "attendees",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2400,
+        592
+      ],
+      "id": "f8ea2981-6189-40b2-a2d9-5edbe31dd766",
+      "name": "Log Events in sheet2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.phantombuster.com/api/v2/agents/launch",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Phantombuster-Key",
+              "value": "jMyBjQ0IGNnRnHNdHnSWowcmRnjjXvACbLbaonOIGfo"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"id\": \"5665529361367111\",\n  \"argument\": {\n\t\"sessionCookie\": \"AQEDATu_K5IDvpqDAAABmTjs2U8AAAGZlN99AU0AnjJBjXgLjEBU598A8Iib74m4iL0WQ2enyfUniRBP_VJkslQthH3ORLvNSRFG8_ht8YWwbnSXgRi1IK40G0Sxl7ajQP13vGcoW2udAjBiJbDmKIOh\",\n    \"numberOfResultsPerSearch\": 1000,\n\t\"numberOfResultsPerEvent\": 50,\n\t\"queries\": \"{{ $json.event_url }}\"\n  }\n}  ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2384,
+        -32
+      ],
+      "id": "490e35c0-ae72-4f98-ba40-851727aaa27b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        -128
+      ],
+      "id": "867468cc-f0f2-4a45-b1bf-4424f2ddc0d4",
+      "name": "Remove Duplicates",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2192,
+        -128
+      ],
+      "id": "7e6f7553-3c8b-4a45-93ac-d3cb2ee5290f",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "amount": 90
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2560,
+        -32
+      ],
+      "id": "32dbe3d6-bce2-4487-bed5-055ee82dc9f2",
+      "name": "Wait"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2176,
+        368
+      ],
+      "id": "63ef972e-8d07-4b01-8029-0ec4cefafb39",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        -128
+      ],
+      "id": "099402a9-ef2a-4716-9809-5e7c1501955c",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1888,
+        -128
+      ],
+      "id": "f5765849-7361-4c94-a7d5-c9e9dc44f28a",
+      "name": "Limit",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        -224
+      ],
+      "id": "32240ad7-1803-42e4-bddf-89706f781a76",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Create a session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a session": {
+      "main": [
+        [
+          {
+            "node": "Create a window",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a window": {
+      "main": [
+        [
+          {
+            "node": "Click an element",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click an element": {
+      "main": [
+        [
+          {
+            "node": "Fill form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fill form": {
+      "main": [
+        [
+          {
+            "node": "Click Sign in",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click Sign in": {
+      "main": [
+        [
+          {
+            "node": "Click an element1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enter a search query and search for events": {
+      "main": [
+        [
+          {
+            "node": "Click \"Events\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click an element1": {
+      "main": [
+        [
+          {
+            "node": "Enter a search query and search for events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click an element2": {
+      "main": [
+        [
+          {
+            "node": "Click Attend Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click Attend Event": {
+      "main": [
+        [
+          {
+            "node": "Click Attendees",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Click Attendees",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click Attendees": {
+      "main": [
+        [
+          {
+            "node": "Smart scrape page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click Attend Event1": {
+      "main": [
+        [
+          {
+            "node": "Click Attend Event2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click Attend Event2": {
+      "main": [
+        [
+          {
+            "node": "Click Attendees",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Events": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Smart scrape page": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click \"Events\"": {
+      "main": [
+        [
+          {
+            "node": "How many events?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "How many events?": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Extract Events1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Click \"Next\" to paginate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Log Events in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Events1": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Events in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click \"Next\" to paginate": {
+      "main": [
+        [
+          {
+            "node": "Extract Events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Log Events in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Events in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "0eacfd71-e27e-4b4c-aaa3-6cf59ec5cd70",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "vZKitF514ZLwiC0Z",
+  "tags": []
+}

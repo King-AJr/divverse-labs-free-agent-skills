@@ -1,0 +1,176 @@
+{
+  "name": "My workflow 52",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C087YR7C6KB",
+          "mode": "list",
+          "cachedResultName": "automation"
+        },
+        "text": "=✉️ New workshop follow-up sent to *{{ $('Webhook1').item.json.body.data.fields[0].value }}*\n\n- Summary: {{ $('AI Agent').item.json.output.summary }}  \n\n- Interests: {{ $('AI Agent').item.json.output.interests }}\n\n- Suggested action: {{ $('AI Agent').item.json.output.suggestions }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        640,
+        -20
+      ],
+      "id": "8d165535-7060-4ed1-a7fb-ff42306743b7",
+      "name": "Slack"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "gpt-4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -20,
+        220
+      ],
+      "id": "1ccef18e-84da-4b56-8160-8b893214fdb8",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook1').item.json.body.data.fields[2].value }}",
+        "subject": "=Great to meet you at the workshop,  👋",
+        "message": "={{ $json.output.Email_body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        440,
+        -20
+      ],
+      "id": "37cd6f83-852a-45f7-abb7-363aff7ce9f5",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -140,
+        -20
+      ],
+      "id": "d1880914-cb4e-44f1-b10f-fb7b2b87968a",
+      "name": "Webhook1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is a new attendee's workshop form response:\n\nBusiness Name: {{ $json.body.data.fields[0].value }}\nWebsite: {{ $json.body.data.fields[3].value }}\nIndustry / Sector: {{ $json.body.data.fields[4].value }}\nTeam Size: {{ $json.body.data.fields[5].value }}\n\nHave they used any AI tools before? {{ $json.body.data.fields[6].options[0].text }} \nIf yes, which tools? {{ $json.body.data.fields[7].value }}\n\nCurrent use of AI: {{ $json.body.data.fields[8].value }}\n\nWhat do they want AI to help them with?  {{ $json.body.data.fields[9].value }}\n\nTime-consuming or frustrating tasks: {{ $json.body.data.fields[10].value }}\n\nAreas of interest with AI: {{ $json.body.data.fields[11].value }}\n\nWhat would they like to achieve with AI by end of year? {{ $json.body.data.fields[12].value }}\n\nAI concerns rating (1–10): {{ $json.body.data.fields[13].value }} \nConcerns?  {{ $json.body.data.fields[14].options[0].text }} \nDetails: {{ $json.body.data.fields[15].value }} \nWhat’s been holding them back: {{ $json.body.data.fields[16].value }} \n\nAnything else they shared: {{ $json.body.data.fields[17].value }} ",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are Melvyn, an AI assistant at Worth AI. You've just received a pre-workshop questionnaire from someone attending an upcoming AI workshop.\n\nThe form responses below contain useful context about the attendee's business, current experience with AI and what they hope to achieve. \n\nYour job is to:\n1. Read and understand their responses \n2. Summaries the key things they want help with (2-3 bullet points)\n3. Identify 1-2 key themes or AI interests\n4. Suggest one useful next step or the tip they could take action on\n5. Write a short, warm, professional **HTML** email that:\n    - Thanks them for completing the form\n    - Acknowledges their context and interest in AI\n    - Encourages them that they're in the right place \n    - Teases what they will get from the upcoming workshop \n    - Includes a line saying the booking link is below to register for the workshop via the Ad-Venture website [[Insert link here]].  \n    - Ends with a warm personal sign off from Melvyn\n\n**Tone**\nFriendly, clear and motivating - like a smart, encouraging assistant.\n\n**Output**\nReturn only the full HTML email string. Do not include code blocks, notes or explanations. Format with `<p>` tags and use `<ul>` for bullet lists if needed"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        80,
+        -20
+      ],
+      "id": "d55a47ba-2550-4051-bc6e-25e37cd6f933",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"Email_body\": \"html-formatted-email\",\n    \"summary\": \"\",\n    \"suggestions\": \"\",\n\t\"interests\": [\"interest-1\", \"interest-2\", \"interest-3\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        300,
+        220
+      ],
+      "id": "770cbadc-9abd-4008-837a-c3a69c685024",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "connections": {
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "5d3baff4-3555-4cd5-94ad-1e8f2b9c8012",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "W5Tz8Q4g3VIQU6Vf",
+  "tags": []
+}

@@ -1,0 +1,1179 @@
+{
+  "name": "US Restaurant Scraper",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        2880,
+        -64
+      ],
+      "id": "e6df3e43-c3e5-4d3a-85b8-3e536c4ed39c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/nrQeUJPbeJLVVsXPH/run-sync-get-dataset-items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"address\": \"{{ $json.state_name }}\",\n    \"locale\": \"en-US\",\n    \"maxRows\": 50,\n    \"query\": \"Nigerian Restaurants\"\n} ",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4656,
+        -48
+      ],
+      "id": "d3a983d9-3baa-44c7-99e4-41a974e4a316",
+      "name": "HTTP Request",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "96317a31-bfb8-40bf-8366-1fb904bdd998",
+              "name": "=all states",
+              "value": "={\n  \"all_states\": [\n    {\"name\": \"Illinois\", \"abbr\": \"IL\", \"major_cities\": [\"Chicago\", \"Aurora\", \"Naperville\"]}\n  ]\n}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3568,
+        -64
+      ],
+      "id": "fa3a4c5a-2b44-4f34-8184-5d7f00dc671d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\nUSER REQUEST: \"Nigerian Restaurants\"",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a search query expert helping discover authentic ethnic restaurants in the United States.\n\nYour task: Generate only 2 HIGHLY SPECIFIC search terms that will find authentic restaurants of this cuisine type on Google Maps.\n\nREQUIREMENTS:\n1. Focus on SIGNATURE DISHES that are unique to this cuisine (not generic terms)\n2. Include regional specialties and traditional foods\n3. Avoid generic terms like \"restaurant\" or broad categories\n4. Use terms that locals/diaspora community members would recognize\n5. Include both English and transliterated native language terms where applicable\n\nEXAMPLES OF GOOD VS BAD TERMS:\n\nNigerian Cuisine:\n✅ GOOD: \"Nigerian Jollof rice\", \"Suya spot\", \"Egusi soup\", \"Pounded yam\", \"Amala\", \"Ofada rice\", \"Pepper soup\"\n❌ BAD: \"African food\", \"West African restaurant\", \"Nigerian cuisine\"\n\nItalian Cuisine:\n✅ GOOD: \"Osso buco\", \"Cacio e pepe\", \"Carbonara\", \"Authentic Italian pizza\", \"Trattoria\", \"Risotto alla milanese\"\n❌ BAD: \"Italian restaurant\", \"Pizza place\", \"Pasta\"\n\nMexican Cuisine:\n✅ GOOD: \"Birria tacos\", \"Mole poblano\", \"Cochinita pibil\", \"Authentic carnitas\", \"Tlayudas\", \"Pozole\"\n❌ BAD: \"Mexican food\", \"Tacos\", \"Burritos\"\n\nEthiopian Cuisine:\n✅ GOOD: \"Injera\", \"Doro wat\", \"Kitfo\", \"Tibs\", \"Shiro wat\", \"Ethiopian coffee ceremony\"\n❌ BAD: \"Ethiopian restaurant\", \"African food\"\n\nThai Cuisine:\n✅ GOOD: \"Pad krapow\", \"Som tam\", \"Khao soi\", \"Massaman curry\", \"Tom yum goong\", \"Authentic Thai street food\"\n❌ BAD: \"Thai restaurant\", \"Pad thai\", \"Curry\"\n\nChinese Cuisine (be specific to region):\n✅ GOOD: \"Xiaolongbao\", \"Mapo tofu\", \"Peking duck\", \"Sichuan hotpot\", \"Dim sum\", \"Hand-pulled noodles\"\n❌ BAD: \"Chinese restaurant\", \"Chinese food\", \"Noodles\"\n\nNow generate search terms for: Nigerian restaurants\n\nConsider:\n- What are the SIGNATURE dishes of this cuisine?\n- What dishes are hard to find outside authentic restaurants?\n- What terms would diaspora community members use?\n- What regional specialties exist?\n- What cooking methods are unique to this cuisine?\n\nRespond ONLY with valid JSON in this exact format:\n{\n  \"cuisine_type\": \"string (e.g., Nigerian, Italian, Mexican)\",\n  \"search_terms\": [\n    \"specific term 1\",\n    \"specific term 2\",\n    \"specific term 3\",\n    \"specific term 4\",\n    \"specific term 5\"\n  ],\n  \"reasoning\": \"Brief explanation of why these terms were chosen\"\n}\n\nDO NOT include markdown, backticks, or any other formatting. ONLY return the JSON object.`\n  }]\n}\n\nDo not output more than 2 search terms. Concatenate search keywords together such as \"amala, egusi and ewa agoyin\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        3184,
+        -80
+      ],
+      "id": "e7b3c753-3a85-4679-ba63-e16d42a999e3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        3328,
+        96
+      ],
+      "id": "266625e2-3ed6-453c-aa83-8182ea7ca493",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"cuisine_type\": \"string (e.g., Nigerian, Italian, Mexican)\",\n  \"search_terms\": [\n    \"specific term 1\",\n    \"specific term 2\",\n    \"specific term 3\",\n    \"specific term 4\",\n    \"specific term 5\"\n  ],\n  \"reasoning\": \"Brief explanation of why these terms were chosen\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3440,
+        240
+      ],
+      "id": "4ff13710-95b1-41a9-92ae-32f9dbb022d3",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3136,
+        160
+      ],
+      "id": "72a8e402-ac6e-4646-89b2-1568dbb78c68",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        4400,
+        -112
+      ],
+      "id": "8ff8230b-5924-4531-8834-8a37ab4a24c4",
+      "name": "Loop Over Items",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// YOU WILL MAP THESE IN THE CODE NODE UI:\n// Input 1: Map to states data\n// Input 2: Map to search terms data\n\nconst items = $input.all();\n\n// Get states - you'll map this\nconst statesInput = items[0].json;\nconst states = $input.first().json['all states'].all_states; // Adjust path if needed\n\n// Get search terms - you'll map this  \nconst searchInput = $input.first().json['all states'].all_states;\nconst searchTerms = $('AI Agent').first().json.output.search_terms;\nconst cuisineType = $('AI Agent').first().json.output.cuisine_type;\n\n// Generate combinations\nconst combinations = [];\n\nfor (const state of states) {\n  for (const searchTerm of searchTerms) {\n    combinations.push({\n      state_name: state.name,\n      state_abbr: state.abbr,\n      search_term: searchTerm,\n      cuisine_type: cuisineType,\n      search_query: `${searchTerm} in ${state.name}`,\n      full_query: `${searchTerm} ${state.name}`\n    });\n  }\n}\n\nreturn combinations.map(combo => ({ json: combo }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3840,
+        -64
+      ],
+      "id": "c151be31-dbb3-44dc-9b13-822288431d77",
+      "name": "Generate Combinations"
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "title",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        4560,
+        -272
+      ],
+      "id": "705fabfe-c0db-40b3-9ccb-2d43719038ae",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "maxItems": 2
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        4048,
+        -64
+      ],
+      "id": "fe8f6105-6943-40a4-9fa6-8ebb62e94f20",
+      "name": "Limit",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        5168,
+        -304
+      ],
+      "id": "6cfffefb-6d1c-4ccf-91cb-5a20363b9ae1",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "restaurants",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "uber_uuid",
+              "condition": "eq",
+              "keyValue": "={{ $json.uuid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5280,
+        -912
+      ],
+      "id": "5438e9c1-014c-4f27-991c-e74b861c3510",
+      "name": "Get many rows",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4baaec21-9d24-488e-86ff-1ae8b4c701ac",
+              "leftValue": "={{ $json.uuid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5776,
+        -944
+      ],
+      "id": "7680e93a-be4f-4556-986f-58b810419eb1",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        6016,
+        -944
+      ],
+      "id": "bb9a8955-9e55-49ee-8517-56485a8b2826",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "tableId": "restaurants",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $json.title }}"
+            },
+            {
+              "fieldId": "clean_name",
+              "fieldValue": "={{ $json.sanitizedTitle }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $json.phoneNumber }}"
+            },
+            {
+              "fieldId": "address_full",
+              "fieldValue": "={{ $json.location.address }}, {{ $json.location.country }}"
+            },
+            {
+              "fieldId": "city",
+              "fieldValue": "={{ $json.location.geo.city }}"
+            },
+            {
+              "fieldId": "state",
+              "fieldValue": "={{ $json.location.region }}"
+            },
+            {
+              "fieldId": "zip_code",
+              "fieldValue": "={{ $json.location.postalCode }}"
+            },
+            {
+              "fieldId": "latitude",
+              "fieldValue": "={{ $json.location.latitude }}"
+            },
+            {
+              "fieldId": "longitude",
+              "fieldValue": "={{ $json.location.longitude }}"
+            },
+            {
+              "fieldId": "rating",
+              "fieldValue": "={{ $json.rating.ratingValue }}"
+            },
+            {
+              "fieldId": "review_count",
+              "fieldValue": "={{ $json.rating.reviewCount }}"
+            },
+            {
+              "fieldId": "is_open",
+              "fieldValue": "={{ $json.isOpen }}"
+            },
+            {
+              "fieldId": "full_menu",
+              "fieldValue": "={{ JSON.stringify($json.menu) }}"
+            },
+            {
+              "fieldId": "distance_miles",
+              "fieldValue": "={{ $json.distance.accessibilityText }}"
+            },
+            {
+              "fieldId": "hero_image_url",
+              "fieldValue": "={{ $json.heroImageUrl }}"
+            },
+            {
+              "fieldId": "delivery_fee",
+              "fieldValue": "={{ $json.fareBadge }}"
+            },
+            {
+              "fieldId": "eta_range",
+              "fieldValue": "={{ $json.etaRange }}"
+            },
+            {
+              "fieldId": "uber_url",
+              "fieldValue": "={{ $json.url }}"
+            },
+            {
+              "fieldId": "catering_menu",
+              "fieldValue": "={{ JSON.stringify($json.featuredItems) }}"
+            },
+            {
+              "fieldId": "store_reviews",
+              "fieldValue": "={{ JSON.stringify($json.storeReviews) }}"
+            },
+            {
+              "fieldId": "featured_reviews",
+              "fieldValue": "={{ JSON.stringify($json.featuredReviews) }}"
+            },
+            {
+              "fieldId": "work_hours",
+              "fieldValue": "={{ JSON.stringify($json.hours) }}"
+            },
+            {
+              "fieldId": "uber_uuid",
+              "fieldValue": "={{ $json.uuid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5552,
+        -224
+      ],
+      "id": "f163c91f-444f-45f6-a162-835ca9bd8164",
+      "name": "Create New Rows in Restaurant Table",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "restaurants",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "uber_uuid",
+              "condition": "eq",
+              "keyValue": "={{ $json.uuid }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $json.title }}"
+            },
+            {
+              "fieldId": "clean_name",
+              "fieldValue": "={{ $json.sanitizedTitle }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $json.phoneNumber }}"
+            },
+            {
+              "fieldId": "address_full",
+              "fieldValue": "={{ $json.location.address }}, {{ $json.location.country }}"
+            },
+            {
+              "fieldId": "city",
+              "fieldValue": "={{ $json.location.geo.city }}"
+            },
+            {
+              "fieldId": "state",
+              "fieldValue": "={{ $json.location.region }}"
+            },
+            {
+              "fieldId": "zip_code",
+              "fieldValue": "={{ $json.location.postalCode }}"
+            },
+            {
+              "fieldId": "latitude",
+              "fieldValue": "={{ $json.location.latitude }}"
+            },
+            {
+              "fieldId": "longitude",
+              "fieldValue": "={{ $json.location.longitude }}"
+            },
+            {
+              "fieldId": "rating",
+              "fieldValue": "={{ $json.rating.ratingValue }}"
+            },
+            {
+              "fieldId": "review_count",
+              "fieldValue": "={{ $json.rating.reviewCount }}"
+            },
+            {
+              "fieldId": "is_open",
+              "fieldValue": "={{ $json.isOpen }}"
+            },
+            {
+              "fieldId": "full_menu",
+              "fieldValue": "={{ JSON.stringify($json.menu) }}"
+            },
+            {
+              "fieldId": "distance_miles",
+              "fieldValue": "={{ $json.distance.accessibilityText }}"
+            },
+            {
+              "fieldId": "hero_image_url",
+              "fieldValue": "={{ $json.heroImageUrl }}"
+            },
+            {
+              "fieldId": "delivery_fee",
+              "fieldValue": "={{ $json.fareBadge }}"
+            },
+            {
+              "fieldId": "eta_range",
+              "fieldValue": "={{ $json.etaRange }}"
+            },
+            {
+              "fieldId": "uber_url",
+              "fieldValue": "={{ $json.url }}"
+            },
+            {
+              "fieldId": "catering_menu",
+              "fieldValue": "={{ JSON.stringify($json.featuredItems) }}"
+            },
+            {
+              "fieldId": "store_reviews",
+              "fieldValue": "={{ JSON.stringify($json.storeReviews) }}"
+            },
+            {
+              "fieldId": "featured_reviews",
+              "fieldValue": "={{ JSON.stringify($json.featuredReviews) }}"
+            },
+            {
+              "fieldId": "work_hours",
+              "fieldValue": "={{ JSON.stringify($json.hours) }}"
+            },
+            {
+              "fieldId": "uber_uuid",
+              "fieldValue": "={{ $json.uuid }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        6256,
+        -912
+      ],
+      "id": "93b7f497-a114-402d-8bf7-6f3da97a2331",
+      "name": "Update Rows"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        5104,
+        -1024
+      ],
+      "id": "c9841704-130e-4cea-8800-9c890394a385",
+      "name": "Loop Over Items3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "14110743-c88f-4104-9266-b3f930c36a6e",
+              "name": "title",
+              "value": "={{ $('Loop Over Items3').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "d1ac52b5-8a8d-46a9-a901-c8c34f0e0a9a",
+              "name": "sanitizedTitle",
+              "value": "={{ $('Loop Over Items3').item.json.sanitizedTitle }}",
+              "type": "string"
+            },
+            {
+              "id": "dec26ba0-1eba-4f9b-a113-c0f6f929034c",
+              "name": "phoneNumber",
+              "value": "={{ $('Loop Over Items3').item.json.phoneNumber }}",
+              "type": "string"
+            },
+            {
+              "id": "49681872-6fef-4adc-90a5-9c3ebd538e9a",
+              "name": "emails",
+              "value": "={{ $('Loop Over Items3').item.json.emails }}",
+              "type": "array"
+            },
+            {
+              "id": "1256e619-4e38-4bad-83f5-72a97866fc03",
+              "name": "cuisineList",
+              "value": "={{ $('Loop Over Items3').item.json.cuisineList }}",
+              "type": "array"
+            },
+            {
+              "id": "f8470f36-929d-4bbd-8fe6-581662247e38",
+              "name": "location",
+              "value": "={{ $('Loop Over Items3').item.json.location }}",
+              "type": "object"
+            },
+            {
+              "id": "bbfecc81-7162-4d26-b67f-3697a0247a2e",
+              "name": "currencyCode",
+              "value": "={{ $('Loop Over Items3').item.json.currencyCode }}",
+              "type": "string"
+            },
+            {
+              "id": "0807c6c2-e367-4314-9841-acc25d3b547c",
+              "name": "rating",
+              "value": "={{ $('Loop Over Items3').item.json.rating }}",
+              "type": "string"
+            },
+            {
+              "id": "54ba763c-c8a9-46bd-a2e2-718aa5ad041b",
+              "name": "storeAvailablityStatus",
+              "value": "={{ $('Loop Over Items3').item.json.storeAvailablityStatus }}",
+              "type": "string"
+            },
+            {
+              "id": "ae73be9b-7a48-4a77-8a90-b0633cf4a002",
+              "name": "isOpen",
+              "value": "={{ $('Loop Over Items3').item.json.isOpen }}",
+              "type": "boolean"
+            },
+            {
+              "id": "655acb81-045b-4104-b5ff-d50d617c2c1b",
+              "name": "closedMessage",
+              "value": "={{ $('Loop Over Items3').item.json.closedMessage }}",
+              "type": "string"
+            },
+            {
+              "id": "0080b6a5-ab79-4492-a3d6-4b067dd056f1",
+              "name": "etaRange",
+              "value": "={{ $('Loop Over Items3').item.json.etaRange }}",
+              "type": "string"
+            },
+            {
+              "id": "a7bac271-d0c1-4623-93aa-c038f44758f4",
+              "name": "fareBadge",
+              "value": "={{ $('Loop Over Items3').item.json.fareBadge }}",
+              "type": "string"
+            },
+            {
+              "id": "f5c96fd6-8fa9-4c2f-a0b1-72ea56cbea5d",
+              "name": "hours",
+              "value": "={{ $('Loop Over Items3').item.json.hours }}",
+              "type": "array"
+            },
+            {
+              "id": "dc6c7aee-534d-4e22-8390-00bc398cd8fd",
+              "name": "categories",
+              "value": "={{ $('Loop Over Items3').item.json.categories }}",
+              "type": "array"
+            },
+            {
+              "id": "11d93d61-19c9-42d1-abcd-e512cfd55b43",
+              "name": "categoriesLink",
+              "value": "={{ $('Loop Over Items3').item.json.categoriesLink }}",
+              "type": "array"
+            },
+            {
+              "id": "daeba677-0a02-4177-bb0d-b3f16a0c30ed",
+              "name": "menu",
+              "value": "={{ $('Loop Over Items3').item.json.menu }}",
+              "type": "array"
+            },
+            {
+              "id": "cf0f1beb-82bf-4ca0-a7c4-5fe4c01adda0",
+              "name": "featuredItems",
+              "value": "={{ $('Loop Over Items3').item.json.featuredItems }}",
+              "type": "array"
+            },
+            {
+              "id": "6cd95dc8-0d19-4018-b7dc-c89b7f325be0",
+              "name": "heroImageUrl",
+              "value": "={{ $('Loop Over Items3').item.json.heroImageUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "866f29cc-eab3-491d-891e-74ddd915d515",
+              "name": "uuid",
+              "value": "={{ $('Loop Over Items3').item.json.uuid }}",
+              "type": "string"
+            },
+            {
+              "id": "b832eebb-5dac-4e20-8166-d7dcc8da79ee",
+              "name": "url",
+              "value": "={{ $('Loop Over Items3').item.json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "80ecb3bd-c296-4252-a8f7-fcbedc012156",
+              "name": "distance",
+              "value": "={{ $('Loop Over Items3').item.json.distance }}",
+              "type": "object"
+            },
+            {
+              "id": "7daa5569-b7c8-4a2a-9283-2895e2abbbfb",
+              "name": "supportedDiningModes",
+              "value": "={{ $('Loop Over Items3').item.json.supportedDiningModes }}",
+              "type": "array"
+            },
+            {
+              "id": "40e545c8-5ad1-408a-addc-9fa3b3a9a3e8",
+              "name": "storeReviews",
+              "value": "={{ $('Loop Over Items3').item.json.storeReviews }}",
+              "type": "array"
+            },
+            {
+              "id": "3c4aa933-0b69-4e90-b854-7ee180da914a",
+              "name": "featuredReviews",
+              "value": "={{ $('Loop Over Items3').item.json.featuredReviews }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5488,
+        -880
+      ],
+      "id": "e1a045a2-63de-41ac-9340-fb0c4861027a",
+      "name": "Edit Fields1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4928,
+        -16
+      ],
+      "id": "3f517595-09c5-4a95-b44e-052e48299b0f",
+      "name": "Wait",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7f92ea67-8081-40a5-b077-2de110f4c319",
+              "name": "title",
+              "value": "={{ $('HTTP Request').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "d5d643e4-b2e7-4f25-b0ca-fe3f601dee70",
+              "name": "sanitizedTitle",
+              "value": "={{ $('HTTP Request').item.json.sanitizedTitle }}",
+              "type": "string"
+            },
+            {
+              "id": "5f7d8d47-bc60-46c3-b29a-35be26c219d8",
+              "name": "phoneNumber",
+              "value": "={{ $('HTTP Request').item.json.phoneNumber }}",
+              "type": "string"
+            },
+            {
+              "id": "c567400a-33b1-46ce-975b-197ae4f40458",
+              "name": "emails",
+              "value": "={{ $('HTTP Request').item.json.emails }}",
+              "type": "array"
+            },
+            {
+              "id": "b31813f1-60c5-484b-8608-c48d2264ea76",
+              "name": "cuisineList",
+              "value": "={{ $('HTTP Request').item.json.cuisineList }}",
+              "type": "array"
+            },
+            {
+              "id": "6fd65bf1-553d-40d1-b85d-9033eaf530b4",
+              "name": "location",
+              "value": "={{ $('HTTP Request').item.json.location }}",
+              "type": "object"
+            },
+            {
+              "id": "00780327-3119-4eb3-9756-f3954589fedb",
+              "name": "currencyCode",
+              "value": "={{ $('HTTP Request').item.json.currencyCode }}",
+              "type": "string"
+            },
+            {
+              "id": "8bf0b1ef-573b-4c43-9976-e911316c2f23",
+              "name": "rating",
+              "value": "={{ $('HTTP Request').item.json.rating }}",
+              "type": "object"
+            },
+            {
+              "id": "94f1ce81-955a-404d-9ad7-57716d65ffcc",
+              "name": "storeAvailablityStatus",
+              "value": "={{ $('HTTP Request').item.json.storeAvailablityStatus }}",
+              "type": "string"
+            },
+            {
+              "id": "49e2be4f-23e3-42df-91b6-351f4b505fcf",
+              "name": "isOpen",
+              "value": "={{ $('HTTP Request').item.json.isOpen }}",
+              "type": "boolean"
+            },
+            {
+              "id": "486fc9fc-b590-4b84-b2e6-b958d8a3b3c8",
+              "name": "closedMessage",
+              "value": "={{ $('HTTP Request').item.json.closedMessage }}",
+              "type": "string"
+            },
+            {
+              "id": "7ccda196-8ce0-464a-a47a-db54a7dbfc6e",
+              "name": "etaRange",
+              "value": "={{ $('HTTP Request').item.json.etaRange }}",
+              "type": "string"
+            },
+            {
+              "id": "b484a909-dab6-41fe-b3e9-78a905ec6f87",
+              "name": "fareBadge",
+              "value": "={{ $('HTTP Request').item.json.fareBadge }}",
+              "type": "string"
+            },
+            {
+              "id": "013c083e-a4d0-469f-a9a8-dae51939e427",
+              "name": "hours",
+              "value": "={{ $('HTTP Request').item.json.hours }}",
+              "type": "array"
+            },
+            {
+              "id": "350a7fe4-6dd1-4375-b402-538559809e7d",
+              "name": "categories",
+              "value": "={{ $('HTTP Request').item.json.categories }}",
+              "type": "array"
+            },
+            {
+              "id": "48696143-4010-4b3a-8512-702059665985",
+              "name": "categoriesLink",
+              "value": "={{ $('HTTP Request').item.json.categoriesLink }}",
+              "type": "array"
+            },
+            {
+              "id": "ecd83a42-7df6-46e9-b545-4b8969e50a38",
+              "name": "menu",
+              "value": "={{ $('HTTP Request').item.json.menu }}",
+              "type": "array"
+            },
+            {
+              "id": "a23e4b8a-516e-46cb-a787-707c679309fb",
+              "name": "featuredItems",
+              "value": "={{ $('HTTP Request').item.json.featuredItems }}",
+              "type": "array"
+            },
+            {
+              "id": "060ee14d-c82d-4eec-95d0-101d091d763a",
+              "name": "heroImageUrl",
+              "value": "={{ $('HTTP Request').item.json.heroImageUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "678f9411-c466-4348-949a-55265f3cb550",
+              "name": "uuid",
+              "value": "={{ $('HTTP Request').item.json.uuid }}",
+              "type": "string"
+            },
+            {
+              "id": "f0197735-acea-406a-97c3-dcedc1614407",
+              "name": "url",
+              "value": "={{ $('HTTP Request').item.json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "5f1a2d7f-4ca4-4d54-b299-88d2bf42ee3e",
+              "name": "supportedDiningModes",
+              "value": "={{ $('HTTP Request').item.json.supportedDiningModes }}",
+              "type": "array"
+            },
+            {
+              "id": "cde6b003-877d-4295-95b9-c87ab19e630c",
+              "name": "distance",
+              "value": "={{ $('HTTP Request').item.json.distance }}",
+              "type": "object"
+            },
+            {
+              "id": "151a0bd7-1dba-4a21-915b-52585a7a1fbd",
+              "name": "storeReviews",
+              "value": "={{ $('HTTP Request').item.json.storeReviews }}",
+              "type": "array"
+            },
+            {
+              "id": "e8e427a8-7b0d-4a45-ac4f-e06b6c691247",
+              "name": "featuredReviews",
+              "value": "={{ $('HTTP Request').item.json.featuredReviews }}",
+              "type": "array"
+            },
+            {
+              "id": "143c7da0-ce05-4855-be63-fe4c7b0aae84",
+              "name": "logoImageUrl",
+              "value": "={{ $('HTTP Request').first().json.logoImageUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5136,
+        -16
+      ],
+      "id": "b3a4f2f6-69ea-4895-8d75-2cdcc3726211",
+      "name": "Edit Fields2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e6a784fd-1625-4ee2-b272-89d865b01e37",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        4832,
+        -288
+      ],
+      "id": "f570e3dc-7367-448a-9fb3-6539613fe949",
+      "name": "Filter"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Generate Combinations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Combinations": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Create New Rows in Restaurant Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Update Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Rows in Restaurant Table": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Rows": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items3": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "5525b6cd-760e-49cb-84da-90d01fa8def7",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "hbgn1wRtoEu6hNuz",
+  "tags": []
+}

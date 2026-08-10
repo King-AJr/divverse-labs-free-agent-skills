@@ -1,0 +1,893 @@
+{
+  "name": "Scrape competitor job postings",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        -32
+      ],
+      "id": "16703137-6a13-434e-a9fe-7794c0d206e6",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw",
+          "mode": "list",
+          "cachedResultName": "Price Monitoring",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        -48
+      ],
+      "id": "957fdc1e-72b6-4261-9da7-fa29808bccbc",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "url": "https://api10.unipile.com:14090/api/v1/linkedin/company/vapi-ai",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "account_id",
+              "value": "DzM6_sVXTPm4j5VhYWIvkQ"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-API-KEY",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1632,
+        -528
+      ],
+      "id": "095bf1bd-a02e-4e9e-a9c9-dbf4884bd00c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -1728,
+        496
+      ],
+      "id": "00957680-c82e-4ae0-906f-a5ffa18ac022",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api10.unipile.com:14090/api/v1/linkedin",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-API-KEY",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"account_id\": \"DzM6_sVXTPm4j5VhYWIvkQ\",\n  \"request_url\": \"https://www.linkedin.com/voyager/api/graphql?includeWebMetadata=true&variables=(companyUrn:urn%3Ali%3Afsd_company%3A{{ $json.id }}&queryId=voyagerJobsTalentBrandDashOrganizationJobs.326e1760d35d0283521e8e3ac72cc747\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1312,
+        -496
+      ],
+      "id": "6d28ded9-5aea-4ada-95a9-a01b1568bcd6",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const url = item.json['LinkedIn URL'] || \"\";\n  let identifier = \"\";\n\n  try {\n    const match = url.match(/linkedin\\.com\\/company\\/([^\\/?#]+)/i);\n    if (match && match[1]) {\n      identifier = match[1];\n    }\n  } catch (e) {\n    identifier = \"\";\n  }\n\n  return {\n    json: {\n      ...item.json,\n      companyIdentifier: identifier\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -48
+      ],
+      "id": "defd9e6f-4061-4a58-a2fe-c3bc5361e607",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "profileName": "my-linkedin-profile",
+        "timeoutMinutes": 30,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        864,
+        -48
+      ],
+      "id": "218390f5-9345-4b6d-ad1e-75aca63c25f6",
+      "name": "Create a session"
+    },
+    {
+      "parameters": {
+        "resource": "window",
+        "url": "={{ $('Get row(s) in sheet').item.json['LinkedIn URL'] }}",
+        "getLiveView": true,
+        "includeNavigationBar": true,
+        "screenResolution": "1280x720",
+        "additionalFields": {
+          "waitUntil": "load"
+        }
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        -48
+      ],
+      "id": "c51a64a1-57bd-42c2-a473-15d78e5222a6",
+      "name": "Create a window"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "operation": "fill",
+        "formData": "\"Email or Phone: alabiayomide14@gmail.com, Password: REDACTED\""
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        -48
+      ],
+      "id": "1a7d0bbf-38bd-40a1-9915-3ad5991ce9da",
+      "name": "Fill form"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the \"sign in\" button on the pop up sign in page",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        -48
+      ],
+      "id": "91749b79-342b-4289-bbd3-5458a1e52c7e",
+      "name": "Click Sign in",
+      "retryOnFail": false,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "terminate"
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -1536,
+        240
+      ],
+      "id": "1a2ae824-bbb0-46e4-9570-26611cc582ca",
+      "name": "Terminate a session"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the blue \"sign in\" button",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        1728,
+        -48
+      ],
+      "id": "5b4fe793-e8d1-449c-8ec6-1c955f8f7be6",
+      "name": "Click Sign in1",
+      "retryOnFail": false,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the visible text ‘Jobs’ at the horizontal navigation menu directly below the company’s banner (where it shows tabs like Home, About, Posts, Products, Jobs, Life, People, Insights)",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        1904,
+        -48
+      ],
+      "id": "51880703-ab17-4962-9211-5abbe3641c11",
+      "name": "Click Sign in2",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get raw scraped text\nconst text = $input.first().json.data?.modelResponse?.scrapedContent?.text || \"\";\n\n// Regex to capture job blocks: [**Job Title** ...](Job URL)\nconst jobRegex = /\\[\\*\\*(.*?)\\*\\*.*?\\]\\((https:\\/\\/www\\.linkedin\\.com\\/jobs\\/view\\/[^\\)]+)\\)[\\s\\S]*?(?=Vapi|\\n\\*)/g;\n\nlet results = [];\nlet match;\n\nwhile ((match = jobRegex.exec(text)) !== null) {\n  const title = match[1].trim();\n  const url = match[2].trim();\n\n  // Try to capture location (e.g., \"San Francisco, CA (On-site)\")\n  const locMatch = text.slice(match.index, jobRegex.lastIndex).match(/San Francisco.*?\\)/);\n  const location = locMatch ? locMatch[0].trim() : \"\";\n\n  results.push({\n    jobTitle: title,\n    company: $('Loop Over Items').first().json.Name, // static here, but can expand to parse dynamic company names\n    location,\n    url\n  });\n}\n\n// Return each as an item\nreturn results.map(job => ({ json: job }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2704,
+        -64
+      ],
+      "id": "3304e9c1-6dc4-4bc8-a535-edaab267f7df",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "elementDescription": "the visible text ‘Show all jobs’ just below the jobs displayed",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        2096,
+        -48
+      ],
+      "id": "4d1e1c77-8fd7-4748-9c9a-32fb91aab56b",
+      "name": "Click show all jobs",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw scraped text\nconst raw = $input.first().json.data.modelResponse.scrapedContent.text;\n\n// Regex to capture profiles\n// Pattern: [Name](profileUrl) ... Headline ... Location\nconst profileRegex = /\\[([^\\]]+)\\]\\((https:\\/\\/www\\.linkedin\\.com\\/in\\/[^\\)]+)\\)[\\s\\S]*?\\n\\n([^\\n]+)\\n\\n([^\\n]+, [^\\n]+(?:, [^\\n]+)?)/g;\n\nlet matches;\nconst results = [];\n\nwhile ((matches = profileRegex.exec(raw)) !== null) {\n  const name = matches[1]?.trim() || \"\";\n  const profileUrl = matches[2]?.trim() || \"\";\n  const headline = matches[3]?.trim() || \"\";\n  const location = matches[4]?.trim() || \"\";\n\n  results.push({\n    json: {\n      name,\n      profileUrl,\n      headline,\n      location\n    }\n  });\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1248,
+        400
+      ],
+      "id": "8fdb5a1c-4f92-4490-bcf0-a3637dc30acc",
+      "name": "Code3",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "extraction",
+        "operation": "scrape"
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        2512,
+        -48
+      ],
+      "id": "0304c28e-543d-4447-8013-25c83b37a081",
+      "name": "Smart scrape page"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2304,
+        -48
+      ],
+      "id": "7624688d-7cb4-43b0-a36e-f2f8ed25078e",
+      "name": "Wait"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw",
+          "mode": "list",
+          "cachedResultName": "Price Monitoring",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 272758687,
+          "mode": "list",
+          "cachedResultName": "Job Listings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit#gid=272758687"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "jobTitle": "={{ $json.jobTitle }}",
+            "company": "={{ $json.company }}",
+            "url": "={{ $json.url }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "jobTitle",
+              "displayName": "jobTitle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2912,
+        -64
+      ],
+      "id": "1f4ed260-bd7e-4600-a0fd-2e027801ed0e",
+      "name": "Append row in sheet"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        416,
+        -48
+      ],
+      "id": "55539eb1-00ed-40f2-9650-c424e93c8c37",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "terminate",
+        "sessionId": "={{ $('Smart scrape page').item.json.sessionId }}"
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        3328,
+        -64
+      ],
+      "id": "b515ec8e-fc47-4daa-ad27-a52dab420382",
+      "name": "Terminate a session1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw",
+          "mode": "list",
+          "cachedResultName": "Price Monitoring",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 272758687,
+          "mode": "list",
+          "cachedResultName": "Job Listings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N_H1DCAVv9_ZlmXi5xkq-FAojLWELtm6s0xL0JoiFUw/edit#gid=272758687"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        -272
+      ],
+      "id": "776a5e73-4672-40d0-b64e-c76a559d1c75",
+      "name": "Get row(s) in sheet1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -144
+      ],
+      "id": "e968c35c-f739-46d6-8c88-16ace18e7e11",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        -272
+      ],
+      "id": "a0c43f67-3704-46d8-8389-6f972efd51e0",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        -64
+      ],
+      "id": "eb1a1a4e-45ab-4998-9a7c-8a6e53de9e73",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Code2').item.json.jobs }}",
+        "options": {
+          "systemMessage": "=You are a strategy analyst creating an executive briefing.  \n\nYou will receive a JSON array of competitor job postings. Each posting has:  \n- jobTitle  \n- company  \n\nYour job is to analyze the postings and generate a structured summary for each competitor.\n\nFor EACH competitor:\n1. List the recent job titles they are hiring for.  \n2. Identify the main hiring focus areas (e.g. engineering, AI/ML, sales, customer support, marketing, operations).  \n3. Infer what this hiring focus suggests about their **product roadmap**.  \n   - Example: Hiring multiple AI engineers → investing in AI features.  \n   - Example: Hiring customer success managers → scaling customer base or addressing churn.  \n4. Infer what this hiring suggests about their **go-to-market (GTM) priorities**.  \n   - Example: Hiring SDRs/Account Executives → outbound sales push.  \n   - Example: Hiring regional roles → geographic expansion.  \n5. Highlight any **notable patterns** (e.g. repeated job types, clusters in one function, sudden senior hires).  \n6. Present **strategic insights** that our executives should know.\n\n### Output Format\nReturn a structured summary in clean HTML so it can be sent directly in an email:\n\n<h2>🏢 {Competitor Name}</h2>\n<ul>\n  <li><b>Recent Roles:</b> [list of job titles]</li>\n  <li><b>Hiring Focus:</b> [summary of focus areas]</li>\n  <li><b>🗺️ Inferred Product Roadmap:</b> [insights]</li>\n  <li><b>🚀 Inferred GTM Priorities:</b> [insights]</li>\n  <li><b>🔎 Notable Patterns:</b> [list or \"None\"]</li>\n  <li><b>📊 Strategic Insights:</b> [summary]</li>\n</ul>\n\n### Important:\n- Cover ALL competitors present in the data.  \n- If no clear insight is possible, explicitly write \"None\" instead of leaving blank.  \n- Do not output any explanations or text outside of the required format.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        -400
+      ],
+      "id": "bdce951f-3529-495a-bc11-1f5a9768978f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate job titles and companies into one item\n\n// Extract rows from input (Google Sheets puts them under items[0].json.data)\nconst rows = items[0].json.data || [];\n\nconst aggregated = rows.map(row => {\n  return {\n    jobTitle: row.jobTitle,\n    company: row.company\n  };\n});\n\n// Option 1: Just return array of jobTitle + company\nreturn [\n  {\n    json: {\n      jobs: aggregated,\n      totalJobs: aggregated.length\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        -272
+      ],
+      "id": "97be18f8-eae5-4d58-874d-b86d4f42fc16",
+      "name": "Code2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1712,
+        -272
+      ],
+      "id": "dd9ba42b-5527-4374-a398-325c54129076",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1872,
+        -224
+      ],
+      "id": "8445a787-e5cc-4261-b9bf-2ef0d53edd0d",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "sendTo": "alabiayomide14@gmail.com",
+        "subject": "Competitor Job Postings Analysis",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1408,
+        -800
+      ],
+      "id": "871a2009-da71-44a9-8be3-110dd3c67a39",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "tableId": "Insights Table",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "insight_type",
+              "fieldValue": "Job listings"
+            },
+            {
+              "fieldId": "content",
+              "fieldValue": "={{ $('AI Agent').first().json.output }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2352,
+        -384
+      ],
+      "id": "d0f47767-f1e6-47df-a40a-4e59f2d47f84",
+      "name": "Create a row1"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a session": {
+      "main": [
+        [
+          {
+            "node": "Create a window",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a window": {
+      "main": [
+        [
+          {
+            "node": "Click Sign in",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fill form": {
+      "main": [
+        [
+          {
+            "node": "Click Sign in1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click Sign in": {
+      "main": [
+        [
+          {
+            "node": "Fill form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click Sign in1": {
+      "main": [
+        [
+          {
+            "node": "Click Sign in2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click Sign in2": {
+      "main": [
+        [
+          {
+            "node": "Click show all jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click show all jobs": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Smart scrape page": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Smart scrape page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Terminate a session1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Terminate a session1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "7ead5bde-3a05-4c9a-9435-c30a2301088b",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "ssXTAxZWhp1NFK4Z",
+  "tags": []
+}

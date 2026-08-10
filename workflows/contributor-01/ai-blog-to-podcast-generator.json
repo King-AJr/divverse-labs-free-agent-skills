@@ -1,0 +1,285 @@
+{
+  "name": "AI_Blog_to_Podcast_Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -340,
+        -40
+      ],
+      "id": "6a4db08f-2585-4cda-bb62-8d099765c68e",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The URL to scrape is:\n{{ $json.body.url }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an AI agent that converts blogs to podcasts.\n\nInstructions:\n1️⃣ Use the Firecrawl tool to scrape the full, clean main content of the blog from the URL provided by the user. Extract in **Markdown format** for clarity and structured parsing.\n\n2️⃣ After scraping, generate a **concise, engaging, conversational summary** of the blog within **2000 characters** (including spaces) so that it fits within audio generation or transcription limits.\n\n3️⃣ Ensure the summary:\n- Captures the **key points** of the blog accurately.\n- Feels **conversational and engaging**, like you are explaining the blog to a friend.\n- Is **well-structured** with clear flow.\n\n4️⃣ Output ONLY the **final summary** in plain text, without extra explanations, headings, or sections.\n\nThe URL to scrape is: \n{{ $json.body.url }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -120,
+        -40
+      ],
+      "id": "8f7e6679-cb36-499d-bf4b-884f8b3b9203",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        160
+      ],
+      "id": "10304283-49ef-4ecd-bb29-16f57dd317b9",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "Authorization",
+              "valueProvider": "fieldValue",
+              "value": "Bearer REDACTED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.body.url }}\",\n  \"onlyMainContent\": true,\n  \"parsePDF\": true,\n  \"removeBase64Images\": true,\n  \"blockAds\": true,\n  \"storeInCache\": true,\n  \"formats\": [\"markdown\"],\n  \"location\": {\n    \"country\": \"US\",\n    \"languages\": [\"en-US\"]\n  },\n  \"timeout\": 30000\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        -20,
+        180
+      ],
+      "id": "cceb45c6-6e15-4d23-aff6-b229387e176b",
+      "name": "FireCrawl Tool"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"summary\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        120,
+        160
+      ],
+      "id": "c8507fe2-248b-4883-8ae2-b6b99ff12831",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "model": "tts-1-hd",
+        "input": "={{ $json.output.summary }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        220,
+        -40
+      ],
+      "id": "48ec3056-19f7-46a3-8f9c-08aee38dbb15",
+      "name": "Generate Audio"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        -40
+      ],
+      "id": "075127a2-b676-4132-bb35-ac741d921ed3",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://wtqxmbanafdlxhznoprp.supabase.co/storage/v1/object/blog-to-podcast/audio-{{ $now.toFormat('yyyyMMddHHmmss') }}.mp3",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "REDACTED_JWT"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED"
+            },
+            {
+              "name": "Content-Type",
+              "value": "audio/mpeg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        -40
+      ],
+      "id": "856564be-31a6-4e57-907a-4067cd0587a1",
+      "name": "Upload to Supabase"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6387f820-5bee-4172-a5b9-57f50a6f4bd8",
+              "name": "publicUrl",
+              "value": "=https://wtqxmbanafdlxhznoprp.supabase.co/storage/v1/object/public/{{$json[\"Key\"]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        600,
+        -40
+      ],
+      "id": "f947b334-01cf-4d31-a26a-a4f71cdb5d65",
+      "name": "Construct public url"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FireCrawl Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Generate Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Audio": {
+      "main": [
+        [
+          {
+            "node": "Upload to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Construct public url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construct public url": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "3ea61f26-b0e3-424a-9317-85bd75d176b7",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "MqYCsMFlwty2fdiU",
+  "tags": []
+}

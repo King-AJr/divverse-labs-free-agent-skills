@@ -1,0 +1,97 @@
+{
+  "name": "JD Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Recruitment Sourcing Form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Job Title",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Job Description Upload (File upload - PDF only)",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Location",
+              "placeholder": "Nigeria, United States"
+            },
+            {
+              "fieldLabel": "Company Name"
+            },
+            {
+              "fieldLabel": "Company Website"
+            },
+            {
+              "fieldLabel": "Recruiter name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Recruiter email",
+              "fieldType": "email",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -1440,
+        288
+      ],
+      "id": "412f4333-f6ef-44df-808f-cab1b5adfa94",
+      "name": "On form submission"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "=Job_Description_Upload__File_upload___PDF_only_",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1264,
+        288
+      ],
+      "id": "9b033756-25c4-4c51-ab7f-9f42866a1cad",
+      "name": "Extract from PDF"
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from PDF": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "fc61dd88-3410-43cf-a464-94f899dbb430",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "WRokqtAAtmdHywzA",
+  "tags": []
+}

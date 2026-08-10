@@ -1,0 +1,339 @@
+{
+  "name": "LinkedIn DM Sent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REDACTED_WEBHOOK_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -496,
+        336
+      ],
+      "id": "efc65538-0728-4240-8c50-b77afbfb2938",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code node (JavaScript)\n\nconst results = JSON.parse($json.body.resultObject); // parse the stringified array\n\n// For each connection request, create a separate output item\nreturn results.map(req => {\n  return {\n    json: {\n      fullName: req.fullName,\n      firstName: req.firstName,\n      lastName: req.lastName,\n      profileUrl: req.profileUrl,\n      title: req.title,\n      sentDate: req.sentDate,\n      message: req.message,\n      profilePictureUrl: req.profilePictureUrl,\n      timestamp: req.timestamp\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        336
+      ],
+      "id": "e0a8e5ed-dc4c-432e-8649-b8decfb9e74e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1lzEVIOitjdJqH2sDhkGFHXbjeFn1ulNKu_RojHWmTp4",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Event Attendees",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lzEVIOitjdJqH2sDhkGFHXbjeFn1ulNKu_RojHWmTp4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1928659533,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lzEVIOitjdJqH2sDhkGFHXbjeFn1ulNKu_RojHWmTp4/edit#gid=1928659533"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        128,
+        336
+      ],
+      "id": "1819814f-1d05-40b8-8b9b-8dc5c747ee1c",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "profileUrl"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        336
+      ],
+      "id": "659f0bc3-3579-4980-b7ee-117202cece39",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "47431e97-d070-448a-90b3-c3f3c4f70b48",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "connection accepted",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "69110350-90a3-4220-ba66-a575414ceed2",
+              "leftValue": "={{ JSON.stringify($('Aggregate').item.json.profileUrl) }}",
+              "rightValue": "={{ $json.profileUrl }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        336,
+        336
+      ],
+      "id": "63ce42ad-d516-4cde-8ef9-1b94a184e99b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1lzEVIOitjdJqH2sDhkGFHXbjeFn1ulNKu_RojHWmTp4",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Event Attendees",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lzEVIOitjdJqH2sDhkGFHXbjeFn1ulNKu_RojHWmTp4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1928659533,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lzEVIOitjdJqH2sDhkGFHXbjeFn1ulNKu_RojHWmTp4/edit#gid=1928659533"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "profileUrl": "={{ $json.profileUrl }}",
+            "status": "message sent"
+          },
+          "matchingColumns": [
+            "profileUrl"
+          ],
+          "schema": [
+            {
+              "id": "fullName",
+              "displayName": "fullName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "firstName",
+              "displayName": "firstName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lastName",
+              "displayName": "lastName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job",
+              "displayName": "job",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "profileUrl",
+              "displayName": "profileUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "degree",
+              "displayName": "degree",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "eventName",
+              "displayName": "eventName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "eventUrl",
+              "displayName": "eventUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "eventLocation",
+              "displayName": "eventLocation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Icebreaker",
+              "displayName": "Icebreaker",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        544,
+        240
+      ],
+      "id": "63ef73da-79d7-459f-ada7-5ba226d578b9",
+      "name": "Append or update row in sheet"
+    }
+  ],
+  "connections": {
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "9220e0dc-3f5d-473e-9cbc-015b9798844c",
+  "meta": null,
+  "id": "nlpZqxdVmzL43uJz",
+  "tags": []
+}
