@@ -1,0 +1,12 @@
+{
+  "name":"Outbound LinkedIn Jobs",
+  "active":false,
+  "nodes":[
+    {"parameters":{"httpMethod":"POST","path":"linkedin-jobs","options":{}},"type":"n8n-nodes-base.webhook","typeVersion":2.1,"position":[-336,-112],"id":"linkedin-jobs-webhook","name":"Get LinkedIn Jobs"},
+    {"parameters":{"httpMethod":"POST","path":"get-phone-numbers","options":{}},"type":"n8n-nodes-base.webhook","typeVersion":2.1,"position":[112,48],"id":"phone-number-webhook","name":"Get Phone Numbers","disabled":true}
+  ],
+  "connections":{},
+  "settings":{"executionOrder":"v1"},
+  "pinData":{},
+  "tags":[]
+}
