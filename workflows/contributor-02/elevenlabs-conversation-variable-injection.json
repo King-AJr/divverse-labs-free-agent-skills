@@ -1,0 +1,11 @@
+{
+  "name":"ElevenLabs Conversation Variable Injection",
+  "active":false,
+  "nodes":[
+    {"parameters":{"httpMethod":"POST","path":"elevenlabs-insert-name","responseMode":"responseNode","options":{}},"type":"n8n-nodes-base.webhook","typeVersion":2.1,"position":[0,0],"id":"elevenlabs-webhook","name":"Triggered From ElevenLabs To Insert Name"},
+    {"parameters":{"documentId":{"__rl":true,"value":"REPLACE_WITH_ELEVENLABS_MEETING_SHEET_ID","mode":"id"},"sheetName":{"__rl":true,"value":"Sheet1","mode":"name"},"filtersUI":{"values":[{"lookupColumn":"Phone Number","lookupValue":"={{ $json.body.called_number }}"}]},"options":{}},"type":"n8n-nodes-base.googleSheets","typeVersion":4.7,"position":[224,0],"id":"lookup-contact","name":"Get row(s) in sheet"},
+    {"parameters":{"respondWith":"json","responseBody":"={\"type\":\"conversation_initiation_client_data\",\"dynamic_variables\":{\"message\":\"Hi is this {{ $json['First Name'] }}?\",\"start_time\":\"{{ $json['Meeting Start Time'] }}\",\"time_before_meeting\":\"{{ $json['Time Before Meeting'] }}\",\"full_name\":\"{{ $json['Full Name'] }}\",\"contactId\":\"{{ $json['Contact ID'] }}\",\"calendarId\":\"{{ $json['Calendar ID'] }}\",\"appointmentId\":\"{{ $json['Appointment ID'] }}\",\"locationId\":\"{{ $json['Location ID'] }}\"}}","options":{}},"type":"n8n-nodes-base.respondToWebhook","typeVersion":1.4,"position":[448,0],"id":"respond","name":"Respond to Webhook"}
+  ],
+  "connections":{"Triggered From ElevenLabs To Insert Name":{"main":[[{"node":"Get row(s) in sheet","type":"main","index":0}]]},"Get row(s) in sheet":{"main":[[{"node":"Respond to Webhook","type":"main","index":0}]]}},
+  "settings":{"executionOrder":"v1"},"pinData":{},"tags":[]
+}
