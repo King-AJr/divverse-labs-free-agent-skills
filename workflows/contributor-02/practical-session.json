@@ -1,0 +1,11 @@
+{
+  "name":"Practical Session",
+  "active":false,
+  "nodes":[
+    {"parameters":{},"type":"n8n-nodes-base.manualTrigger","typeVersion":1,"position":[0,0],"id":"manual-trigger","name":"When clicking ‘Execute workflow’"},
+    {"parameters":{"method":"POST","url":"https://api.apify.com/v2/acts/curious_coder~linkedin-jobs-scraper/run-sync-get-dataset-items?token=REDACTED_APIFY_API_TOKEN","sendBody":true,"specifyBody":"json","jsonBody":"{\n  \"count\": 100,\n  \"scrapeCompany\": true,\n  \"urls\": [\n    \"REPLACE_WITH_LINKEDIN_JOBS_SEARCH_URL\"\n  ]\n}","options":{}},"type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[224,0],"id":"scrape-jobs","name":"Scrape Linked Jobs with Apify"},
+    {"parameters":{"operation":"append","documentId":{"__rl":true,"value":"REPLACE_WITH_LINKEDIN_JOBS_SHEET_ID","mode":"id"},"sheetName":{"__rl":true,"value":"Sheet1","mode":"name"},"columns":{"mappingMode":"defineBelow","value":{"Job Link":"={{ $json.link }}","Company Name":"={{ $json.companyName }}","Company LinkedIn URL":"={{ $json.companyLinkedinUrl }}","Title":"={{ $json.title }}","Location":"={{ $json.location }}","Date Posted":"={{ $json.postedAt }}"},"matchingColumns":["Job Link"],"schema":[],"attemptToConvertTypes":false,"convertFieldsToString":false},"options":{}},"type":"n8n-nodes-base.googleSheets","typeVersion":4.7,"position":[448,0],"id":"save-jobs","name":"Save LinkedIn Jobs"}
+  ],
+  "connections":{"When clicking ‘Execute workflow’":{"main":[[{"node":"Scrape Linked Jobs with Apify","type":"main","index":0}]]},"Scrape Linked Jobs with Apify":{"main":[[{"node":"Save LinkedIn Jobs","type":"main","index":0}]]}},
+  "settings":{"executionOrder":"v1"},"pinData":{},"tags":[]
+}
