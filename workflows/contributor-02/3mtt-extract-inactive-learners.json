@@ -1,0 +1,50 @@
+{
+  "name": "3MTT - Extract Inactive Learners",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {"inputSource": "passthrough"},
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "id": "when-executed",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2},
+          "conditions": [
+            {
+              "id": "inactive-by-date",
+              "leftValue": "={{ $json.last_loggedin_date }}",
+              "rightValue": "={{ $now.minus(14, 'days') }}",
+              "operator": {"type": "dateTime", "operation": "beforeOrEquals"}
+            },
+            {
+              "id": "never-logged-in",
+              "leftValue": "={{ $json.last_loggedin_date }}",
+              "rightValue": "",
+              "operator": {"type": "dateTime", "operation": "empty", "singleValue": true}
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [224, 0],
+      "id": "select-inactive-learners",
+      "name": "Select Inactive Learners"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [[{"node": "Select Inactive Learners", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {"executionOrder": "v1"},
+  "pinData": {},
+  "tags": []
+}
