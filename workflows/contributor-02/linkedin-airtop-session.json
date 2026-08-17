@@ -1,0 +1,13 @@
+{
+  "name":"LinkedIn Airtop Session",
+  "active":false,
+  "nodes":[
+    {"parameters":{"workflowInputs":{"values":[{"name":"url"},{"name":"profile"}]}},"type":"n8n-nodes-base.executeWorkflowTrigger","typeVersion":1.1,"position":[0,0],"id":"workflow-trigger","name":"When Executed by Another Workflow"},
+    {"parameters":{"profileName":"={{ $json.profile }}","saveProfileOnTermination":true},"type":"n8n-nodes-base.airtop","typeVersion":1,"position":[224,0],"id":"browser-session","name":"Create Browser Session"},
+    {"parameters":{"resource":"window","url":"={{ $('When Executed by Another Workflow').item.json.url }}","getLiveView":true,"additionalFields":{}},"type":"n8n-nodes-base.airtop","typeVersion":1,"position":[448,0],"id":"browser-window","name":"Create Browser Window"},
+    {"parameters":{"authentication":"oAuth2","select":"channel","channelId":{"__rl":true,"value":"REPLACE_WITH_SLACK_CHANNEL_ID","mode":"id"},"text":"=Click to view live browser interaction: {{ $json.data.liveViewUrl }}","otherOptions":{"includeLinkToWorkflow":false}},"type":"n8n-nodes-base.slack","typeVersion":2.3,"position":[672,0],"id":"live-view","name":"Send Live View URL"},
+    {"parameters":{"assignments":{"assignments":[{"name":"sessionId","value":"={{ $('Create Browser Window').item.json.sessionId }}","type":"string"},{"name":"windowId","value":"={{ $('Create Browser Window').item.json.windowId }}","type":"string"},{"name":"output","value":"session and window created successfully","type":"string"}]},"options":{}},"type":"n8n-nodes-base.set","typeVersion":3.4,"position":[896,0],"id":"session-output","name":"Set SessionId and WindowId"}
+  ],
+  "connections":{"When Executed by Another Workflow":{"main":[[{"node":"Create Browser Session","type":"main","index":0}]]},"Create Browser Session":{"main":[[{"node":"Create Browser Window","type":"main","index":0}]]},"Create Browser Window":{"main":[[{"node":"Send Live View URL","type":"main","index":0}]]},"Send Live View URL":{"main":[[{"node":"Set SessionId and WindowId","type":"main","index":0}]]}},
+  "settings":{"executionOrder":"v1"},"pinData":{},"tags":[]
+}
