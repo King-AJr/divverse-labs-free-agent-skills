@@ -1,0 +1,12 @@
+{
+  "name":"Weekly Report Trigger",
+  "active":false,
+  "nodes":[
+    {"parameters":{"rule":{"interval":[{"field":"weeks","triggerAtDay":[5]}]}},"type":"n8n-nodes-base.scheduleTrigger","typeVersion":1.2,"position":[0,0],"id":"weekly-trigger","name":"Schedule Trigger"},
+    {"parameters":{"documentId":{"__rl":true,"value":"REPLACE_WITH_DECISION_MAKER_SHEET_ID","mode":"id"},"sheetName":{"__rl":true,"value":"Contacts (Verified)","mode":"name"},"filtersUI":{"values":[{"lookupColumn":"Email Verified","lookupValue":"Yes"}]},"options":{}},"type":"n8n-nodes-base.googleSheets","typeVersion":4.7,"position":[224,0],"id":"verified-contacts","name":"Google Sheets","alwaysOutputData":true},
+    {"parameters":{"jsCode":"const companies=new Set(),emails=new Set(); for(const item of $input.all()){const domain=item.json['Company Domain']; const email=item.json['Email Address']; if(domain)companies.add(domain); if(email)emails.add(email);} return [{json:{message:`This week we discovered ${emails.size} decision makers from ${companies.size} companies.`,companies:companies.size,contacts:emails.size}}];"},"type":"n8n-nodes-base.code","typeVersion":2,"position":[448,0],"id":"metrics","name":"Code"},
+    {"parameters":{"authentication":"oAuth2","select":"channel","channelId":{"__rl":true,"value":"REPLACE_WITH_SLACK_CHANNEL_ID","mode":"id"},"text":"={{ $json.message }}","otherOptions":{"includeLinkToWorkflow":true}},"type":"n8n-nodes-base.slack","typeVersion":2.3,"position":[672,0],"id":"slack-report","name":"Slack"}
+  ],
+  "connections":{"Schedule Trigger":{"main":[[{"node":"Google Sheets","type":"main","index":0}]]},"Google Sheets":{"main":[[{"node":"Code","type":"main","index":0}]]},"Code":{"main":[[{"node":"Slack","type":"main","index":0}]]}},
+  "settings":{"executionOrder":"v1"},"pinData":{},"tags":[]
+}
