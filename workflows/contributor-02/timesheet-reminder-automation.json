@@ -1,0 +1,11 @@
+{
+  "name":"Timesheet Reminder Automation",
+  "active":false,
+  "nodes":[
+    {"parameters":{"rule":{"interval":[{"field":"cronExpression","expression":"=0 9 * * *"}]}},"type":"n8n-nodes-base.scheduleTrigger","typeVersion":1.2,"position":[-80,-32],"id":"schedule-trigger","name":"Schedule Trigger"},
+    {"parameters":{"jsCode":"const today=new Date(); const year=today.getFullYear(); const month=today.getMonth()+1; const lastDay=new Date(year,month,0).getDate(); const diff=lastDay-today.getDate(); return diff===3?[{json:{trigger:true}}]:[];"},"type":"n8n-nodes-base.code","typeVersion":2,"position":[176,-32],"id":"month-end-check","name":"Check if today is 3 days from month end"},
+    {"parameters":{"select":"channel","channelId":{"__rl":true,"value":"REPLACE_WITH_SLACK_CHANNEL_ID","mode":"id"},"text":"=:alarm_clock: *Reminder — Please submit your timesheets!*\n\nHey <!everyone> 👋\n\nThis is a friendly reminder to submit your *timesheets for all billable projects* before month-end. 🧾\n\n*🗓️ Deadline:* End of this month\nLet's make sure everything is logged on time — thank you! 🙌","otherOptions":{"includeLinkToWorkflow":false}},"type":"n8n-nodes-base.slack","typeVersion":2.3,"position":[400,-32],"id":"send-reminder","name":"Send Timesheet Reminder"}
+  ],
+  "connections":{"Schedule Trigger":{"main":[[{"node":"Check if today is 3 days from month end","type":"main","index":0}]]},"Check if today is 3 days from month end":{"main":[[{"node":"Send Timesheet Reminder","type":"main","index":0}]]}},
+  "settings":{"executionOrder":"v1"},"pinData":{},"tags":[]
+}
