@@ -1,0 +1,12 @@
+{
+  "name":"Automation Course Random Team Selector",
+  "active":false,
+  "nodes":[
+    {"parameters":{},"type":"n8n-nodes-base.manualTrigger","typeVersion":1,"position":[0,0],"id":"manual-trigger","name":"When clicking ‘Execute workflow’"},
+    {"parameters":{"documentId":{"__rl":true,"value":"REPLACE_WITH_TEAM_RESPONSES_SHEET_ID","mode":"id"},"sheetName":{"__rl":true,"value":"Form Responses 1","mode":"name"},"options":{}},"type":"n8n-nodes-base.googleSheets","typeVersion":4.7,"position":[224,0],"id":"get-teams","name":"Get All Teams"},
+    {"parameters":{"jsCode":"const rows=$input.all(); const unique=[...new Set(rows.map(r=>r.json['Team name']).filter(Boolean))]; const shuffled=unique.map(value=>({value,sort:Math.random()})).sort((a,b)=>a.sort-b.sort).map(x=>x.value); const selected=shuffled.slice(0,7); const now=new Date(); const ts=now.toISOString().replace('T',' ').slice(0,16); const formattedMessage=['🎉 SELECTED TEAMS','',`Date/Time: ${ts}`,'',...selected.map((t,i)=>`${i+1}. ${t}`),'','Congratulations to all selected teams!'].join('\\n'); return [{json:{teams:selected,formattedMessage}}];"},"type":"n8n-nodes-base.code","typeVersion":2,"position":[448,0],"id":"select-teams","name":"Select 7 Random Teams"},
+    {"parameters":{"operation":"update","documentURL":"REPLACE_WITH_GOOGLE_DOC_URL","actionsUi":{"actionFields":[{"action":"insert","text":"={{ $json.formattedMessage }}"}]}},"type":"n8n-nodes-base.googleDocs","typeVersion":2,"position":[672,0],"id":"save-teams","name":"Save Selected Teams"}
+  ],
+  "connections":{"When clicking ‘Execute workflow’":{"main":[[{"node":"Get All Teams","type":"main","index":0}]]},"Get All Teams":{"main":[[{"node":"Select 7 Random Teams","type":"main","index":0}]]},"Select 7 Random Teams":{"main":[[{"node":"Save Selected Teams","type":"main","index":0}]]}},
+  "settings":{"executionOrder":"v1"},"pinData":{},"tags":[]
+}
